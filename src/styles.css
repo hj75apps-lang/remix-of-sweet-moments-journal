@@ -1,0 +1,193 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --shadow-card: var(--shadow-card);
+}
+
+:root {
+  --radius: 1.5rem;
+  --background: oklch(0.13 0.005 260);
+  --foreground: oklch(0.96 0.005 260);
+  --card: oklch(0.19 0.008 260);
+  --card-foreground: oklch(0.96 0.005 260);
+  --popover: oklch(0.21 0.008 260);
+  --popover-foreground: oklch(0.96 0.005 260);
+  --primary: oklch(0.76 0.15 65);
+  --primary-foreground: oklch(0.18 0.02 60);
+  --secondary: oklch(0.24 0.008 260);
+  --secondary-foreground: oklch(0.96 0.005 260);
+  --muted: oklch(0.24 0.008 260);
+  --muted-foreground: oklch(0.68 0.01 260);
+  --accent: oklch(0.27 0.01 260);
+  --accent-foreground: oklch(0.96 0.005 260);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.72 0.15 150);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.76 0.15 65);
+  --chart-1: oklch(0.76 0.15 65);
+  --chart-2: oklch(0.7 0.12 200);
+  --chart-3: oklch(0.6 0.1 260);
+  --chart-4: oklch(0.8 0.15 90);
+  --chart-5: oklch(0.65 0.2 25);
+  --sidebar: oklch(0.16 0.006 260);
+  --sidebar-foreground: oklch(0.96 0.005 260);
+  --sidebar-primary: oklch(0.76 0.15 65);
+  --sidebar-primary-foreground: oklch(0.18 0.02 60);
+  --sidebar-accent: oklch(0.24 0.008 260);
+  --sidebar-accent-foreground: oklch(0.96 0.005 260);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.76 0.15 65);
+  --shadow-card: 0 12px 32px -16px oklch(0 0 0 / 60%);
+  --gradient-map: radial-gradient(circle at 30% 30%, oklch(0.24 0.02 230), oklch(0.16 0.01 260) 70%);
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+.light {
+  --background: oklch(0.96 0.003 260);
+  --foreground: oklch(0.2 0.01 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 260);
+  --primary: oklch(0.68 0.16 60);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.93 0.004 260);
+  --secondary-foreground: oklch(0.2 0.01 260);
+  --muted: oklch(0.93 0.004 260);
+  --muted-foreground: oklch(0.48 0.01 260);
+  --accent: oklch(0.9 0.006 260);
+  --accent-foreground: oklch(0.2 0.01 260);
+  --border: oklch(0 0 0 / 8%);
+  --input: oklch(0 0 0 / 12%);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.2 0.01 260);
+  --sidebar-primary: oklch(0.68 0.16 60);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.004 260);
+  --sidebar-accent-foreground: oklch(0.2 0.01 260);
+  --sidebar-border: oklch(0 0 0 / 8%);
+  --shadow-card: 0 8px 24px -16px oklch(0 0 0 / 18%);
+  --gradient-map: radial-gradient(circle at 30% 30%, oklch(0.92 0.03 230), oklch(0.98 0.005 260) 70%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  h1, h2, h3 { font-family: var(--font-display); }
+}
+
+@keyframes wiggle { from { rotate: -0.4deg; } to { rotate: 0.4deg; } }
+
+/* Liquid glass: --glass (0–1) set from Ajustes drives translucency, blur and sheen. */
+:root {
+  --glass: 0.5;
+  --glass-glow-1: oklch(0.76 0.15 65 / 35%);
+  --glass-glow-2: oklch(0.6 0.15 250 / 35%);
+}
+.light {
+  --glass-glow-1: oklch(0.85 0.12 65 / 55%);
+  --glass-glow-2: oklch(0.8 0.1 230 / 55%);
+}
+body {
+  background-image:
+    radial-gradient(circle at 15% 20%, color-mix(in oklab, var(--glass-glow-1) calc(var(--glass) * 100%), transparent), transparent 45%),
+    radial-gradient(circle at 85% 80%, color-mix(in oklab, var(--glass-glow-2) calc(var(--glass) * 100%), transparent), transparent 50%);
+  background-attachment: fixed;
+}
+.bg-background { background-color: color-mix(in oklab, var(--background) calc(100% - var(--glass) * 100%), transparent); }
+.bg-card, .bg-sidebar, .bg-popover {
+  --glass-fill: calc(100% - var(--glass) * 55%);
+  backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
+  -webkit-backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / calc(var(--glass) * 25%)), var(--shadow-card);
+}
+.bg-card { background-color: color-mix(in oklab, var(--card) var(--glass-fill), transparent); }
+.bg-sidebar { background-color: color-mix(in oklab, var(--sidebar) var(--glass-fill), transparent); }
+.bg-popover { background-color: color-mix(in oklab, var(--popover) calc(100% - var(--glass) * 25%), transparent); }
+
+@keyframes eq {
+  from { transform: scaleY(0.2); }
+  to { transform: scaleY(1); }
+}
+
+/* Hide the 5-day strip when the weather card is too short to show it whole. */
+@container (max-height: 150px) { .wx-days { display: none; } }
+
+/* Short widget cards drop the title row (still announced via aria-label) to give content room. */
+.widget { container: widget / size; }
+@container widget (max-height: 120px) {
+  .widget-head { display: none; }
+  .widget-inner { padding: 0.5rem 0.75rem; }
+}
