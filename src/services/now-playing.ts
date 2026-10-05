@@ -19,12 +19,15 @@ export interface NowPlaying {
 }
 
 type Control = "play" | "pause" | "next" | "previous";
+type SteeringControl = Control | "toggle";
 interface NativePlugin {
   getCurrent(): Promise<{ media: NowPlaying | null }>;
   control(opts: { action: Control }): Promise<void>;
+  updateRadioSession(opts: { title: string; artist: string; playing: boolean }): Promise<void>;
   hasPermission(): Promise<{ granted: boolean }>;
   requestPermission(): Promise<void>;
   addListener(event: "mediaChanged", cb: (d: { media: NowPlaying | null }) => void): Promise<{ remove: () => void }> | { remove: () => void };
+  addListener(event: "steeringControl", cb: (d: { action: SteeringControl }) => void): Promise<{ remove: () => void }> | { remove: () => void };
 }
 
 function native(): NativePlugin | null {
@@ -40,7 +43,16 @@ let system: NowPlaying | null = null;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 
-export function publishRadio(v: typeof radio) { radio = v; emit(); }
+export function publishRadio(v: typeof radio) {
+  radio = v;
+  startNative();
+  void native()?.updateRadioSession({
+    title: v?.title ?? "",
+    artist: v?.artist || "Rádio ao vivo",
+    playing: v?.playing ?? false,
+  }).catch(() => {});
+  emit();
+}
 
 function current() {
   // The source actually playing wins; otherwise the last known one.
@@ -56,6 +68,15 @@ function startNative() {
   started = true;
   void p.getCurrent().then((r) => { system = r.media; emit(); }).catch(() => {});
   void Promise.resolve(p.addListener("mediaChanged", (d) => { system = d.media; emit(); }));
+  void Promise.resolve(p.addListener("steeringControl", ({ action }) => {
+    const controls = radio?.controls;
+    if (!controls) return;
+    if (action === "next") controls.next();
+    else if (action === "previous") controls.prev();
+    else if (action === "toggle") controls.toggle();
+    else if (action === "play" && !radio?.playing) controls.toggle();
+    else if (action === "pause" && radio?.playing) controls.toggle();
+  }));
 }
 
 export function useNowPlaying() {

@@ -14,3 +14,4 @@
 - Weather data loads directly from Open-Meteo in the browser with a cached last-known forecast; location names use reverse geocoding with coordinate fallback.
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
+- Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
