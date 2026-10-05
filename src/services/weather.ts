@@ -48,6 +48,17 @@ interface ReverseGeocodeResult {
   principalSubdivision?: string;
 }
 
+interface NominatimReverseResult {
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    state?: string;
+    state_code?: string;
+  };
+}
+
 const OPEN_METEO_API = "https://api.open-meteo.com/v1/forecast";
 const REQUEST_TIMEOUT = 12_000;
 
@@ -95,7 +106,17 @@ async function resolvePlace(lat: number, lng: number): Promise<string> {
     const state = stateParts?.[stateParts.length - 1] ?? place.principalSubdivision;
     return [city, state].filter(Boolean).join(" - ") || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
   } catch {
-    return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    try {
+      const place = await fetchJson<NominatimReverseResult>(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2&zoom=10&accept-language=pt-BR`,
+      );
+      const address = place.address;
+      const city = address?.city ?? address?.town ?? address?.village ?? address?.municipality;
+      const state = address?.state_code ?? address?.state;
+      return [city, state].filter(Boolean).join(" - ") || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    } catch {
+      return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    }
   }
 }
 
