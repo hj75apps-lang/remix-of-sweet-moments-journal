@@ -18,13 +18,54 @@ const ASSET_RE =
   /\.(css|js|png|jpe?g|gif|svg|webp|woff2?|ico|json|xml)(\?|$)|fonts\.|facebook|instagram|twitter|whatsapp|youtube|google|spreaker|\/feed\//i;
 const PLAYER_RE = /(player|popup|ouvir|ao-?vivo|radio)/i;
 
-async function get(url: string, ms = 8000): Promise<Response | null> {
+function isPublicHttps(value: string): boolean {
+  let parsed: URL;
   try {
-    return await fetch(url, {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password) return false;
+  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host.includes(".") || host === "localhost" || host.endsWith(".local")) return false;
+  if (host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:")) return false;
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!ipv4) return !/^\d+$/.test(host);
+  const octets = ipv4.slice(1).map(Number);
+  if (octets.some((part) => part > 255)) return false;
+  const [a = 0, b = 0] = octets;
+  return !(
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224
+  );
+}
+
+async function get(url: string, ms = 8000): Promise<Response | null> {
+  if (!isPublicHttps(url)) return null;
+  try {
+    const response = await fetch(url, {
       headers: { "user-agent": UA, accept: "*/*" },
-      redirect: "follow",
+      redirect: "manual",
       signal: AbortSignal.timeout(ms),
     });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) return null;
+      const redirected = new URL(location, url).href;
+      if (!isPublicHttps(redirected)) return null;
+      return fetch(redirected, {
+        headers: { "user-agent": UA, accept: "*/*" },
+        redirect: "error",
+        signal: AbortSignal.timeout(ms),
+      });
+    }
+    return response;
   } catch {
     return null;
   }
@@ -73,7 +114,7 @@ function pickTitle(t: string): string {
 
 /** Finds the live stream of a radio from its website (scans the page and its player pages). */
 export const discoverStream = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ url: z.string().trim().min(4).max(300) }).parse(d))
+  .validator((d) => z.object({ url: z.string().trim().min(4).max(300) }).parse(d))
   .handler(async ({ data }): Promise<DiscoveredStation> => {
     const start = /^https?:\/\//i.test(data.url) ? data.url : `https://${data.url}`;
     let origin: URL;
@@ -82,10 +123,7 @@ export const discoverStream = createServerFn({ method: "POST" })
     } catch {
       return { name: "", homepage: start, favicon: "", sources: [], status: "none" };
     }
-    if (
-      !/\./.test(origin.hostname) ||
-      /^(localhost|127\.|10\.|192\.168\.|169\.254\.)/.test(origin.hostname)
-    ) {
+    if (!isPublicHttps(origin.href)) {
       return { name: "", homepage: start, favicon: "", sources: [], status: "none" };
     }
 
@@ -125,7 +163,7 @@ export const discoverStream = createServerFn({ method: "POST" })
     collect(html, origin.href);
     // Player pages often hold the stream address.
     const subs = await Promise.all(
-      [...pages].slice(0, 8).map(async (p) => {
+      [...pages].slice(0, 4).map(async (p) => {
         const r = await get(p, 6000);
         return r?.ok && /html|text/.test(r.headers.get("content-type") ?? "")
           ? { p, h: await r.text() }
@@ -134,7 +172,7 @@ export const discoverStream = createServerFn({ method: "POST" })
     );
     for (const s of subs) if (s) collect(s.h.slice(0, 400_000), s.p);
 
-    const list = [...candidates].filter((u) => u.startsWith("https://")).slice(0, 15);
+    const list = [...candidates].filter(isPublicHttps).slice(0, 8);
     const checks = await Promise.all(list.map(async (u) => ((await isAudio(u)) ? u : null)));
     const sources = checks.filter((u): u is string => !!u).slice(0, 4);
     return {

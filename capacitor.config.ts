@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.smartautolauncher",
   appName: "Smart Auto Launcher",
-  webDir: ".output/public",
+  webDir: "dist/client",
   android: {},
 };
 
