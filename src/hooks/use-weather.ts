@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
 
 const POSITION_KEY = "sal.weather-pos";
@@ -30,6 +30,7 @@ function readStoredWeather(): WeatherReport | undefined {
 export function useWeather() {
   const [position, setPosition] = useState<WeatherPosition | null>(null);
   const [gpsError, setGpsError] = useState("");
+  const queryClient = useQueryClient();
 
   const locate = useCallback(() => {
     if (!("geolocation" in navigator)) {
@@ -50,9 +51,13 @@ export function useWeather() {
 
   useEffect(() => {
     const stored = readStoredPosition();
-    if (stored) setPosition(stored);
+    if (stored) {
+      const cachedWeather = readStoredWeather();
+      if (cachedWeather) queryClient.setQueryData(["weather", weatherPositionKey(stored)], cachedWeather);
+      setPosition(stored);
+    }
     locate();
-  }, [locate]);
+  }, [locate, queryClient]);
 
   const query = useQuery({
     queryKey: ["weather", position ? weatherPositionKey(position) : "locating"],
@@ -64,8 +69,6 @@ export function useWeather() {
       });
     },
     enabled: !!position,
-    initialData: readStoredWeather,
-    initialDataUpdatedAt: 0,
     staleTime: 15 * 60_000,
     refetchInterval: 30 * 60_000,
     retry: 2,
