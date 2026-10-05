@@ -1,3 +1,5 @@
+import { Capacitor, registerPlugin } from "@capacitor/core";
+
 export type PhoneCallStatus = "idle" | "ringing" | "dialing" | "active";
 
 export interface PhoneState {
@@ -21,11 +23,11 @@ interface PhonePlugin {
   addListener(event: "callStateChanged", callback: (state: PhoneState) => void): Promise<PluginListener> | PluginListener;
 }
 
+const CarPhone = registerPlugin<PhonePlugin>("CarPhone");
+
 function plugin(): PhonePlugin | null {
   if (typeof window === "undefined") return null;
-  const capacitor = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean } }).Capacitor;
-  if (!capacitor?.isNativePlatform?.()) return null;
-  return (capacitor.Plugins?.["CarPhone"] as PhonePlugin | undefined) ?? null;
+  return Capacitor.isNativePlatform() ? CarPhone : null;
 }
 
 export const isPhoneAvailable = () => plugin() !== null;

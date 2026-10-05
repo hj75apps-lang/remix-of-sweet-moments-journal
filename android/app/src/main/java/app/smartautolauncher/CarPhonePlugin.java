@@ -40,10 +40,11 @@ public final class CarPhonePlugin extends Plugin {
 
     private String callStatus(Call call) {
         if (call == null) return "idle";
-        switch (call.getState()) {
+        int state = call.getState();
+        if (state == 9) return "dialing"; // STATE_CONNECTING, unavailable as a named constant on API 24.
+        switch (state) {
             case Call.STATE_RINGING: return "ringing";
             case Call.STATE_DIALING:
-            case Call.STATE_CONNECTING:
             case Call.STATE_SELECT_PHONE_ACCOUNT: return "dialing";
             case Call.STATE_ACTIVE:
             case Call.STATE_HOLDING: return "active";
