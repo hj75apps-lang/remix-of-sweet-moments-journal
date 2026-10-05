@@ -18,4 +18,4 @@
 - Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
 - The launcher dock keeps Home, Online Radio, Phone, Apps, and Settings fixed; remaining slots show up to four recent Android apps with their native icons via UsageStats.
 - The default 1280×720 launcher grid reserves four columns for navigation and stacks clock, weather, and media in the two-column side rail.
-- Phone calls use the native Android default-dialer role and InCallService; call state and speaker routing are exposed to the React phone screen through CarPhone.
+- The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
