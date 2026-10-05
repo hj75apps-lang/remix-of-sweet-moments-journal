@@ -4,6 +4,7 @@ export interface WeatherDay {
   max: number;
   rain: number;
   text: string;
+  code: number | undefined;
 }
 
 export interface WeatherReport {
@@ -13,6 +14,7 @@ export interface WeatherReport {
   humidity: number;
   wind: number;
   text: string;
+  code: number | undefined;
   source: "Open-Meteo";
   days: WeatherDay[];
 }
@@ -44,6 +46,17 @@ interface ReverseGeocodeResult {
   locality?: string;
   principalSubdivisionCode?: string;
   principalSubdivision?: string;
+}
+
+interface NominatimReverseResult {
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    state?: string;
+    state_code?: string;
+  };
 }
 
 const OPEN_METEO_API = "https://api.open-meteo.com/v1/forecast";
@@ -93,7 +106,17 @@ async function resolvePlace(lat: number, lng: number): Promise<string> {
     const state = stateParts?.[stateParts.length - 1] ?? place.principalSubdivision;
     return [city, state].filter(Boolean).join(" - ") || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
   } catch {
-    return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    try {
+      const place = await fetchJson<NominatimReverseResult>(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2&zoom=10&accept-language=pt-BR`,
+      );
+      const address = place.address;
+      const city = address?.city ?? address?.town ?? address?.village ?? address?.municipality;
+      const state = address?.state_code ?? address?.state;
+      return [city, state].filter(Boolean).join(" - ") || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    } catch {
+      return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+    }
   }
 }
 
@@ -128,6 +151,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     humidity: rounded(current.relative_humidity_2m),
     wind: rounded(current.wind_speed_10m),
     text: weatherDescription(current.weather_code),
+    code: current.weather_code,
     source: "Open-Meteo",
     days: daily.time.slice(0, 5).map((date, index) => ({
       date,
@@ -135,6 +159,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
       max: rounded(daily.temperature_2m_max?.[index]),
       rain: rounded(daily.precipitation_probability_max?.[index]),
       text: weatherDescription(daily.weather_code?.[index]),
+      code: daily.weather_code?.[index],
     })),
   };
 }

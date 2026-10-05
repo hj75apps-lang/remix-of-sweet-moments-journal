@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CloudSun, Droplets, Wind, LocateFixed, RefreshCw } from "lucide-react";
+import {
+  Cloud,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  Droplets,
+  LocateFixed,
+  MapPin,
+  RefreshCw,
+  Sun,
+  Wind,
+  type LucideIcon,
+} from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
@@ -8,6 +22,24 @@ import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherRep
 const KEY = "sal.weather-pos";
 const WEATHER_KEY = "sal.weather-report";
 const weekday = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
+
+function weatherIcon(code: number | undefined, description: string): LucideIcon {
+  if (code === 0) return Sun;
+  if (code === 1 || code === 2) return CloudSun;
+  if (code === 3) return Cloud;
+  if (code === 45 || code === 48) return CloudFog;
+  if ((code !== undefined && code >= 51 && code <= 67) || (code !== undefined && code >= 80 && code <= 82)) return CloudRain;
+  if (code !== undefined && code >= 71 && code <= 86) return CloudSnow;
+  if (code !== undefined && code >= 95) return CloudLightning;
+
+  const normalized = description.toLocaleLowerCase("pt-BR");
+  if (normalized.includes("tempestade")) return CloudLightning;
+  if (normalized.includes("neve")) return CloudSnow;
+  if (normalized.includes("chuva") || normalized.includes("garoa")) return CloudRain;
+  if (normalized.includes("neblina")) return CloudFog;
+  if (normalized.includes("nublado")) return Cloud;
+  return CloudSun;
+}
 
 function readStoredPosition(): WeatherPosition | null {
   try {
@@ -71,9 +103,10 @@ export function WeatherWidget() {
     retry: 2,
   });
   const w = q.data;
+  const CurrentWeatherIcon = w ? weatherIcon(w.code, w.text) : CloudSun;
 
   return (
-    <WidgetCard title={w?.city ? `Clima · ${w.city}` : "Clima"} icon={<CloudSun className="size-4" />}>
+    <WidgetCard title="Clima" icon={<CloudSun className="size-4" />}>
       {!pos ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <UnavailableState message={gpsError || "Localizando…"} hint="A previsão aparece com a localização ativada." />
@@ -88,7 +121,12 @@ export function WeatherWidget() {
         <p className="m-auto text-sm text-muted-foreground" aria-live="polite">Carregando previsão…</p>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground">
+            <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{w.city}</span>
+          </p>
           <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
+            <CurrentWeatherIcon className="size-10 shrink-0 text-primary" aria-label={w.text} />
             <div className="min-w-0">
               <p className="font-display text-[clamp(1.25rem,45cqh,2.25rem)] font-semibold leading-none">{w.temp}°</p>
               <p className="truncate text-[clamp(0.6875rem,18cqh,0.875rem)] text-muted-foreground">{w.text} · sensação {w.feels}°</p>
@@ -99,17 +137,18 @@ export function WeatherWidget() {
             </div>
           </div>
           <ul className="wx-days mt-auto grid shrink-0 grid-cols-5 gap-1" aria-label="Previsão dos próximos dias">
-            {w.days.slice(0, 5).map((d) => (
-              <li key={d.date} className="flex min-w-0 flex-col items-center rounded-xl bg-secondary/60 py-1 text-xs" title={d.text}>
-                <span className="font-semibold capitalize">{weekday(d.date)}</span>
-                <span>{d.max}° <span className="text-muted-foreground">{d.min}°</span></span>
-                <span className="text-[0.625rem] text-muted-foreground">{d.rain}% chuva</span>
-              </li>
-            ))}
+            {w.days.slice(0, 5).map((d) => {
+              const DayIcon = weatherIcon(d.code, d.text);
+              return (
+                <li key={d.date} className="flex min-w-0 flex-col items-center gap-0.5 rounded-xl bg-secondary/60 py-1 text-xs" title={d.text}>
+                  <span className="font-semibold capitalize">{weekday(d.date)}</span>
+                  <DayIcon className="size-4 text-primary" aria-label={d.text} />
+                  <span>{d.max}° <span className="text-muted-foreground">{d.min}°</span></span>
+                  <span className="text-[0.625rem] text-muted-foreground">{d.rain}% chuva</span>
+                </li>
+              );
+            })}
           </ul>
-          <p className="shrink-0 text-right text-[0.625rem] text-muted-foreground">
-            Fonte: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline underline-offset-2">{w.source}</a>
-          </p>
         </div>
       )}
     </WidgetCard>
