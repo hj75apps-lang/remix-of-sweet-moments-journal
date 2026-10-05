@@ -4,7 +4,7 @@ export interface WeatherDay {
   max: number;
   rain: number;
   text: string;
-  code?: number;
+  code: number | undefined;
 }
 
 export interface WeatherReport {
@@ -14,7 +14,7 @@ export interface WeatherReport {
   humidity: number;
   wind: number;
   text: string;
-  code?: number;
+  code: number | undefined;
   source: "Open-Meteo";
   days: WeatherDay[];
 }
