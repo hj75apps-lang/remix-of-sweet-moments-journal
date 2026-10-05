@@ -14,19 +14,16 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function storedMode(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
-  const saved = localStorage.getItem(STORAGE_KEY);
-  return saved === "light" || saved === "dark" ? saved : "dark";
-}
-
 /** Shared day/night state. The vehicle's night signal temporarily overrides the saved preference. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [preferredMode, setPreferredMode] = useState<ThemeMode>(storedMode);
+  const [preferredMode, setPreferredMode] = useState<ThemeMode>("dark");
   const [automaticNight, setAutomaticNight] = useState(false);
   const mode: ThemeMode = automaticNight ? "dark" : preferredMode;
 
   useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "light" || saved === "dark") setPreferredMode(saved);
+
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const updateBrowserSignal = () => {
       if (!isSystemControlsAvailable()) setAutomaticNight(media.matches);
