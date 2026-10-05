@@ -5,18 +5,18 @@ const STORAGE_KEY = "sal.home-layout";
 const MAX_HISTORY = 20;
 
 export const defaultLayout: HomeLayout = {
-  version: 1,
+  version: 2,
   items: [
     { id: "w-nav", type: "WIDGET", ref: "navigation", size: { w: 4, h: 4 } },
-    { id: "w-media", type: "WIDGET", ref: "media", size: { w: 2, h: 2 } },
+    { id: "w-clock", type: "WIDGET", ref: "clock", size: { w: 2, h: 1 } },
     { id: "w-weather", type: "WIDGET", ref: "weather", size: { w: 2, h: 1 } },
-    { id: "w-fav", type: "WIDGET", ref: "favorites", size: { w: 2, h: 1 } },
+    { id: "w-media", type: "WIDGET", ref: "media", size: { w: 2, h: 2 } },
   ],
 };
 
 function isValid(value: unknown): value is HomeLayout {
   const v = value as HomeLayout;
-  return !!v && v.version === 1 && Array.isArray(v.items) && v.items.every((i) => i.id && i.type && i.ref && i.size);
+  return !!v && v.version === 2 && Array.isArray(v.items) && v.items.every((i) => i.id && i.type && i.ref && i.size);
 }
 
 /** Home layout state with persistence and undo. */
