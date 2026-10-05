@@ -8,6 +8,8 @@ export interface ConnectivityState {
   wifiName: string;
   bluetoothEnabled: boolean;
   bluetoothDevice: string;
+  /** Android system night mode, normally driven by the vehicle headlights on head units. */
+  nightMode: boolean;
 }
 
 interface PluginListener { remove: () => Promise<void> | void }

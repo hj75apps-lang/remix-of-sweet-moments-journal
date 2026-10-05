@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useGlass } from "@/hooks/use-glass";
 import { RadioPlayerProvider } from "@/contexts/radio-player-context";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 function NotFoundComponent() {
   return (
@@ -122,9 +123,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <RadioPlayerProvider><Outlet /></RadioPlayerProvider>
-      <Toaster />
+      <ThemeProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <RadioPlayerProvider><Outlet /></RadioPlayerProvider>
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

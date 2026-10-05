@@ -17,6 +17,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
@@ -39,6 +40,7 @@ class SystemControlsPlugin : Plugin() {
             addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
             addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
             addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
+            addAction(Intent.ACTION_CONFIGURATION_CHANGED)
         }
         context.registerReceiver(receiver, f)
     }
@@ -64,6 +66,7 @@ class SystemControlsPlugin : Plugin() {
             put("wifiName", ssid)
             put("bluetoothEnabled", try { bt?.isEnabled == true } catch (_: SecurityException) { false })
             put("bluetoothDevice", device)
+            put("nightMode", (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES)
         }
     }
 

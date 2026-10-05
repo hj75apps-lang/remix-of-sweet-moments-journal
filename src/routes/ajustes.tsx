@@ -4,6 +4,7 @@ import { Dock } from "@/components/launcher/dock";
 import { Slider } from "@/components/ui/slider";
 import { useGlass, DEFAULT_GLASS } from "@/hooks/use-glass";
 import { useTheme } from "@/hooks/use-theme";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/ajustes")({
   head: () => ({
@@ -44,11 +45,14 @@ function SettingsPage() {
               ))}
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
-            <span className="text-lg font-semibold">Tema</span>
-            <button type="button" onClick={theme.toggle} className="min-h-11 rounded-2xl bg-primary px-5 font-semibold text-primary-foreground">
+          <div className="flex items-center justify-between gap-4 rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
+            <div>
+              <span className="text-lg font-semibold">Tema</span>
+              {theme.automaticNight && <p className="mt-1 text-sm text-muted-foreground">Modo noturno automático ativo</p>}
+            </div>
+            <Button type="button" onClick={theme.toggle} className="min-h-11 rounded-2xl px-5 font-semibold">
               {theme.mode === "dark" ? "Noturno" : "Diurno"}
-            </button>
+            </Button>
           </div>
         </section>
       </main>

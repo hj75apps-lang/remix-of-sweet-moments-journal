@@ -7,6 +7,7 @@ import { WidgetCard, UnavailableState } from "./widget-card";
 import { cn } from "@/lib/utils";
 import { VolumeControl } from "./volume-control";
 import { ConnectivityControls } from "./connectivity-controls";
+import { Button } from "@/components/ui/button";
 
 export function NavigationWidget() {
   return (
@@ -57,11 +58,11 @@ export function QuickControls() {
     <section aria-label="Controles rápidos" className="grid shrink-0 grid-cols-4 gap-2 rounded-3xl bg-card p-2 sm:gap-3">
       <VolumeControl />
       <ConnectivityControls />
-      <button type="button" onClick={toggle} aria-pressed={dark} aria-label={dark ? "Mudar para modo diurno" : "Mudar para modo noturno"}
-        className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 sm:flex-row sm:gap-2 rounded-2xl bg-secondary text-[0.625rem] sm:text-sm font-medium transition active:scale-95">
+      <Button type="button" variant="secondary" onClick={toggle} aria-pressed={dark} aria-label={dark ? "Mudar para modo diurno" : "Mudar para modo noturno"}
+        className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 px-1 sm:flex-row sm:gap-2 rounded-2xl text-[0.625rem] sm:text-sm font-medium transition active:scale-95">
         {dark ? <Moon className="size-5 text-primary" /> : <Sun className="size-5 text-primary" />}
         <span className="truncate">Modo {dark ? "noturno" : "diurno"}</span>
-      </button>
+      </Button>
     </section>
   );
 }
