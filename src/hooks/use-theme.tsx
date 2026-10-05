@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getConnectivity, isSystemControlsAvailable, onConnectivityChanged } from "@/services/connectivity";
+import { getConnectivity, onConnectivityChanged } from "@/services/connectivity";
 
 export type ThemeMode = "dark" | "light";
 const STORAGE_KEY = "sal.theme";
@@ -17,19 +17,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 /** Shared day/night state. The vehicle's night signal temporarily overrides the saved preference. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preferredMode, setPreferredMode] = useState<ThemeMode>("dark");
+  const [hasManualPreference, setHasManualPreference] = useState(false);
   const [automaticNight, setAutomaticNight] = useState(false);
-  const mode: ThemeMode = automaticNight ? "dark" : preferredMode;
+  const mode: ThemeMode = !hasManualPreference && automaticNight ? "dark" : preferredMode;
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "light" || saved === "dark") setPreferredMode(saved);
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateBrowserSignal = () => {
-      if (!isSystemControlsAvailable()) setAutomaticNight(media.matches);
-    };
-    updateBrowserSignal();
-    media.addEventListener?.("change", updateBrowserSignal);
+    if (saved === "light" || saved === "dark") {
+      setPreferredMode(saved);
+      setHasManualPreference(true);
+    }
 
     void getConnectivity()
       .then((state) => {
@@ -39,7 +36,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const stopNative = onConnectivityChanged((state) => setAutomaticNight(state.nightMode));
 
     return () => {
-      media.removeEventListener?.("change", updateBrowserSignal);
       stopNative();
     };
   }, []);
@@ -50,10 +46,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [mode]);
 
   const setMode = useCallback((nextMode: ThemeMode) => {
+    setHasManualPreference(true);
     setPreferredMode(nextMode);
     localStorage.setItem(STORAGE_KEY, nextMode);
   }, []);
   const toggle = useCallback(() => {
+    setHasManualPreference(true);
     setPreferredMode((current) => {
       const next = current === "dark" ? "light" : "dark";
       localStorage.setItem(STORAGE_KEY, next);
@@ -62,8 +60,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ mode, preferredMode, automaticNight, setMode, toggle }),
-    [automaticNight, mode, preferredMode, setMode, toggle],
+    () => ({ mode, preferredMode, automaticNight: automaticNight && !hasManualPreference, setMode, toggle }),
+    [automaticNight, hasManualPreference, mode, preferredMode, setMode, toggle],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
