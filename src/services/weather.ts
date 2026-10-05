@@ -69,7 +69,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     if (!response.ok) throw new Error(`Serviço indisponível (${response.status})`);
-    return await response.json() as T;
+    return (await response.json()) as T;
   } finally {
     window.clearTimeout(timeout);
   }

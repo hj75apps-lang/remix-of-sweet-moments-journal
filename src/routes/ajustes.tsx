@@ -10,7 +10,10 @@ export const Route = createFileRoute("/ajustes")({
   head: () => ({
     meta: [
       { title: "Ajustes — Smart Auto Launcher" },
-      { name: "description", content: "Personalize o tema e a intensidade do efeito vidro líquido." },
+      {
+        name: "description",
+        content: "Personalize o tema e a intensidade do efeito vidro líquido.",
+      },
       { property: "og:title", content: "Ajustes — Smart Auto Launcher" },
       { property: "og:description", content: "Tema e efeito vidro líquido ajustáveis." },
       { property: "og:type", content: "website" },
@@ -32,14 +35,35 @@ function SettingsPage() {
           <h1 className="px-2 text-2xl font-semibold">Ajustes</h1>
           <div className="rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between gap-4">
-              <label htmlFor="glass" className="text-lg font-semibold">Efeito vidro líquido</label>
-              <span className="text-sm font-semibold text-primary" aria-live="polite">{glass.level === 0 ? "Desligado" : `${glass.level}%`}</span>
+              <label htmlFor="glass" className="text-lg font-semibold">
+                Efeito vidro líquido
+              </label>
+              <span className="text-sm font-semibold text-primary" aria-live="polite">
+                {glass.level === 0 ? "Desligado" : `${glass.level}%`}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Deixa cartões, menu e barras translúcidos e desfocados. Reduza se a central ficar lenta.</p>
-            <Slider id="glass" aria-label="Intensidade do vidro líquido" className="mt-6" min={0} max={100} step={5} value={[glass.level]} onValueChange={([v]) => glass.set(v ?? DEFAULT_GLASS)} />
+            <p className="mt-1 text-sm text-muted-foreground">
+              Deixa cartões, menu e barras translúcidos e desfocados. Reduza se a central ficar
+              lenta.
+            </p>
+            <Slider
+              id="glass"
+              aria-label="Intensidade do vidro líquido"
+              className="mt-6"
+              min={0}
+              max={100}
+              step={5}
+              value={[glass.level]}
+              onValueChange={([v]) => glass.set(v ?? DEFAULT_GLASS)}
+            />
             <div className="mt-4 flex gap-2">
               {[0, 25, 50, 75, 100].map((v) => (
-                <button key={v} type="button" onClick={() => glass.set(v)} className="min-h-11 flex-1 rounded-2xl bg-secondary text-sm font-semibold transition active:scale-95">
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => glass.set(v)}
+                  className="min-h-11 flex-1 rounded-2xl bg-secondary text-sm font-semibold transition active:scale-95"
+                >
                   {v === 0 ? "Off" : `${v}%`}
                 </button>
               ))}
@@ -48,9 +72,15 @@ function SettingsPage() {
           <div className="flex items-center justify-between gap-4 rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
             <div>
               <span className="text-lg font-semibold">Tema</span>
-              {theme.automaticNight && <p className="mt-1 text-sm text-muted-foreground">Modo noturno automático ativo</p>}
+              {theme.automaticNight && (
+                <p className="mt-1 text-sm text-muted-foreground">Modo noturno automático ativo</p>
+              )}
             </div>
-            <Button type="button" onClick={theme.toggle} className="min-h-11 rounded-2xl px-5 font-semibold">
+            <Button
+              type="button"
+              onClick={theme.toggle}
+              className="min-h-11 rounded-2xl px-5 font-semibold"
+            >
               {theme.mode === "dark" ? "Noturno" : "Diurno"}
             </Button>
           </div>

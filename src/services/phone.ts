@@ -10,7 +10,9 @@ export interface PhoneState {
   speakerOn: boolean;
 }
 
-interface PluginListener { remove: () => Promise<void> | void }
+interface PluginListener {
+  remove: () => Promise<void> | void;
+}
 
 interface PhonePlugin {
   getState(): Promise<PhoneState>;
@@ -20,7 +22,10 @@ interface PhonePlugin {
   reject(): Promise<void>;
   hangUp(): Promise<void>;
   setSpeaker(options: { enabled: boolean }): Promise<{ speakerOn: boolean }>;
-  addListener(event: "callStateChanged", callback: (state: PhoneState) => void): Promise<PluginListener> | PluginListener;
+  addListener(
+    event: "callStateChanged",
+    callback: (state: PhoneState) => void,
+  ): Promise<PluginListener> | PluginListener;
 }
 
 const CarPhone = registerPlugin<PhonePlugin>("CarPhone");
@@ -34,7 +39,14 @@ export const isPhoneAvailable = () => plugin() !== null;
 
 export async function getPhoneState(): Promise<PhoneState> {
   const native = plugin();
-  if (!native) return { available: false, isDefaultDialer: false, status: "idle", number: "", speakerOn: false };
+  if (!native)
+    return {
+      available: false,
+      isDefaultDialer: false,
+      status: "idle",
+      number: "",
+      speakerOn: false,
+    };
   return native.getState();
 }
 
@@ -48,14 +60,24 @@ export async function placeCall(number: string) {
   await plugin()?.call({ number: cleaned });
 }
 
-export async function answerCall() { await plugin()?.answer(); }
-export async function rejectCall() { await plugin()?.reject(); }
-export async function hangUpCall() { await plugin()?.hangUp(); }
-export async function setSpeaker(enabled: boolean) { await plugin()?.setSpeaker({ enabled }); }
+export async function answerCall() {
+  await plugin()?.answer();
+}
+export async function rejectCall() {
+  await plugin()?.reject();
+}
+export async function hangUpCall() {
+  await plugin()?.hangUp();
+}
+export async function setSpeaker(enabled: boolean) {
+  await plugin()?.setSpeaker({ enabled });
+}
 
 export function onPhoneStateChanged(callback: (state: PhoneState) => void): () => void {
   const native = plugin();
   if (!native) return () => {};
   const handle = Promise.resolve(native.addListener("callStateChanged", callback));
-  return () => { void handle.then((listener) => listener.remove()); };
+  return () => {
+    void handle.then((listener) => listener.remove());
+  };
 }

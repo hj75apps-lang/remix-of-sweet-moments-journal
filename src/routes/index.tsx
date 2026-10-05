@@ -8,9 +8,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Smart Auto Launcher — Tela inicial" },
-      { name: "description", content: "Tela inicial premium para centrais multimídia Android com navegação, mídia e atalhos." },
+      {
+        name: "description",
+        content:
+          "Tela inicial premium para centrais multimídia Android com navegação, mídia e atalhos.",
+      },
       { property: "og:title", content: "Smart Auto Launcher" },
-      { property: "og:description", content: "Tela inicial premium para centrais multimídia Android." },
+      {
+        property: "og:description",
+        content: "Tela inicial premium para centrais multimídia Android.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

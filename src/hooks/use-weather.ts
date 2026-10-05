@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
+import {
+  fetchWeather,
+  weatherPositionKey,
+  type WeatherPosition,
+  type WeatherReport,
+} from "@/services/weather";
 
 const POSITION_KEY = "sal.weather-pos";
 const WEATHER_KEY = "sal.weather-report";
@@ -8,7 +13,9 @@ const WEATHER_KEY = "sal.weather-report";
 function readStoredPosition(): WeatherPosition | null {
   if (typeof window === "undefined") return null;
   try {
-    const parsed = JSON.parse(localStorage.getItem(POSITION_KEY) ?? "null") as Partial<WeatherPosition> | null;
+    const parsed = JSON.parse(
+      localStorage.getItem(POSITION_KEY) ?? "null",
+    ) as Partial<WeatherPosition> | null;
     return typeof parsed?.lat === "number" && typeof parsed.lng === "number"
       ? { lat: parsed.lat, lng: parsed.lng }
       : null;
@@ -42,9 +49,18 @@ export function useWeather() {
       ({ coords }) => {
         const next = { lat: coords.latitude, lng: coords.longitude };
         setPosition(next);
-        try { localStorage.setItem(POSITION_KEY, JSON.stringify(next)); } catch { /* cache is optional */ }
+        try {
+          localStorage.setItem(POSITION_KEY, JSON.stringify(next));
+        } catch {
+          /* cache is optional */
+        }
       },
-      (error) => setGpsError(error.code === error.PERMISSION_DENIED ? "Permissão de localização negada" : "Não foi possível obter a localização"),
+      (error) =>
+        setGpsError(
+          error.code === error.PERMISSION_DENIED
+            ? "Permissão de localização negada"
+            : "Não foi possível obter a localização",
+        ),
       { enableHighAccuracy: false, timeout: 15_000, maximumAge: 10 * 60_000 },
     );
   }, []);
@@ -53,7 +69,8 @@ export function useWeather() {
     const stored = readStoredPosition();
     if (stored) {
       const cachedWeather = readStoredWeather();
-      if (cachedWeather) queryClient.setQueryData(["weather", weatherPositionKey(stored)], cachedWeather);
+      if (cachedWeather)
+        queryClient.setQueryData(["weather", weatherPositionKey(stored)], cachedWeather);
       setPosition(stored);
     }
     locate();
@@ -64,7 +81,11 @@ export function useWeather() {
     queryFn: () => {
       if (!position) throw new Error("Localização indisponível");
       return fetchWeather(position).then((weather) => {
-        try { localStorage.setItem(WEATHER_KEY, JSON.stringify(weather)); } catch { /* cache is optional */ }
+        try {
+          localStorage.setItem(WEATHER_KEY, JSON.stringify(weather));
+        } catch {
+          /* cache is optional */
+        }
         return weather;
       });
     },

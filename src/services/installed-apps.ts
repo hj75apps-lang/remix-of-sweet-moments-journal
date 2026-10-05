@@ -9,7 +9,9 @@ export interface InstalledApp {
   icon: string;
 }
 
-interface PluginListener { remove: () => Promise<void> | void }
+interface PluginListener {
+  remove: () => Promise<void> | void;
+}
 interface LauncherAppsPlugin {
   getInstalledApps(): Promise<{ apps: InstalledApp[] }>;
   getRecentApps(): Promise<{ apps: InstalledApp[] }>;
@@ -24,7 +26,11 @@ interface LauncherAppsPlugin {
 
 function plugin(): LauncherAppsPlugin | null {
   if (typeof window === "undefined") return null;
-  const cap = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean } }).Capacitor;
+  const cap = (
+    window as unknown as {
+      Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean };
+    }
+  ).Capacitor;
   if (!cap?.isNativePlatform?.()) return null;
   return (cap.Plugins?.["LauncherApps"] as LauncherAppsPlugin | undefined) ?? null;
 }
@@ -50,7 +56,11 @@ export async function listRecentApps(): Promise<InstalledApp[]> {
 }
 
 export async function hasUsageAccess(): Promise<boolean> {
-  return plugin()?.hasUsageAccess().then(({ granted }) => granted) ?? false;
+  return (
+    plugin()
+      ?.hasUsageAccess()
+      .then(({ granted }) => granted) ?? false
+  );
 }
 
 export async function requestUsageAccess(): Promise<void> {
@@ -70,12 +80,16 @@ export function onAppsChanged(cb: () => void): () => void {
   const p = plugin();
   if (!p) return () => {};
   const handle = Promise.resolve(p.addListener("appsChanged", cb));
-  return () => { void handle.then((h) => h.remove()); };
+  return () => {
+    void handle.then((h) => h.remove());
+  };
 }
 
 export function onRecentAppsChanged(cb: () => void): () => void {
   const p = plugin();
   if (!p) return () => {};
   const handle = Promise.resolve(p.addListener("recentAppsChanged", cb));
-  return () => { void handle.then((listener) => listener.remove()); };
+  return () => {
+    void handle.then((listener) => listener.remove());
+  };
 }

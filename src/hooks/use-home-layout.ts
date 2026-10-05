@@ -17,12 +17,26 @@ export const defaultLayout: HomeLayout = {
 function isValid(value: unknown): value is HomeLayout {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<HomeLayout>;
-  return candidate.version === 2 && Array.isArray(candidate.items) && candidate.items.every((item) => {
-    if (!item || typeof item !== "object") return false;
-    const entry = item as Partial<HomeItem>;
-    const validRef = entry.type === "WIDGET" ? entry.ref in widgetRefs : entry.type === "APP" ? entry.ref in appRefs : false;
-    return typeof entry.id === "string" && validRef && typeof entry.size?.w === "number" && typeof entry.size.h === "number";
-  });
+  return (
+    candidate.version === 2 &&
+    Array.isArray(candidate.items) &&
+    candidate.items.every((item) => {
+      if (!item || typeof item !== "object") return false;
+      const entry = item as Partial<HomeItem>;
+      const validRef =
+        entry.type === "WIDGET"
+          ? entry.ref in widgetRefs
+          : entry.type === "APP"
+            ? entry.ref in appRefs
+            : false;
+      return (
+        typeof entry.id === "string" &&
+        validRef &&
+        typeof entry.size?.w === "number" &&
+        typeof entry.size.h === "number"
+      );
+    })
+  );
 }
 
 const widgetRefs = { navigation: true, media: true, weather: true, favorites: true, clock: true };
@@ -80,8 +94,13 @@ export function useHomeLayout() {
         return copy;
       }),
     remove: (id: string) => commit((items) => items.filter((i) => i.id !== id)),
-    resize: (id: string, size: ItemSize) => commit((items) => items.map((i) => (i.id === id ? { ...i, size } : i))),
-    add: (item: Omit<HomeItem, "id">) => commit((items) => [...items, { ...item, id: `${item.ref}-${crypto.randomUUID().slice(0, 8)}` }]),
+    resize: (id: string, size: ItemSize) =>
+      commit((items) => items.map((i) => (i.id === id ? { ...i, size } : i))),
+    add: (item: Omit<HomeItem, "id">) =>
+      commit((items) => [
+        ...items,
+        { ...item, id: `${item.ref}-${crypto.randomUUID().slice(0, 8)}` },
+      ]),
     reset: () => commit(() => defaultLayout.items),
     undo,
   };

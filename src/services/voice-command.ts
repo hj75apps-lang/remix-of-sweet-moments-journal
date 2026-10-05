@@ -41,13 +41,23 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
   if (hasAny(text, ["abrir ajustes", "abrir configuracoes", "mostrar ajustes", "configuracoes"])) {
     return { kind: "navigate", route: "/ajustes", label: "Abrindo ajustes" };
   }
-  if (hasAny(text, ["pagina inicial", "tela inicial", "ir para o inicio", "abrir inicio", "voltar ao inicio"])) {
+  if (
+    hasAny(text, [
+      "pagina inicial",
+      "tela inicial",
+      "ir para o inicio",
+      "abrir inicio",
+      "voltar ao inicio",
+    ])
+  ) {
     return { kind: "navigate", route: "/", label: "Abrindo tela inicial" };
   }
   return { kind: "unknown", label: "Comando não reconhecido" };
 }
 
-interface VoicePluginListener { remove: () => Promise<void> | void }
+interface VoicePluginListener {
+  remove: () => Promise<void> | void;
+}
 
 export interface VoiceRecognitionResult {
   transcript: string;
@@ -56,14 +66,27 @@ export interface VoiceRecognitionResult {
 interface VoiceControlPlugin {
   isAvailable(): Promise<{ available: boolean }>;
   startListening(): Promise<void>;
-  addListener(event: "voiceResult", callback: (result: VoiceRecognitionResult) => void): Promise<VoicePluginListener> | VoicePluginListener;
-  addListener(event: "voiceState", callback: (state: { listening: boolean; error?: string }) => void): Promise<VoicePluginListener> | VoicePluginListener;
-  addListener(event: "voiceActivation", callback: () => void): Promise<VoicePluginListener> | VoicePluginListener;
+  addListener(
+    event: "voiceResult",
+    callback: (result: VoiceRecognitionResult) => void,
+  ): Promise<VoicePluginListener> | VoicePluginListener;
+  addListener(
+    event: "voiceState",
+    callback: (state: { listening: boolean; error?: string }) => void,
+  ): Promise<VoicePluginListener> | VoicePluginListener;
+  addListener(
+    event: "voiceActivation",
+    callback: () => void,
+  ): Promise<VoicePluginListener> | VoicePluginListener;
 }
 
 function plugin(): VoiceControlPlugin | null {
   if (typeof window === "undefined") return null;
-  const capacitor = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean } }).Capacitor;
+  const capacitor = (
+    window as unknown as {
+      Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean };
+    }
+  ).Capacitor;
   if (!capacitor?.isNativePlatform?.()) return null;
   return (capacitor.Plugins?.["VoiceControl"] as VoiceControlPlugin | undefined) ?? null;
 }
@@ -71,7 +94,10 @@ function plugin(): VoiceControlPlugin | null {
 export const isNativeVoiceAvailable = async () => {
   const voice = plugin();
   if (!voice) return false;
-  return voice.isAvailable().then(({ available }) => available).catch(() => false);
+  return voice
+    .isAvailable()
+    .then(({ available }) => available)
+    .catch(() => false);
 };
 
 export const startVoiceRecognition = () => plugin()?.startListening();
@@ -80,19 +106,27 @@ export function onVoiceResult(callback: (result: VoiceRecognitionResult) => void
   const voice = plugin();
   if (!voice) return () => {};
   const handle = Promise.resolve(voice.addListener("voiceResult", callback));
-  return () => { void handle.then((listener) => listener.remove()); };
+  return () => {
+    void handle.then((listener) => listener.remove());
+  };
 }
 
-export function onVoiceState(callback: (state: { listening: boolean; error?: string }) => void): () => void {
+export function onVoiceState(
+  callback: (state: { listening: boolean; error?: string }) => void,
+): () => void {
   const voice = plugin();
   if (!voice) return () => {};
   const handle = Promise.resolve(voice.addListener("voiceState", callback));
-  return () => { void handle.then((listener) => listener.remove()); };
+  return () => {
+    void handle.then((listener) => listener.remove());
+  };
 }
 
 export function onVoiceActivation(callback: () => void): () => void {
   const voice = plugin();
   if (!voice) return () => {};
   const handle = Promise.resolve(voice.addListener("voiceActivation", callback));
-  return () => { void handle.then((listener) => listener.remove()); };
+  return () => {
+    void handle.then((listener) => listener.remove());
+  };
 }

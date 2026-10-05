@@ -101,7 +101,11 @@
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.76 0.15 65);
   --shadow-card: 0 12px 32px -16px oklch(0 0 0 / 60%);
-  --gradient-map: radial-gradient(circle at 30% 30%, oklch(0.24 0.02 230), oklch(0.16 0.01 260) 70%);
+  --gradient-map: radial-gradient(
+    circle at 30% 30%,
+    oklch(0.24 0.02 230),
+    oklch(0.16 0.01 260) 70%
+  );
   --font-display: "Sora", system-ui, sans-serif;
   --font-body: "Manrope", system-ui, sans-serif;
 }
@@ -131,7 +135,11 @@
   --sidebar-accent-foreground: oklch(0.2 0.01 260);
   --sidebar-border: oklch(0 0 0 / 8%);
   --shadow-card: 0 8px 24px -16px oklch(0 0 0 / 18%);
-  --gradient-map: radial-gradient(circle at 30% 30%, oklch(0.92 0.03 230), oklch(0.98 0.005 260) 70%);
+  --gradient-map: radial-gradient(
+    circle at 30% 30%,
+    oklch(0.92 0.03 230),
+    oklch(0.98 0.005 260) 70%
+  );
 }
 
 @layer base {
@@ -143,12 +151,25 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
-    transition: background-color 0.3s, color 0.3s;
+    transition:
+      background-color 0.3s,
+      color 0.3s;
   }
-  h1, h2, h3 { font-family: var(--font-display); }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
-@keyframes wiggle { from { rotate: -0.4deg; } to { rotate: 0.4deg; } }
+@keyframes wiggle {
+  from {
+    rotate: -0.4deg;
+  }
+  to {
+    rotate: 0.4deg;
+  }
+}
 
 /* Liquid glass: --glass (0–1) set from Ajustes drives translucency, blur and sheen. */
 :root {
@@ -162,32 +183,74 @@
 }
 body {
   background-image:
-    radial-gradient(circle at 15% 20%, color-mix(in oklab, var(--glass-glow-1) calc(var(--glass) * 100%), transparent), transparent 45%),
-    radial-gradient(circle at 85% 80%, color-mix(in oklab, var(--glass-glow-2) calc(var(--glass) * 100%), transparent), transparent 50%);
+    radial-gradient(
+      circle at 15% 20%,
+      color-mix(in oklab, var(--glass-glow-1) calc(var(--glass) * 100%), transparent),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      color-mix(in oklab, var(--glass-glow-2) calc(var(--glass) * 100%), transparent),
+      transparent 50%
+    );
   background-attachment: fixed;
 }
-.bg-background { background-color: color-mix(in oklab, var(--background) calc(100% - var(--glass) * 100%), transparent); }
-.bg-card, .bg-sidebar, .bg-popover {
+.bg-background {
+  background-color: color-mix(
+    in oklab,
+    var(--background) calc(100% - var(--glass) * 100%),
+    transparent
+  );
+}
+.bg-card,
+.bg-sidebar,
+.bg-popover {
   --glass-fill: calc(100% - var(--glass) * 55%);
   backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
   -webkit-backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
-  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / calc(var(--glass) * 25%)), var(--shadow-card);
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / calc(var(--glass) * 25%)),
+    var(--shadow-card);
 }
-.bg-card { background-color: color-mix(in oklab, var(--card) var(--glass-fill), transparent); }
-.bg-sidebar { background-color: color-mix(in oklab, var(--sidebar) var(--glass-fill), transparent); }
-.bg-popover { background-color: color-mix(in oklab, var(--popover) calc(100% - var(--glass) * 25%), transparent); }
+.bg-card {
+  background-color: color-mix(in oklab, var(--card) var(--glass-fill), transparent);
+}
+.bg-sidebar {
+  background-color: color-mix(in oklab, var(--sidebar) var(--glass-fill), transparent);
+}
+.bg-popover {
+  background-color: color-mix(
+    in oklab,
+    var(--popover) calc(100% - var(--glass) * 25%),
+    transparent
+  );
+}
 
 @keyframes eq {
-  from { transform: scaleY(0.2); }
-  to { transform: scaleY(1); }
+  from {
+    transform: scaleY(0.2);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 
 /* Hide the 5-day strip when the weather card is too short to show it whole. */
-@container (max-height: 150px) { .wx-days { display: none; } }
+@container (max-height: 150px) {
+  .wx-days {
+    display: none;
+  }
+}
 
 /* Short widget cards drop the title row (still announced via aria-label) to give content room. */
-.widget { container: widget / size; }
+.widget {
+  container: widget / size;
+}
 @container widget (max-height: 120px) {
-  .widget-head { display: none; }
-  .widget-inner { padding: 0.5rem 0.75rem; }
+  .widget-head {
+    display: none;
+  }
+  .widget-inner {
+    padding: 0.5rem 0.75rem;
+  }
 }

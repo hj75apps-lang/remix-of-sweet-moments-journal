@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { getConnectivity, onConnectivityChanged } from "@/services/connectivity";
 
 export type ThemeMode = "dark" | "light";
@@ -60,7 +68,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ mode, preferredMode, automaticNight: automaticNight && !hasManualPreference, setMode, toggle }),
+    () => ({
+      mode,
+      preferredMode,
+      automaticNight: automaticNight && !hasManualPreference,
+      setMode,
+      toggle,
+    }),
     [automaticNight, hasManualPreference, mode, preferredMode, setMode, toggle],
   );
 
