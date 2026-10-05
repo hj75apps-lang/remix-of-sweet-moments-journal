@@ -56,7 +56,7 @@ export function WeatherWidget() {
         </div>
       ) : q.isError ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <UnavailableState message="Previsão indisponível" hint="Verifique a conexão e a configuração da Climatempo." />
+          <UnavailableState message="Previsão indisponível" hint="Verifique a conexão e tente novamente." />
           <button type="button" onClick={() => void q.refetch()} className="flex min-h-11 items-center gap-2 rounded-2xl bg-secondary px-4 text-sm font-semibold"><RefreshCw className="size-4" />Atualizar</button>
         </div>
       ) : !w ? (
@@ -84,7 +84,9 @@ export function WeatherWidget() {
               </li>
             ))}
           </ul>
-          <p className="shrink-0 text-right text-[0.625rem] text-muted-foreground">Fonte: {w.source}</p>
+          <p className="shrink-0 text-right text-[0.625rem] text-muted-foreground">
+            Fonte: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline underline-offset-2">{w.source}</a>
+          </p>
         </div>
       )}
     </WidgetCard>
