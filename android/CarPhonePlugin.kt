@@ -22,6 +22,7 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.telecom.Call
+import android.telecom.CallAudioState
 import android.telecom.InCallService
 import android.telecom.TelecomManager
 import androidx.activity.result.ActivityResult
@@ -168,7 +169,10 @@ class CarPhonePlugin : Plugin() {
         val enabled = call.getBoolean("enabled") ?: false
         val service = CarInCallService.instance
         if (service != null) {
-            service.setAudioRoute(if (enabled) InCallService.CallAudioState.ROUTE_SPEAKER else InCallService.CallAudioState.ROUTE_BLUETOOTH)
+            val preferredRoute = if (enabled) CallAudioState.ROUTE_SPEAKER else CallAudioState.ROUTE_BLUETOOTH
+            val supportedRoutes = service.callAudioState?.supportedRouteMask ?: 0
+            val route = if (supportedRoutes and preferredRoute != 0) preferredRoute else CallAudioState.ROUTE_EARPIECE
+            service.setAudioRoute(route)
         } else {
             audio.mode = AudioManager.MODE_IN_COMMUNICATION
             @Suppress("DEPRECATION")
