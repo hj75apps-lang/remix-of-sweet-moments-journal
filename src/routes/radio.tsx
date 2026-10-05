@@ -7,7 +7,10 @@ export const Route = createFileRoute("/radio")({
   head: () => ({
     meta: [
       { title: "Rádios Online — Smart Auto Launcher" },
-      { name: "description", content: "Ouça rádios brasileiras ao vivo, busque estações e salve suas favoritas." },
+      {
+        name: "description",
+        content: "Ouça rádios brasileiras ao vivo, busque estações e salve suas favoritas.",
+      },
       { property: "og:title", content: "Rádios Online — Smart Auto Launcher" },
       { property: "og:description", content: "Rádios brasileiras ao vivo com busca e favoritas." },
       { property: "og:type", content: "website" },

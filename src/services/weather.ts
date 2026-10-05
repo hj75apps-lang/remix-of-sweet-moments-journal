@@ -62,14 +62,14 @@ interface NominatimReverseResult {
 const OPEN_METEO_API = "https://api.open-meteo.com/v1/forecast";
 const REQUEST_TIMEOUT = 12_000;
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { ...init, signal: controller.signal });
     if (!response.ok) throw new Error(`Serviço indisponível (${response.status})`);
-    return await response.json() as T;
+    return (await response.json()) as T;
   } finally {
     window.clearTimeout(timeout);
   }
@@ -109,6 +109,7 @@ async function resolvePlace(lat: number, lng: number): Promise<string> {
     try {
       const place = await fetchJson<NominatimReverseResult>(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=jsonv2&zoom=10&accept-language=pt-BR`,
+        { headers: { "Accept-Language": "pt-BR", "X-Requested-With": "SmartAutoLauncher" } },
       );
       const address = place.address;
       const city = address?.city ?? address?.town ?? address?.village ?? address?.municipality;

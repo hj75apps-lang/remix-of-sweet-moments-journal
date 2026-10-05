@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useRadio } from "@/contexts/radio-player-context";
@@ -66,10 +74,15 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ available, listening, activate }), [available, listening, activate]);
+  const value = useMemo(
+    () => ({ available, listening, activate }),
+    [available, listening, activate],
+  );
   return <VoiceControlContext.Provider value={value}>{children}</VoiceControlContext.Provider>;
 }
 
 export function useVoiceControl(): VoiceControlValue {
-  return useContext(VoiceControlContext) ?? { available: false, listening: false, activate: () => {} };
+  return (
+    useContext(VoiceControlContext) ?? { available: false, listening: false, activate: () => {} }
+  );
 }

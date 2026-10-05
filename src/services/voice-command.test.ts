@@ -8,8 +8,14 @@ describe("comandos de voz", () => {
 
   it("abre as telas principais", () => {
     expect(parseVoiceCommand("abrir rádio")).toMatchObject({ kind: "navigate", route: "/radio" });
-    expect(parseVoiceCommand("como está o tempo")).toMatchObject({ kind: "navigate", route: "/clima" });
-    expect(parseVoiceCommand("abrir configurações")).toMatchObject({ kind: "navigate", route: "/ajustes" });
+    expect(parseVoiceCommand("como está o tempo")).toMatchObject({
+      kind: "navigate",
+      route: "/clima",
+    });
+    expect(parseVoiceCommand("abrir configurações")).toMatchObject({
+      kind: "navigate",
+      route: "/ajustes",
+    });
   });
 
   it("controla a reprodução", () => {

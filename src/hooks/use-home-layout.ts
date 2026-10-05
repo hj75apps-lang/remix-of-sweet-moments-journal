@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { HomeItem, HomeLayout, ItemSize } from "@/types/home";
 
 const STORAGE_KEY = "sal.home-layout";
@@ -15,15 +15,41 @@ export const defaultLayout: HomeLayout = {
 };
 
 function isValid(value: unknown): value is HomeLayout {
-  const v = value as HomeLayout;
-  return !!v && v.version === 2 && Array.isArray(v.items) && v.items.every((i) => i.id && i.type && i.ref && i.size);
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<HomeLayout>;
+  return (
+    candidate.version === 2 &&
+    Array.isArray(candidate.items) &&
+    candidate.items.every((item) => {
+      if (!item || typeof item !== "object") return false;
+      const entry = item as Partial<HomeItem>;
+      if (typeof entry.ref !== "string") return false;
+      const validRef =
+        entry.type === "WIDGET"
+          ? entry.ref in widgetRefs
+          : entry.type === "APP"
+            ? entry.ref in appRefs
+            : false;
+      return (
+        typeof entry.id === "string" &&
+        validRef &&
+        typeof entry.size?.w === "number" &&
+        typeof entry.size.h === "number"
+      );
+    })
+  );
 }
+
+const widgetRefs = { navigation: true, media: true, weather: true, favorites: true, clock: true };
+const appRefs = { map: true, music: true, radio: true, phone: true, settings: true };
 
 /** Home layout state with persistence and undo. */
 export function useHomeLayout() {
   const [layout, setLayout] = useState<HomeLayout>(defaultLayout);
   const [history, setHistory] = useState<HomeLayout[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
 
   useEffect(() => {
     try {
@@ -43,11 +69,20 @@ export function useHomeLayout() {
   }, [layout, loaded]);
 
   const commit = useCallback((next: (items: HomeItem[]) => HomeItem[]) => {
-    setLayout((prev) => {
-      setHistory((h) => [...h.slice(-MAX_HISTORY + 1), prev]);
-      return { ...prev, items: next(prev.items) };
-    });
+    const previous = layoutRef.current;
+    const updated = { ...previous, items: next(previous.items) };
+    layoutRef.current = updated;
+    setHistory((entries) => [...entries.slice(-MAX_HISTORY + 1), previous]);
+    setLayout(updated);
   }, []);
+
+  const undo = useCallback(() => {
+    const last = history[history.length - 1];
+    if (!last) return;
+    layoutRef.current = last;
+    setLayout(last);
+    setHistory((entries) => entries.slice(0, -1));
+  }, [history]);
 
   return {
     items: layout.items,
@@ -60,15 +95,14 @@ export function useHomeLayout() {
         return copy;
       }),
     remove: (id: string) => commit((items) => items.filter((i) => i.id !== id)),
-    resize: (id: string, size: ItemSize) => commit((items) => items.map((i) => (i.id === id ? { ...i, size } : i))),
-    add: (item: Omit<HomeItem, "id">) => commit((items) => [...items, { ...item, id: `${item.ref}-${crypto.randomUUID().slice(0, 8)}` }]),
+    resize: (id: string, size: ItemSize) =>
+      commit((items) => items.map((i) => (i.id === id ? { ...i, size } : i))),
+    add: (item: Omit<HomeItem, "id">) =>
+      commit((items) => [
+        ...items,
+        { ...item, id: `${item.ref}-${crypto.randomUUID().slice(0, 8)}` },
+      ]),
     reset: () => commit(() => defaultLayout.items),
-    undo: () =>
-      setHistory((h) => {
-        const last = h.at(-1);
-        if (!last) return h;
-        setLayout(last);
-        return h.slice(0, -1);
-      }),
+    undo,
   };
 }

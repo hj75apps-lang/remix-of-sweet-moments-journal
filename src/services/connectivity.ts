@@ -12,7 +12,9 @@ export interface ConnectivityState {
   nightMode: boolean;
 }
 
-interface PluginListener { remove: () => Promise<void> | void }
+interface PluginListener {
+  remove: () => Promise<void> | void;
+}
 interface SystemControlsPlugin {
   getState(): Promise<ConnectivityState>;
   /** Opens the system Wi-Fi panel (Android 10+ forbids apps from switching Wi-Fi directly). */
@@ -20,12 +22,19 @@ interface SystemControlsPlugin {
   /** Asks the system to turn Bluetooth on, or opens Bluetooth settings to pair/disconnect. */
   toggleBluetooth(): Promise<void>;
   openBluetoothSettings(): Promise<void>;
-  addListener(event: "stateChanged", cb: (s: ConnectivityState) => void): Promise<PluginListener> | PluginListener;
+  addListener(
+    event: "stateChanged",
+    cb: (s: ConnectivityState) => void,
+  ): Promise<PluginListener> | PluginListener;
 }
 
 function plugin(): SystemControlsPlugin | null {
   if (typeof window === "undefined") return null;
-  const cap = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean } }).Capacitor;
+  const cap = (
+    window as unknown as {
+      Capacitor?: { Plugins?: Record<string, unknown>; isNativePlatform?: () => boolean };
+    }
+  ).Capacitor;
   if (!cap?.isNativePlatform?.()) return null;
   return (cap.Plugins?.["SystemControls"] as SystemControlsPlugin | undefined) ?? null;
 }
@@ -40,5 +49,7 @@ export function onConnectivityChanged(cb: (s: ConnectivityState) => void): () =>
   const p = plugin();
   if (!p) return () => {};
   const h = Promise.resolve(p.addListener("stateChanged", cb));
-  return () => { void h.then((l) => l.remove()); };
+  return () => {
+    void h.then((l) => l.remove());
+  };
 }

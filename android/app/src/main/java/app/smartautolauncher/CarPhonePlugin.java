@@ -10,6 +10,7 @@ import android.os.Build;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.TelecomManager;
+import android.os.Bundle;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -112,9 +113,15 @@ public final class CarPhonePlugin extends Plugin {
     private String sanitize(String number) { return number == null ? "" : number.replaceAll("[^0-9+*#]", ""); }
 
     private void startCall(String number, PluginCall call) {
-        Intent intent = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
+        Uri uri = Uri.fromParts("tel", number, null);
+        TelecomManager telecom = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+        if (isDefaultDialer() && telecom != null) {
+            telecom.placeCall(uri, new Bundle());
+        } else {
+            Intent intent = new Intent(Intent.ACTION_CALL, uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+        }
         call.resolve();
     }
 

@@ -1,18 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Hls from "hls.js";
 import type { RadioStation } from "@/services/radio-browser";
-import { reconnectDelay, resolveSource, streamKind, canPlayNatively } from "@/services/radio-stream";
+import {
+  reconnectDelay,
+  resolveSource,
+  streamKind,
+  canPlayNatively,
+} from "@/services/radio-stream";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "reconnecting" | "error";
 export type EqStatus = "off" | "active" | "unsupported";
-export interface EqGains { bass: number; mid: number; treble: number }
+export interface EqGains {
+  bass: number;
+  mid: number;
+  treble: number;
+}
 
 const FAV_KEY = "sal.radio-favorites";
 const VOL_KEY = "sal.radio-volume";
 const EQ_KEY = "sal.radio-eq";
 const START_TIMEOUT_MS = 12000;
 
-interface Graph { ctx: AudioContext; bass: BiquadFilterNode; mid: BiquadFilterNode; treble: BiquadFilterNode }
+interface Graph {
+  ctx: AudioContext;
+  bass: BiquadFilterNode;
+  mid: BiquadFilterNode;
+  treble: BiquadFilterNode;
+}
 
 /** Checks the stream host allows cross-origin reads (needed for Web Audio processing). */
 async function allowsCors(url: string): Promise<boolean> {
@@ -29,7 +43,10 @@ async function allowsCors(url: string): Promise<boolean> {
   }
 }
 
-interface Options { onNext?: () => void; onPrev?: () => void }
+interface Options {
+  onNext?: () => void;
+  onPrev?: () => void;
+}
 
 /**
  * Live radio engine. Plays on a plain <audio> element by default (works with any
@@ -75,7 +92,9 @@ export function useRadioPlayer(options: Options = {}) {
 
   const ensureGraph = useCallback(() => {
     if (graphRef.current || !eqElRef.current) return graphRef.current;
-    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return null;
     const ctx = new Ctx();
     const src = ctx.createMediaElementSource(eqElRef.current);
@@ -84,7 +103,9 @@ export function useRadioPlayer(options: Options = {}) {
     const mid = Object.assign(ctx.createBiquadFilter(), { type: "peaking" as BiquadFilterType });
     mid.frequency.value = 1000;
     mid.Q.value = 0.9;
-    const treble = Object.assign(ctx.createBiquadFilter(), { type: "highshelf" as BiquadFilterType });
+    const treble = Object.assign(ctx.createBiquadFilter(), {
+      type: "highshelf" as BiquadFilterType,
+    });
     treble.frequency.value = 6000;
     src.connect(bass).connect(mid).connect(treble).connect(ctx.destination);
     graphRef.current = { ctx, bass, mid, treble };
@@ -92,92 +113,106 @@ export function useRadioPlayer(options: Options = {}) {
   }, []);
 
   /** Attach one URL to an element; resolves when audio actually advances. */
-  const attach = useCallback(async (el: HTMLAudioElement, url: string, token: number): Promise<boolean> => {
-    hlsRef.current?.destroy();
-    hlsRef.current = null;
-    if (streamKind(url) === "hls" && !canPlayNatively("hls", el)) {
-      const { default: HlsCtor } = await import("hls.js");
-      if (token !== tokenRef.current || !HlsCtor.isSupported()) return false;
-      const hls = new HlsCtor({ lowLatencyMode: false });
-      hlsRef.current = hls;
-      hls.loadSource(url);
-      hls.attachMedia(el);
-    } else {
-      el.src = url;
-    }
-    return new Promise<boolean>((resolve) => {
-      let done = false;
-      const finish = (ok: boolean) => {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        el.removeEventListener("timeupdate", onTime);
-        el.removeEventListener("error", onErr);
-        resolve(ok);
-      };
-      const onTime = () => el.currentTime > 0 && finish(true);
-      const onErr = () => finish(false);
-      const timer = setTimeout(() => finish(false), START_TIMEOUT_MS);
-      el.addEventListener("timeupdate", onTime);
-      el.addEventListener("error", onErr);
-      el.play().catch(() => finish(false));
-    });
-  }, []);
+  const attach = useCallback(
+    async (el: HTMLAudioElement, url: string, token: number): Promise<boolean> => {
+      hlsRef.current?.destroy();
+      hlsRef.current = null;
+      if (streamKind(url) === "hls" && !canPlayNatively("hls", el)) {
+        const { default: HlsCtor } = await import("hls.js");
+        if (token !== tokenRef.current || !HlsCtor.isSupported()) return false;
+        const hls = new HlsCtor({ lowLatencyMode: false });
+        hlsRef.current = hls;
+        hls.loadSource(url);
+        hls.attachMedia(el);
+      } else {
+        el.src = url;
+      }
+      return new Promise<boolean>((resolve) => {
+        let done = false;
+        const finish = (ok: boolean) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          el.removeEventListener("timeupdate", onTime);
+          el.removeEventListener("error", onErr);
+          resolve(ok);
+        };
+        const onTime = () => el.currentTime > 0 && finish(true);
+        const onErr = () => finish(false);
+        const timer = setTimeout(() => finish(false), START_TIMEOUT_MS);
+        el.addEventListener("timeupdate", onTime);
+        el.addEventListener("error", onErr);
+        el.play().catch(() => finish(false));
+      });
+    },
+    [],
+  );
 
-  const start = useCallback(async (s: RadioStation, token: number) => {
-    stopAll();
-    setStatus(attemptRef.current ? "reconnecting" : "loading");
-    setAudioConfirmed(false);
-    for (let i = 0; i < s.sources.length; i++) {
-      const candidates = await resolveSource(s.sources[i]!);
-      for (const url of candidates) {
-        if (token !== tokenRef.current) return;
-        setSourceIndex(i);
-        let el = plainRef.current!;
-        if (eqEnabledRef.current && (await allowsCors(url)) && token === tokenRef.current) {
-          const graph = ensureGraph();
-          if (graph) {
-            void graph.ctx.resume();
-            el = eqElRef.current!;
+  const start = useCallback(
+    async (s: RadioStation, token: number) => {
+      stopAll();
+      setStatus(attemptRef.current ? "reconnecting" : "loading");
+      setAudioConfirmed(false);
+      for (let i = 0; i < s.sources.length; i++) {
+        const candidates = await resolveSource(s.sources[i]!);
+        for (const url of candidates) {
+          if (token !== tokenRef.current) return;
+          setSourceIndex(i);
+          let el = plainRef.current!;
+          if (eqEnabledRef.current && (await allowsCors(url)) && token === tokenRef.current) {
+            const graph = ensureGraph();
+            if (graph) {
+              void graph.ctx.resume();
+              el = eqElRef.current!;
+            }
+          }
+          let ok = await attach(el, url, token);
+          if (!ok && el === eqElRef.current && token === tokenRef.current) {
+            el = plainRef.current!; // processing failed: keep normal playback
+            ok = await attach(el, url, token);
+          }
+          if (token !== tokenRef.current) return;
+          if (ok) {
+            activeRef.current = el;
+            attemptRef.current = 0;
+            setEqStatus(
+              eqEnabledRef.current ? (el === eqElRef.current ? "active" : "unsupported") : "off",
+            );
+            setAudioConfirmed(true);
+            setStatus("playing");
+            return;
           }
         }
-        let ok = await attach(el, url, token);
-        if (!ok && el === eqElRef.current && token === tokenRef.current) {
-          el = plainRef.current!; // processing failed: keep normal playback
-          ok = await attach(el, url, token);
-        }
-        if (token !== tokenRef.current) return;
-        if (ok) {
-          activeRef.current = el;
-          attemptRef.current = 0;
-          setEqStatus(eqEnabledRef.current ? (el === eqElRef.current ? "active" : "unsupported") : "off");
-          setAudioConfirmed(true);
-          setStatus("playing");
-          return;
-        }
       }
-    }
-    // Every source failed: bounded reconnect.
-    const delay = reconnectDelay(attemptRef.current);
-    if (delay === null || !wantPlayRef.current) {
-      attemptRef.current = 0;
-      stopAll();
-      setStatus("error");
-      return;
-    }
-    attemptRef.current += 1;
-    setStatus("reconnecting");
-    retryTimer.current = setTimeout(() => token === tokenRef.current && void start(s, token), delay);
-  }, [attach, ensureGraph, stopAll]);
+      // Every source failed: bounded reconnect.
+      const delay = reconnectDelay(attemptRef.current);
+      if (delay === null || !wantPlayRef.current) {
+        attemptRef.current = 0;
+        stopAll();
+        setStatus("error");
+        return;
+      }
+      attemptRef.current += 1;
+      setStatus("reconnecting");
+      retryTimer.current = setTimeout(
+        () => token === tokenRef.current && void start(s, token),
+        delay,
+      );
+    },
+    [attach, ensureGraph, stopAll],
+  );
 
-  const play = useCallback((s: RadioStation) => {
-    const token = ++tokenRef.current; // newer taps cancel older loads
-    attemptRef.current = 0;
-    wantPlayRef.current = true;
-    stationRef.current = s;
-    setStation(s);
-    void start(s, token);
-  }, [start]);
+  const play = useCallback(
+    (s: RadioStation) => {
+      const token = ++tokenRef.current; // newer taps cancel older loads
+      attemptRef.current = 0;
+      wantPlayRef.current = true;
+      stationRef.current = s;
+      setStation(s);
+      void start(s, token);
+    },
+    [start],
+  );
 
   const reconnect = useCallback(() => {
     const s = stationRef.current;
@@ -208,7 +243,10 @@ export function useRadioPlayer(options: Options = {}) {
       if (e.target !== activeRef.current || !wantPlayRef.current) return;
       setStatus("reconnecting");
       if (stallTimer) clearTimeout(stallTimer);
-      stallTimer = setTimeout(() => reconnectRef.current(), e.type === "error" || e.type === "ended" ? 0 : 6000);
+      stallTimer = setTimeout(
+        () => reconnectRef.current(),
+        e.type === "error" || e.type === "ended" ? 0 : 6000,
+      );
     };
     const onResume = (e: Event) => {
       if (e.target !== activeRef.current) return;
@@ -224,19 +262,26 @@ export function useRadioPlayer(options: Options = {}) {
     try {
       const v = localStorage.getItem(VOL_KEY);
       if (v !== null && Number(v) >= 0 && Number(v) <= 1) setVolumeState(Number(v));
-      const favs = JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]") as Array<RadioStation & { streamUrl?: string }>;
-      setFavorites(favs.map((f) => ({ ...f, sources: f.sources ?? (f.streamUrl ? [f.streamUrl] : []) })));
-      const g = JSON.parse(localStorage.getItem(EQ_KEY) ?? "null") as (EqGains & { enabled: boolean }) | null;
+      const favs = JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]") as Array<
+        RadioStation & { streamUrl?: string }
+      >;
+      setFavorites(
+        favs.map((f) => ({ ...f, sources: f.sources ?? (f.streamUrl ? [f.streamUrl] : []) })),
+      );
+      const g = JSON.parse(localStorage.getItem(EQ_KEY) ?? "null") as
+        (EqGains & { enabled: boolean }) | null;
       if (g) {
         setGains({ bass: g.bass, mid: g.mid, treble: g.treble });
         setEqEnabled(g.enabled);
         eqEnabledRef.current = g.enabled;
       }
-    } catch { /* ignore corrupt storage */ }
+    } catch {
+      /* ignore corrupt storage */
+    }
     return () => {
       window.removeEventListener("online", onOnline);
       if (stallTimer) clearTimeout(stallTimer);
-      tokenRef.current++;
+      tokenRef.current += 1;
       hlsRef.current?.destroy();
       plain.pause();
       eq.pause();
@@ -272,25 +317,50 @@ export function useRadioPlayer(options: Options = {}) {
       });
     }
     ms.playbackState = status === "playing" ? "playing" : status === "paused" ? "paused" : "none";
-    const set = (a: MediaSessionAction, h: (() => void) | null) => { try { ms.setActionHandler(a, h); } catch { /* unsupported */ } };
+    const set = (a: MediaSessionAction, h: (() => void) | null) => {
+      try {
+        ms.setActionHandler(a, h);
+      } catch {
+        /* unsupported */
+      }
+    };
     set("play", () => stationRef.current && play(stationRef.current));
-    set("pause", () => { wantPlayRef.current = false; tokenRef.current++; stopAll(); setStatus("paused"); });
+    set("pause", () => {
+      wantPlayRef.current = false;
+      tokenRef.current++;
+      stopAll();
+      setStatus("paused");
+    });
     set("nexttrack", () => optsRef.current.onNext?.());
     set("previoustrack", () => optsRef.current.onPrev?.());
+    return () => {
+      set("play", null);
+      set("pause", null);
+      set("nexttrack", null);
+      set("previoustrack", null);
+    };
   }, [station, status, play, stopAll]);
 
-  const persistEq = (enabled: boolean, g: EqGains) => localStorage.setItem(EQ_KEY, JSON.stringify({ ...g, enabled }));
+  const persistEq = (enabled: boolean, g: EqGains) =>
+    localStorage.setItem(EQ_KEY, JSON.stringify({ ...g, enabled }));
 
   const setEq = useCallback((enabled: boolean) => {
     setEqEnabled(enabled);
     eqEnabledRef.current = enabled;
-    setGains((g) => { persistEq(enabled, g); return g; });
+    setGains((g) => {
+      persistEq(enabled, g);
+      return g;
+    });
     if (!enabled) setEqStatus("off");
     if (stationRef.current && wantPlayRef.current) reconnectRef.current();
   }, []);
 
   const setGain = useCallback((band: keyof EqGains, value: number) => {
-    setGains((g) => { const n = { ...g, [band]: value }; persistEq(eqEnabledRef.current, n); return n; });
+    setGains((g) => {
+      const n = { ...g, [band]: value };
+      persistEq(eqEnabledRef.current, n);
+      return n;
+    });
   }, []);
 
   const setVolume = useCallback((v: number) => {
@@ -300,15 +370,29 @@ export function useRadioPlayer(options: Options = {}) {
 
   const toggleFavorite = useCallback((s: RadioStation) => {
     setFavorites((prev) => {
-      const next = prev.some((f) => f.id === s.id) ? prev.filter((f) => f.id !== s.id) : [...prev, s];
+      const next = prev.some((f) => f.id === s.id)
+        ? prev.filter((f) => f.id !== s.id)
+        : [...prev, s];
       localStorage.setItem(FAV_KEY, JSON.stringify(next));
       return next;
     });
   }, []);
 
   return {
-    station, status, sourceIndex, audioConfirmed, volume, favorites,
-    eqEnabled, eqStatus, gains,
-    play, toggle, setVolume, toggleFavorite, setEq, setGain,
+    station,
+    status,
+    sourceIndex,
+    audioConfirmed,
+    volume,
+    favorites,
+    eqEnabled,
+    eqStatus,
+    gains,
+    play,
+    toggle,
+    setVolume,
+    toggleFavorite,
+    setEq,
+    setGain,
   };
 }

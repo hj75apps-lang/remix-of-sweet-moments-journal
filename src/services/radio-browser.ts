@@ -47,7 +47,11 @@ let preferred = 0;
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 
 /** GET a path from the first mirror that responds; throws only if all fail. */
-export async function fetchFromMirrors<T>(path: string, fetcher: Fetcher = fetch, timeoutMs = 6000): Promise<T> {
+export async function fetchFromMirrors<T>(
+  path: string,
+  fetcher: Fetcher = fetch,
+  timeoutMs = 6000,
+): Promise<T> {
   const order = [...RADIO_SERVERS.slice(preferred), ...RADIO_SERVERS.slice(0, preferred)];
   let lastError: unknown;
   for (const base of order) {
@@ -71,13 +75,21 @@ export async function fetchFromMirrors<T>(path: string, fetcher: Fetcher = fetch
 export function normalizeRaw(raw: RawStation[]): RadioStation[] {
   return raw
     .map((s) => {
-      const sources = [s.url_resolved, s.url].filter((u, i, a) => u?.startsWith("https://") && a.indexOf(u) === i);
+      const sources = [s.url_resolved, s.url].filter(
+        (u, i, a) => u?.startsWith("https://") && a.indexOf(u) === i,
+      );
       return {
         id: s.stationuuid,
         name: s.name.trim(),
         sources,
         favicon: s.favicon?.startsWith("https://") ? s.favicon : "",
-        tags: s.tags ? s.tags.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 4) : [],
+        tags: s.tags
+          ? s.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+              .slice(0, 4)
+          : [],
         state: s.state?.trim() ?? "",
         bitrate: s.bitrate,
         codec: s.codec,
@@ -99,7 +111,10 @@ export interface CatalogResult {
 /** Top Brazilian stations merged with the verified complementary catalog. */
 export async function fetchCatalog(fetcher?: Fetcher): Promise<CatalogResult> {
   try {
-    const raw = await fetchFromMirrors<RawStation[]>(`/json/stations/search?${BASE_PARAMS}&limit=500`, fetcher);
+    const raw = await fetchFromMirrors<RawStation[]>(
+      `/json/stations/search?${BASE_PARAMS}&limit=500`,
+      fetcher,
+    );
     return { stations: mergeStations(normalizeRaw(raw), verifiedStations), offlineCatalog: false };
   } catch {
     return { stations: verifiedStations, offlineCatalog: true };
@@ -116,15 +131,33 @@ export function looksLikeUrl(query: string): boolean {
 export async function fetchByName(query: string, fetcher?: Fetcher): Promise<RadioStation[]> {
   const paths: string[] = [];
   if (looksLikeUrl(query)) {
-    const host = query.trim().replace(/^[a-z]+:\/\//i, "").split(/[/:?#]/)[0] ?? "";
-    if (host) paths.push(`/json/stations/search?${BASE_PARAMS}&limit=60&name=${encodeURIComponent(host.replace(/^www\./, "").split(".")[0] ?? host)}`);
+    const host =
+      query
+        .trim()
+        .replace(/^[a-z]+:\/\//i, "")
+        .split(/[/:?#]/)[0] ?? "";
+    if (host)
+      paths.push(
+        `/json/stations/search?${BASE_PARAMS}&limit=60&name=${encodeURIComponent(host.replace(/^www\./, "").split(".")[0] ?? host)}`,
+      );
   } else {
-    const variants = expandQuery(query).filter((v) => v.length >= 3).slice(0, 3);
-    const words = normalizeText(query).split(" ").filter((w) => !/^\d+$/.test(w) && !["fm","am","radio"].includes(w)).join(" ");
+    const variants = expandQuery(query)
+      .filter((v) => v.length >= 3)
+      .slice(0, 3);
+    const words = normalizeText(query)
+      .split(" ")
+      .filter((w) => !/^\d+$/.test(w) && !["fm", "am", "radio"].includes(w))
+      .join(" ");
     if (words.length >= 3 && !variants.includes(words)) variants.push(words);
-    for (const v of variants) paths.push(`/json/stations/search?${BASE_PARAMS}&limit=60&name=${encodeURIComponent(v)}`);
-    if (/[a-z]{3,}/i.test(query)) paths.push(`/json/stations/search?${BASE_PARAMS}&limit=60&state=${encodeURIComponent(query.trim())}`);
+    for (const v of variants)
+      paths.push(`/json/stations/search?${BASE_PARAMS}&limit=60&name=${encodeURIComponent(v)}`);
+    if (/[a-z]{3,}/i.test(query))
+      paths.push(
+        `/json/stations/search?${BASE_PARAMS}&limit=60&state=${encodeURIComponent(query.trim())}`,
+      );
   }
-  const results = await Promise.allSettled(paths.map((p) => fetchFromMirrors<RawStation[]>(p, fetcher)));
+  const results = await Promise.allSettled(
+    paths.map((p) => fetchFromMirrors<RawStation[]>(p, fetcher)),
+  );
   return normalizeRaw(results.flatMap((r) => (r.status === "fulfilled" ? r.value : [])));
 }

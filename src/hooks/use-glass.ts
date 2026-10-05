@@ -15,7 +15,10 @@ export function useGlass() {
   useEffect(() => {
     const read = () => {
       const n = Number(localStorage.getItem(KEY));
-      const v = Number.isFinite(n) && localStorage.getItem(KEY) !== null ? Math.min(100, Math.max(0, n)) : DEFAULT_GLASS;
+      const v =
+        Number.isFinite(n) && localStorage.getItem(KEY) !== null
+          ? Math.min(100, Math.max(0, n))
+          : DEFAULT_GLASS;
       setLevel(v);
       apply(v);
     };

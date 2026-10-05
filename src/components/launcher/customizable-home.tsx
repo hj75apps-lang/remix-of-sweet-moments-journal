@@ -1,33 +1,51 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  DndContext,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, Maximize2, Plus, Undo2, RotateCcw, Check } from "lucide-react";
-import { toast } from "sonner";
 import type { HomeItem, AppId, WidgetKind } from "@/types/home";
 import { useHomeLayout } from "@/hooks/use-home-layout";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
 import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const LONG_PRESS_MS = 500;
 
 function ItemContent({ item }: { item: HomeItem }) {
+  const navigate = useNavigate();
   if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
   const app = appRegistry[item.ref as AppId];
   const Icon = app.icon;
+  const routes: Record<AppId, "/apps" | "/radio" | "/telefone" | "/ajustes"> = {
+    map: "/apps",
+    music: "/apps",
+    radio: "/radio",
+    phone: "/telefone",
+    settings: "/ajustes",
+  };
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       aria-label={`Abrir ${app.label}`}
-      onClick={() => toast(`${app.label} estará disponível em breve`)}
+      onClick={() => void navigate({ to: routes[item.ref as AppId] })}
       className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition active:scale-95"
     >
       <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
         <Icon className="size-7" />
       </span>
       {app.label}
-    </button>
+    </Button>
   );
 }
 
@@ -42,10 +60,20 @@ interface TileProps {
 }
 
 function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols }: TileProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled: !editing });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+    disabled: !editing,
+  });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clear = () => timer.current && clearTimeout(timer.current);
-  const label = item.type === "WIDGET" ? widgetRegistry[item.ref as WidgetKind].label : appRegistry[item.ref as AppId].label;
+  const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => clear, []);
+  const label =
+    item.type === "WIDGET"
+      ? widgetRegistry[item.ref as WidgetKind].label
+      : appRegistry[item.ref as AppId].label;
 
   return (
     <div
@@ -56,7 +84,11 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
         gridColumn: `span ${Math.min(item.size.w, cols)}`,
         gridRow: `span ${cols === 2 ? Math.min(item.size.h, 2) : item.size.h}`,
       }}
-      className={cn("relative min-h-0", isDragging && "z-20 opacity-80", editing && "animate-[wiggle_0.3s_ease-in-out_infinite_alternate] cursor-grab touch-none")}
+      className={cn(
+        "relative min-h-0",
+        isDragging && "z-20 opacity-80",
+        editing && "animate-[wiggle_0.3s_ease-in-out_infinite_alternate] cursor-grab touch-none",
+      )}
       onPointerDown={() => {
         if (editing) return;
         timer.current = setTimeout(onLongPress, LONG_PRESS_MS);
@@ -87,17 +119,34 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
   );
 }
 
-function TileButton({ label, onClick, destructive, children }: { label: string; onClick: () => void; destructive?: boolean; children: ReactNode }) {
+function TileButton({
+  label,
+  onClick,
+  destructive,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  destructive?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <button
+    <Button
       type="button"
+      variant={destructive ? "destructive" : "secondary"}
+      size="icon"
       aria-label={label}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={onClick}
-      className={cn("grid size-11 place-items-center rounded-full shadow-[var(--shadow-card)]", destructive ? "bg-destructive text-destructive-foreground" : "bg-popover text-popover-foreground")}
+      className={cn(
+        "grid size-11 place-items-center rounded-full shadow-[var(--shadow-card)]",
+        destructive
+          ? "bg-destructive text-destructive-foreground"
+          : "bg-popover text-popover-foreground",
+      )}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -121,7 +170,11 @@ export function CustomizableHome() {
   const cols = box.width < 520 ? 2 : box.width < 900 ? 4 : GRID_COLS;
   const gap = box.width < 640 ? 8 : 16;
   // Fit every card into the visible area: no scrolling, like a head-unit launcher.
-  const cells = home.items.reduce((sum, i) => sum + Math.min(i.size.w, cols) * (cols === 2 ? Math.min(i.size.h, 2) : i.size.h), 0) + (editing ? 1 : 0);
+  const cells =
+    home.items.reduce(
+      (sum, i) => sum + Math.min(i.size.w, cols) * (cols === 2 ? Math.min(i.size.h, 2) : i.size.h),
+      0,
+    ) + (editing ? 1 : 0);
   const rows = Math.max(cols === GRID_COLS ? GRID_ROWS : 1, Math.ceil(cells / cols));
   const rowHeight = Math.max(32, (box.height - (rows - 1) * gap) / rows);
   const sensors = useSensors(
@@ -146,13 +199,35 @@ export function CustomizableHome() {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       {editing && (
-        <div className="flex flex-col gap-2 rounded-3xl bg-card p-2 lg:flex-row lg:items-center" role="toolbar" aria-label="Editar tela inicial">
-          <p className="hidden px-3 text-sm text-muted-foreground sm:block">Arraste para mover. Use os botões para redimensionar ou remover.</p>
+        <div
+          className="flex flex-col gap-2 rounded-3xl bg-card p-2 lg:flex-row lg:items-center"
+          role="toolbar"
+          aria-label="Editar tela inicial"
+        >
+          <p className="hidden px-3 text-sm text-muted-foreground sm:block">
+            Arraste para mover. Use os botões para redimensionar ou remover.
+          </p>
           <div className="grid grid-cols-4 gap-2 lg:ml-auto lg:flex">
-            <ToolbarButton onClick={() => setAdding(true)} icon={<Plus className="size-5" />}>Adicionar</ToolbarButton>
-            <ToolbarButton onClick={home.undo} disabled={!home.canUndo} icon={<Undo2 className="size-5" />}>Desfazer</ToolbarButton>
-            <ToolbarButton onClick={home.reset} icon={<RotateCcw className="size-5" />}>Padrão</ToolbarButton>
-            <ToolbarButton onClick={() => setEditing(false)} primary icon={<Check className="size-5" />}>Concluir</ToolbarButton>
+            <ToolbarButton onClick={() => setAdding(true)} icon={<Plus className="size-5" />}>
+              Adicionar
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={home.undo}
+              disabled={!home.canUndo}
+              icon={<Undo2 className="size-5" />}
+            >
+              Desfazer
+            </ToolbarButton>
+            <ToolbarButton onClick={home.reset} icon={<RotateCcw className="size-5" />}>
+              Padrão
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => setEditing(false)}
+              primary
+              icon={<Check className="size-5" />}
+            >
+              Concluir
+            </ToolbarButton>
           </div>
         </div>
       )}
@@ -180,34 +255,62 @@ export function CustomizableHome() {
               />
             ))}
             {editing && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setAdding(true)}
                 aria-label="Adicionar item"
                 className="grid place-items-center rounded-3xl border-2 border-dashed text-muted-foreground transition hover:text-primary"
               >
                 <Plus className="size-8" />
-              </button>
+              </Button>
             )}
           </div>
         </SortableContext>
       </DndContext>
-      {!editing && <p className="sr-only">Pressione e segure qualquer cartão para personalizar a tela inicial.</p>}
-      <AddItemSheet open={adding} onOpenChange={setAdding} onAdd={(item) => { home.add(item); setAdding(false); }} />
+      {!editing && (
+        <p className="sr-only">
+          Pressione e segure qualquer cartão para personalizar a tela inicial.
+        </p>
+      )}
+      <AddItemSheet
+        open={adding}
+        onOpenChange={setAdding}
+        onAdd={(item) => {
+          home.add(item);
+          setAdding(false);
+        }}
+      />
     </div>
   );
 }
 
-function ToolbarButton({ onClick, icon, children, primary, disabled }: { onClick: () => void; icon: ReactNode; children: ReactNode; primary?: boolean; disabled?: boolean }) {
+function ToolbarButton({
+  onClick,
+  icon,
+  children,
+  primary,
+  disabled,
+}: {
+  onClick: () => void;
+  icon: ReactNode;
+  children: ReactNode;
+  primary?: boolean;
+  disabled?: boolean;
+}) {
   return (
-    <button
+    <Button
       type="button"
+      variant={primary ? "default" : "secondary"}
       onClick={onClick}
       disabled={disabled}
-      className={cn("flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-xs sm:flex-row sm:gap-2 sm:px-4 sm:text-sm font-semibold transition active:scale-95 disabled:opacity-40", primary ? "bg-primary text-primary-foreground" : "bg-secondary")}
+      className={cn(
+        "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-xs sm:flex-row sm:gap-2 sm:px-4 sm:text-sm font-semibold transition active:scale-95 disabled:opacity-40",
+        primary ? "bg-primary text-primary-foreground" : "bg-secondary",
+      )}
     >
       {icon}
       <span className="truncate">{children}</span>
-    </button>
+    </Button>
   );
 }
