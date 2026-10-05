@@ -12,7 +12,8 @@ function renderAt(path: string) {
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return render(<RouterProvider router={router} />);
+  const host = document.documentElement;
+  return { router, host, rendered: render(<RouterProvider router={router} />, { container: host }) };
 }
 
 afterEach(() => {
@@ -24,16 +25,16 @@ afterEach(() => {
 // routes are rewritten as the app is built and this must keep passing.
 describe("App routing", () => {
   it("renders the index route", async () => {
-    const { container } = renderAt("/");
-
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    const { router } = renderAt("/");
+    await waitFor(() => expect(router.state.status).toBe("idle"));
+    expect(document.body.textContent).toContain("Navegação");
   });
 
   it("renders the not-found route", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const { container } = renderAt("/this-route-does-not-exist");
-
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    const { router } = renderAt("/this-route-does-not-exist");
+    await waitFor(() => expect(router.state.status).toBe("idle"));
+    expect(document.body.textContent).toContain("Page not found");
   });
 });

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -9,6 +10,7 @@ import { useHomeLayout } from "@/hooks/use-home-layout";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
 import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const LONG_PRESS_MS = 500;
 
@@ -16,18 +18,30 @@ function ItemContent({ item }: { item: HomeItem }) {
   if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
   const app = appRegistry[item.ref as AppId];
   const Icon = app.icon;
+  const navigate = useNavigate();
+  const routes: Record<AppId, "/" | "/radio" | "/telefone" | "/ajustes"> = {
+    map: "/",
+    music: "/radio",
+    radio: "/radio",
+    phone: "/telefone",
+    settings: "/ajustes",
+  };
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       aria-label={`Abrir ${app.label}`}
-      onClick={() => toast(`${app.label} estará disponível em breve`)}
+      onClick={() => {
+        if (item.ref === "map") toast.info("Escolha seu aplicativo de navegação no cartão Navegação.");
+        else void navigate({ to: routes[item.ref as AppId] });
+      }}
       className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition active:scale-95"
     >
       <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
         <Icon className="size-7" />
       </span>
       {app.label}
-    </button>
+    </Button>
   );
 }
 
@@ -44,7 +58,11 @@ interface TileProps {
 function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols }: TileProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled: !editing });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clear = () => timer.current && clearTimeout(timer.current);
+  const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => clear, []);
   const label = item.type === "WIDGET" ? widgetRegistry[item.ref as WidgetKind].label : appRegistry[item.ref as AppId].label;
 
   return (
@@ -89,15 +107,17 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
 
 function TileButton({ label, onClick, destructive, children }: { label: string; onClick: () => void; destructive?: boolean; children: ReactNode }) {
   return (
-    <button
+    <Button
       type="button"
+      variant={destructive ? "destructive" : "secondary"}
+      size="icon"
       aria-label={label}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={onClick}
       className={cn("grid size-11 place-items-center rounded-full shadow-[var(--shadow-card)]", destructive ? "bg-destructive text-destructive-foreground" : "bg-popover text-popover-foreground")}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -180,14 +200,15 @@ export function CustomizableHome() {
               />
             ))}
             {editing && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setAdding(true)}
                 aria-label="Adicionar item"
                 className="grid place-items-center rounded-3xl border-2 border-dashed text-muted-foreground transition hover:text-primary"
               >
                 <Plus className="size-8" />
-              </button>
+              </Button>
             )}
           </div>
         </SortableContext>
@@ -200,14 +221,15 @@ export function CustomizableHome() {
 
 function ToolbarButton({ onClick, icon, children, primary, disabled }: { onClick: () => void; icon: ReactNode; children: ReactNode; primary?: boolean; disabled?: boolean }) {
   return (
-    <button
+    <Button
       type="button"
+      variant={primary ? "default" : "secondary"}
       onClick={onClick}
       disabled={disabled}
       className={cn("flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-xs sm:flex-row sm:gap-2 sm:px-4 sm:text-sm font-semibold transition active:scale-95 disabled:opacity-40", primary ? "bg-primary text-primary-foreground" : "bg-secondary")}
     >
       {icon}
       <span className="truncate">{children}</span>
-    </button>
+    </Button>
   );
 }

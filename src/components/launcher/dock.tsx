@@ -24,7 +24,6 @@ const dockItems: DockItem[] = [
 export function Dock() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const [picked, setPicked] = useState("home");
   const [native, setNative] = useState(false);
   const [usageAllowed, setUsageAllowed] = useState(false);
   const queryClient = useQueryClient();
@@ -41,10 +40,9 @@ export function Dock() {
       });
     });
   }, [queryClient]);
-  const active = path === "/radio" ? "radio" : path === "/telefone" ? "phone" : path === "/apps" ? "apps" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "phone" || picked === "apps" || picked === "settings") ? "home" : picked;
+  const active = path === "/" ? "home" : path === "/radio" ? "radio" : path === "/telefone" ? "phone" : path === "/apps" ? "apps" : path === "/ajustes" ? "settings" : null;
   const routes: Record<string, "/" | "/radio" | "/telefone" | "/apps" | "/ajustes"> = { home: "/", radio: "/radio", phone: "/telefone", apps: "/apps", settings: "/ajustes" };
   const setActive = (id: string) => {
-    setPicked(id);
     const to = routes[id];
     if (to) void navigate({ to });
   };

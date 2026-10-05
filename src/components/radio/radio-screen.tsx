@@ -44,7 +44,7 @@ export function RadioScreen() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"all" | "fav" | "mine">("all")
   const [showAdd, setShowAdd] = useState(false);
-  const custom = useCustomStations();;
+  const custom = useCustomStations();
   const [filters, setFilters] = useState<StationFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [showEq, setShowEq] = useState(false);
@@ -78,7 +78,7 @@ export function RadioScreen() {
   const player = useRadio();
   const list = tab === "fav" ? searchStations(player.favorites, deferred, filters) : tab === "mine" ? searchStations(custom.stations, deferred, filters) : results;
   const current = player.station;
-  player.setQueue(list);
+  useEffect(() => player.setQueue(list), [list, player]);
   const step = player.step;
   const isFav = (s: RadioStation) => player.favorites.some((f) => f.id === s.id);
   const playing = player.status === "playing";

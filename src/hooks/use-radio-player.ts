@@ -277,6 +277,12 @@ export function useRadioPlayer(options: Options = {}) {
     set("pause", () => { wantPlayRef.current = false; tokenRef.current++; stopAll(); setStatus("paused"); });
     set("nexttrack", () => optsRef.current.onNext?.());
     set("previoustrack", () => optsRef.current.onPrev?.());
+    return () => {
+      set("play", null);
+      set("pause", null);
+      set("nexttrack", null);
+      set("previoustrack", null);
+    };
   }, [station, status, play, stopAll]);
 
   const persistEq = (enabled: boolean, g: EqGains) => localStorage.setItem(EQ_KEY, JSON.stringify({ ...g, enabled }));

@@ -1,6 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import type { AppId, HomeItem, WidgetKind } from "@/types/home";
 import { appRegistry, appSizes, widgetRegistry } from "./home-registry";
+import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 
 interface AddItemSheetProps {
   open: boolean;
@@ -23,7 +25,7 @@ export function AddItemSheet({ open, onOpenChange, onAdd }: AddItemSheetProps) {
             const def = widgetRegistry[kind];
             return (
               <PickerButton key={kind} label={def.label} icon={<def.icon className="size-6" />}
-                onClick={() => onAdd({ type: "WIDGET", ref: kind, size: def.sizes.at(-1) ?? { w: 2, h: 1 } })} />
+                onClick={() => onAdd({ type: "WIDGET", ref: kind, size: def.sizes[def.sizes.length - 1] ?? { w: 2, h: 1 } })} />
             );
           })}
         </div>
@@ -42,12 +44,12 @@ export function AddItemSheet({ open, onOpenChange, onAdd }: AddItemSheetProps) {
   );
 }
 
-function PickerButton({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
+function PickerButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick}
+    <Button type="button" variant="secondary" onClick={onClick}
       className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl bg-secondary text-sm font-medium transition hover:bg-accent active:scale-95">
       <span className="text-primary">{icon}</span>
       {label}
-    </button>
+    </Button>
   );
 }

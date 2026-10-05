@@ -62,13 +62,14 @@ function current() {
 }
 
 let started = false;
+let listenerCleanup: (() => void) | null = null;
 function startNative() {
   const p = native();
   if (!p || started) return;
   started = true;
   void p.getCurrent().then((r) => { system = r.media; emit(); }).catch(() => {});
-  void Promise.resolve(p.addListener("mediaChanged", (d) => { system = d.media; emit(); }));
-  void Promise.resolve(p.addListener("steeringControl", ({ action }) => {
+  const mediaListener = Promise.resolve(p.addListener("mediaChanged", (d) => { system = d.media; emit(); }));
+  const steeringListener = Promise.resolve(p.addListener("steeringControl", ({ action }) => {
     const controls = radio?.controls;
     if (!controls) return;
     if (action === "next") controls.next();
@@ -77,10 +78,20 @@ function startNative() {
     else if (action === "play" && !radio?.playing) controls.toggle();
     else if (action === "pause" && radio?.playing) controls.toggle();
   }));
+  listenerCleanup = () => {
+    void mediaListener.then((listener) => listener.remove());
+    void steeringListener.then((listener) => listener.remove());
+    started = false;
+  };
 }
 
 export function useNowPlaying() {
-  useEffect(startNative, []);
+  useEffect(() => {
+    startNative();
+    return () => {
+      if (subs.size === 0) listenerCleanup?.();
+    };
+  }, []);
   const media = useSyncExternalStore((cb) => { subs.add(cb); return () => subs.delete(cb); }, current, () => null);
   const control = (action: Control) => {
     if (media && media === radio && radio.controls) {
