@@ -80,7 +80,7 @@ function ExpandedWeather({ weather }: { weather: WeatherReport }) {
   const CurrentIcon = weatherIcon(weather.code, weather.text);
 
   return (
-    <DialogContent className="inset-0 left-0 top-0 h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto border-0 bg-background p-0 duration-300 sm:inset-4 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-5xl sm:translate-x-0 sm:translate-y-0 sm:rounded-3xl sm:border">
+    <DialogContent className="inset-0 left-0 top-0 h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto border-0 bg-[var(--background)] p-0 duration-300 sm:inset-4 sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-5xl sm:translate-x-0 sm:translate-y-0 sm:rounded-3xl sm:border">
       <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 pb-8 pt-5 sm:px-8 sm:pb-10 sm:pt-7">
         <DialogHeader className="pr-12 text-left">
           <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
