@@ -12,9 +12,14 @@ export interface InstalledApp {
 interface PluginListener { remove: () => Promise<void> | void }
 interface LauncherAppsPlugin {
   getInstalledApps(): Promise<{ apps: InstalledApp[] }>;
+  getRecentApps(): Promise<{ apps: InstalledApp[] }>;
+  hasUsageAccess(): Promise<{ granted: boolean }>;
+  requestUsageAccess(): Promise<void>;
   launch(opts: { packageName: string }): Promise<void>;
+  openPhone(): Promise<void>;
   openAppInfo(opts: { packageName: string }): Promise<void>;
   addListener(event: "appsChanged", cb: () => void): Promise<PluginListener> | PluginListener;
+  addListener(event: "recentAppsChanged", cb: () => void): Promise<PluginListener> | PluginListener;
 }
 
 function plugin(): LauncherAppsPlugin | null {
@@ -37,6 +42,25 @@ export async function launchApp(packageName: string) {
   await plugin()?.launch({ packageName });
 }
 
+export async function listRecentApps(): Promise<InstalledApp[]> {
+  const p = plugin();
+  if (!p) return [];
+  const { apps } = await p.getRecentApps();
+  return apps.slice(0, 4);
+}
+
+export async function hasUsageAccess(): Promise<boolean> {
+  return plugin()?.hasUsageAccess().then(({ granted }) => granted) ?? false;
+}
+
+export async function requestUsageAccess(): Promise<void> {
+  await plugin()?.requestUsageAccess();
+}
+
+export async function openPhone(): Promise<void> {
+  await plugin()?.openPhone();
+}
+
 export async function openAppInfo(packageName: string) {
   await plugin()?.openAppInfo({ packageName });
 }
@@ -47,4 +71,11 @@ export function onAppsChanged(cb: () => void): () => void {
   if (!p) return () => {};
   const handle = Promise.resolve(p.addListener("appsChanged", cb));
   return () => { void handle.then((h) => h.remove()); };
+}
+
+export function onRecentAppsChanged(cb: () => void): () => void {
+  const p = plugin();
+  if (!p) return () => {};
+  const handle = Promise.resolve(p.addListener("recentAppsChanged", cb));
+  return () => { void handle.then((listener) => listener.remove()); };
 }

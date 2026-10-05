@@ -14,6 +14,8 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
 import android.provider.Settings
 import android.util.Base64
 import com.getcapacitor.JSArray
@@ -42,6 +44,29 @@ class LauncherAppsPlugin : Plugin() {
 
     override fun handleOnDestroy() { receiver?.let { context.unregisterReceiver(it) } }
 
+    override fun handleOnResume() {
+        super.handleOnResume()
+        notifyListeners("recentAppsChanged", JSObject())
+    }
+
+    private fun iconObject(packageName: String): JSObject? {
+        val pm = context.packageManager
+        val launchIntent = pm.getLaunchIntentForPackage(packageName) ?: return null
+        val info = launchIntent.resolveActivity(pm)?.let { pm.getActivityInfo(it, 0) } ?: return null
+        if (info.packageName == context.packageName) return null
+        val drawable = info.loadIcon(pm)
+        val bitmap = Bitmap.createBitmap(144, 144, Bitmap.Config.ARGB_8888)
+        drawable.setBounds(0, 0, 144, 144)
+        drawable.draw(Canvas(bitmap))
+        val output = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+        return JSObject().apply {
+            put("packageName", info.packageName)
+            put("label", info.loadLabel(pm).toString())
+            put("icon", Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP))
+        }
+    }
+
     @PluginMethod
     fun getInstalledApps(call: PluginCall) {
         Thread {
@@ -64,6 +89,51 @@ class LauncherAppsPlugin : Plugin() {
                 }
             call.resolve(JSObject().put("apps", out))
         }.start()
+    }
+
+    @PluginMethod
+    fun getRecentApps(call: PluginCall) {
+        Thread {
+            val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+            val end = System.currentTimeMillis()
+            val events = usage.queryEvents(end - 24L * 60L * 60L * 1000L, end)
+            val event = UsageEvents.Event()
+            val lastUsed = linkedMapOf<String, Long>()
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                @Suppress("DEPRECATION")
+                val foreground = event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND ||
+                    (android.os.Build.VERSION.SDK_INT >= 29 && event.eventType == UsageEvents.Event.ACTIVITY_RESUMED)
+                if (foreground && event.packageName != context.packageName) {
+                    lastUsed[event.packageName] = event.timeStamp
+                }
+            }
+            val out = JSArray()
+            lastUsed.entries.sortedByDescending { it.value }.take(4).forEach { entry ->
+                runCatching { iconObject(entry.key) }.getOrNull()?.let { out.put(it) }
+            }
+            call.resolve(JSObject().put("apps", out))
+        }.start()
+    }
+
+    @PluginMethod
+    fun hasUsageAccess(call: PluginCall) {
+        val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val end = System.currentTimeMillis()
+        val allowed = usage.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, end - 60_000L, end).isNotEmpty()
+        call.resolve(JSObject().put("granted", allowed))
+    }
+
+    @PluginMethod
+    fun requestUsageAccess(call: PluginCall) {
+        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun openPhone(call: PluginCall) {
+        context.startActivity(Intent(Intent.ACTION_DIAL).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        call.resolve()
     }
 
     @PluginMethod
