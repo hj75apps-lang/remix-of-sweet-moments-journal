@@ -49,57 +49,57 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
   const CurrentIcon = weatherIcon(weather.code, weather.text);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6 lg:p-8">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-b pb-5">
+    <div className="grid min-h-0 flex-1 grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden p-3 sm:p-4 lg:p-5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b pb-3">
         <div className="min-w-0">
-          <h1 className="flex min-w-0 items-center gap-2 text-xl font-semibold sm:text-2xl">
+          <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl">
             <MapPin className="size-5 shrink-0 text-primary" aria-hidden="true" />
             <span className="truncate">{weather.city}</span>
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Resumo e previsão para os próximos cinco dias</p>
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">Resumo e previsão para os próximos cinco dias</p>
         </div>
-        <CloudSun className="size-6 shrink-0 text-primary" aria-hidden="true" />
+        <CloudSun className="size-5 shrink-0 text-primary sm:size-6" aria-hidden="true" />
       </header>
 
-      <section aria-label="Condição atual" className="grid gap-5 border-b py-6 sm:grid-cols-[1fr_auto] sm:items-center sm:gap-8">
-        <div className="flex min-w-0 items-center gap-4 sm:gap-6">
-          <div className="grid size-20 shrink-0 place-items-center rounded-3xl bg-primary/15 text-primary sm:size-28">
-            <CurrentIcon className="size-12 sm:size-16" aria-hidden="true" />
+      <section aria-label="Condição atual" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b py-3 sm:gap-5 sm:py-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary sm:size-20">
+            <CurrentIcon className="size-9 sm:size-11" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="font-display text-5xl font-semibold leading-none sm:text-7xl">{weather.temp}°</p>
-            <p className="mt-2 text-base font-medium sm:text-lg">{weather.text}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Sensação térmica de {weather.feels}°</p>
+            <p className="font-display text-4xl font-semibold leading-none sm:text-5xl">{weather.temp}°</p>
+            <p className="mt-1 truncate text-sm font-medium sm:text-base">{weather.text}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">Sensação de {weather.feels}°</p>
           </div>
         </div>
-        <dl className="grid grid-cols-2 gap-2 sm:min-w-64">
-          <div className="rounded-2xl bg-secondary p-3">
-            <dt className="flex items-center gap-2 text-xs text-muted-foreground"><Droplets className="size-4 text-primary" />Umidade</dt>
-            <dd className="mt-1 text-lg font-semibold">{weather.humidity}%</dd>
+        <dl className="grid gap-1.5 sm:grid-cols-2 sm:gap-2">
+          <div className="rounded-xl bg-secondary px-2.5 py-2 sm:min-w-28">
+            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground"><Droplets className="size-3.5 text-primary" />Umidade</dt>
+            <dd className="text-sm font-semibold sm:text-base">{weather.humidity}%</dd>
           </div>
-          <div className="rounded-2xl bg-secondary p-3">
-            <dt className="flex items-center gap-2 text-xs text-muted-foreground"><Wind className="size-4 text-primary" />Vento</dt>
-            <dd className="mt-1 text-lg font-semibold">{weather.wind} km/h</dd>
+          <div className="rounded-xl bg-secondary px-2.5 py-2 sm:min-w-28">
+            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground"><Wind className="size-3.5 text-primary" />Vento</dt>
+            <dd className="text-sm font-semibold sm:text-base">{weather.wind} km/h</dd>
           </div>
         </dl>
       </section>
 
-      <section aria-labelledby="five-day-title" className="py-6">
-        <h2 id="five-day-title" className="text-base font-semibold sm:text-lg">Próximos 5 dias</h2>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-5 sm:gap-3">
+      <section aria-labelledby="five-day-title" className="flex min-h-0 flex-col pt-3 sm:pt-4">
+        <h2 id="five-day-title" className="text-sm font-semibold sm:text-base">Próximos 5 dias</h2>
+        <ul className="mt-2 grid min-h-0 flex-1 grid-rows-5 gap-1.5 sm:grid-cols-5 sm:grid-rows-1 sm:gap-2">
           {weather.days.slice(0, 5).map((day) => {
             const DayIcon = weatherIcon(day.code, day.text);
             return (
-              <li key={day.date} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border bg-secondary/35 p-3 sm:flex sm:min-h-56 sm:flex-col sm:items-stretch sm:p-4">
+              <li key={day.date} className="grid min-h-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-xl border bg-secondary/35 px-2.5 py-1.5 sm:flex sm:flex-col sm:items-stretch sm:p-2.5">
                 <div className="min-w-0 sm:text-center">
-                  <p className="font-semibold capitalize">{fullDay(day.date)}</p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground sm:whitespace-normal">{day.text}</p>
+                  <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">{fullDay(day.date)}</p>
+                  <p className="truncate text-xs text-muted-foreground sm:mt-0.5 sm:whitespace-normal">{day.text}</p>
                 </div>
-                <DayIcon className="size-9 shrink-0 text-primary sm:mx-auto sm:my-3 sm:size-12" aria-label={day.text} />
-                <div className="col-span-2 grid grid-cols-3 gap-2 border-t pt-3 text-center text-xs sm:mt-auto">
-                  <div><Thermometer className="mx-auto mb-1 size-4 text-primary" /><span className="font-semibold">{day.max}°</span><span className="block text-muted-foreground">máx.</span></div>
-                  <div><Thermometer className="mx-auto mb-1 size-4 text-muted-foreground" /><span className="font-semibold">{day.min}°</span><span className="block text-muted-foreground">mín.</span></div>
-                  <div><Umbrella className="mx-auto mb-1 size-4 text-primary" /><span className="font-semibold">{day.rain}%</span><span className="block text-muted-foreground">chuva</span></div>
+                <DayIcon className="size-7 shrink-0 text-primary sm:mx-auto sm:size-9" aria-label={day.text} />
+                <div className="grid grid-cols-3 gap-1 text-center text-xs sm:mt-auto sm:border-t sm:pt-2">
+                  <div><Thermometer className="mx-auto hidden size-3.5 text-primary sm:block" /><span className="font-semibold">{day.max}°</span><span className="block text-[10px] text-muted-foreground">máx.</span></div>
+                  <div><Thermometer className="mx-auto hidden size-3.5 text-muted-foreground sm:block" /><span className="font-semibold">{day.min}°</span><span className="block text-[10px] text-muted-foreground">mín.</span></div>
+                  <div><Umbrella className="mx-auto hidden size-3.5 text-primary sm:block" /><span className="font-semibold">{day.rain}%</span><span className="block text-[10px] text-muted-foreground">chuva</span></div>
                 </div>
               </li>
             );
