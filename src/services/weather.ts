@@ -4,6 +4,7 @@ export interface WeatherDay {
   max: number;
   rain: number;
   text: string;
+  code?: number;
 }
 
 export interface WeatherReport {
@@ -13,6 +14,7 @@ export interface WeatherReport {
   humidity: number;
   wind: number;
   text: string;
+  code?: number;
   source: "Open-Meteo";
   days: WeatherDay[];
 }
@@ -128,6 +130,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     humidity: rounded(current.relative_humidity_2m),
     wind: rounded(current.wind_speed_10m),
     text: weatherDescription(current.weather_code),
+    code: current.weather_code,
     source: "Open-Meteo",
     days: daily.time.slice(0, 5).map((date, index) => ({
       date,
@@ -135,6 +138,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
       max: rounded(daily.temperature_2m_max?.[index]),
       rain: rounded(daily.precipitation_probability_max?.[index]),
       text: weatherDescription(daily.weather_code?.[index]),
+      code: daily.weather_code?.[index],
     })),
   };
 }
