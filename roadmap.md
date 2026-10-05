@@ -6,4 +6,4 @@
 - [ ] Confirmar integração no projeto Android final (registro do plugin e permissão no manifesto).
 - [x] Manter Início, Rádios Online, Telefone e Ajustes fixos na barra lateral.
 - [x] Alternar os demais espaços entre aplicativos Android ativos ou usados recentemente, com ícones reais.
-- [ ] Validar a barra dinâmica em diferentes tamanhos de tela.
+- [x] Validar a barra dinâmica em diferentes tamanhos de tela.
