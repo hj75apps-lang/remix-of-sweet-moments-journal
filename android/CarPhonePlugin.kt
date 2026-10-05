@@ -15,17 +15,16 @@
 package app.smartautolauncher
 
 import android.Manifest
-import android.app.Activity
 import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.telecom.Call
 import android.telecom.InCallService
 import android.telecom.TelecomManager
+import androidx.activity.result.ActivityResult
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
@@ -121,7 +120,7 @@ class CarPhonePlugin : Plugin() {
     }
 
     @com.getcapacitor.annotation.ActivityCallback
-    private fun defaultDialerResult(call: PluginCall?, result: com.getcapacitor.PluginCall?) {
+    private fun defaultDialerResult(call: PluginCall?, result: ActivityResult) {
         call?.resolve(JSObject().put("requested", isDefaultDialer()))
     }
 
