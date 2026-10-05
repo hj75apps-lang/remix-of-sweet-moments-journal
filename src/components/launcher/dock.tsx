@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, Navigation, Music, Radio, Phone, LayoutGrid, Settings, type LucideIcon } from "lucide-react";
+import { Home, Navigation, Music, Radio, Phone, LayoutGrid, Settings, CloudSun, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DockItem {
@@ -16,6 +16,7 @@ const dockItems: DockItem[] = [
   { id: "radio", label: "Rádios Online", icon: Radio },
   { id: "phone", label: "Telefone", icon: Phone },
   { id: "apps", label: "Apps", icon: LayoutGrid },
+  { id: "weather", label: "Clima", icon: CloudSun },
   { id: "settings", label: "Ajustes", icon: Settings },
 ];
 
@@ -24,8 +25,8 @@ export function Dock() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [picked, setPicked] = useState("home");
-  const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/apps" ? "apps" : path === "/" && (picked === "radio" || picked === "settings" || picked === "apps") ? "home" : picked;
-  const routes: Record<string, "/" | "/radio" | "/ajustes" | "/apps"> = { home: "/", radio: "/radio", settings: "/ajustes", apps: "/apps" };
+  const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/apps" ? "apps" : path === "/clima" ? "weather" : path === "/" && (picked === "radio" || picked === "settings" || picked === "apps" || picked === "weather") ? "home" : picked;
+  const routes: Record<string, "/" | "/radio" | "/ajustes" | "/apps" | "/clima"> = { home: "/", radio: "/radio", settings: "/ajustes", apps: "/apps", weather: "/clima" };
   const setActive = (id: string) => {
     setPicked(id);
     const to = routes[id];
