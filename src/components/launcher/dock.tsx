@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, Radio, Phone, Settings, History, type LucideIcon } from "lucide-react";
+import { Home, LayoutGrid, Radio, Phone, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { hasUsageAccess, isNativeAvailable, launchApp, listRecentApps, onRecentAppsChanged, openPhone, requestUsageAccess } from "@/services/installed-apps";
@@ -16,6 +16,7 @@ const dockItems: DockItem[] = [
   { id: "home", label: "Início", icon: Home },
   { id: "radio", label: "Rádios Online", icon: Radio },
   { id: "phone", label: "Telefone", icon: Phone },
+  { id: "apps", label: "Apps", icon: LayoutGrid },
   { id: "settings", label: "Ajustes", icon: Settings },
 ];
 
@@ -40,8 +41,8 @@ export function Dock() {
       });
     });
   }, [queryClient]);
-  const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "settings") ? "home" : picked;
-  const routes: Record<string, "/" | "/radio" | "/ajustes"> = { home: "/", radio: "/radio", settings: "/ajustes" };
+  const active = path === "/radio" ? "radio" : path === "/apps" ? "apps" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "apps" || picked === "settings") ? "home" : picked;
+  const routes: Record<string, "/" | "/radio" | "/apps" | "/ajustes"> = { home: "/", radio: "/radio", apps: "/apps", settings: "/ajustes" };
   const setActive = (id: string) => {
     setPicked(id);
     if (id === "phone") {
@@ -56,20 +57,21 @@ export function Dock() {
       {dockItems.map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
         return (
-          <button
+          <Button
             key={id}
             type="button"
+            variant="ghost"
             onClick={() => setActive(id)}
             aria-label={label}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl text-[0.625rem] sm:text-xs md:min-h-11 md:max-h-20 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[0.625rem] sm:text-xs md:min-h-11 md:max-h-20 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive ? "bg-primary text-primary-foreground" : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95",
             )}
           >
             <Icon className="size-6" />
             {label}
-          </button>
+          </Button>
         );
       })}
       {(recent.data ?? []).map((app) => (
