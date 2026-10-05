@@ -3,6 +3,7 @@
 // and register in MainActivity: registerPlugin(LauncherAppsPlugin::class.java) before super.onCreate().
 // AndroidManifest.xml needs, inside <manifest>:
 //   <queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent></queries>
+//   <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions"/>
 // and, to act as the car's home screen, on MainActivity's <intent-filter>:
 //   <category android:name="android.intent.category.HOME"/><category android:name="android.intent.category.DEFAULT"/>
 package app.smartautolauncher

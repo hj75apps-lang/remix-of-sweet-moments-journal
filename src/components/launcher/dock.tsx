@@ -32,12 +32,13 @@ export function Dock() {
     const available = isNativeAvailable();
     setNative(available);
     if (available) void hasUsageAccess().then(setUsageAllowed);
-    return available ? onRecentAppsChanged(() => {
+    if (!available) return;
+    return onRecentAppsChanged(() => {
       void hasUsageAccess().then((granted) => {
         setUsageAllowed(granted);
         if (granted) void queryClient.invalidateQueries({ queryKey: ["recent-apps"] });
       });
-    }) : undefined;
+    });
   }, [queryClient]);
   const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "settings") ? "home" : picked;
   const routes: Record<string, "/" | "/radio" | "/ajustes"> = { home: "/", radio: "/radio", settings: "/ajustes" };
