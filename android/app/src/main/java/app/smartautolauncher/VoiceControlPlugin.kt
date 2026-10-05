@@ -5,6 +5,7 @@
 // <uses-permission android:name="android.permission.RECORD_AUDIO" />
 package app.smartautolauncher
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.speech.RecognizerIntent
@@ -16,14 +17,14 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.ActivityCallback
 import com.getcapacitor.annotation.CapacitorPlugin
-import java.util.Locale
+import com.getcapacitor.annotation.Permission
+import com.getcapacitor.annotation.PermissionCallback
 
-@CapacitorPlugin(name = "VoiceControl")
+@CapacitorPlugin(
+    name = "VoiceControl",
+    permissions = [Permission(alias = "record", strings = [Manifest.permission.RECORD_AUDIO])],
+)
 class VoiceControlPlugin : Plugin() {
-    companion object {
-        private const val REQUEST_CODE = 4307
-    }
-
     @PluginMethod
     fun isAvailable(call: PluginCall) {
         call.resolve(JSObject().put("available", SpeechRecognizer.isRecognitionAvailable(context)))
@@ -31,6 +32,23 @@ class VoiceControlPlugin : Plugin() {
 
     @PluginMethod
     fun startListening(call: PluginCall) {
+        if (getPermissionState("record") != com.getcapacitor.PermissionState.GRANTED) {
+            requestPermissionForAlias("record", call, "recordPermission")
+            return
+        }
+        openRecognizer(call)
+    }
+
+    @PermissionCallback
+    private fun recordPermission(call: PluginCall) {
+        if (getPermissionState("record") != com.getcapacitor.PermissionState.GRANTED) {
+            call.reject("Permissão do microfone negada")
+            return
+        }
+        openRecognizer(call)
+    }
+
+    private fun openRecognizer(call: PluginCall) {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
             call.reject("Reconhecimento de voz indisponível")
             return

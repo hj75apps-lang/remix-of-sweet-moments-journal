@@ -38,6 +38,7 @@ class NowPlayingPlugin : Plugin() {
     private val component by lazy { ComponentName(context, MediaListener::class.java) }
     private var active: MediaController? = null
     private var radioSession: MediaSession? = null
+    private var sessionsListener: MediaSessionManager.OnActiveSessionsChangedListener? = null
     private val cb = object : MediaController.Callback() {
         override fun onMetadataChanged(m: MediaMetadata?) = push()
         override fun onPlaybackStateChanged(s: PlaybackState?) = push()
@@ -72,7 +73,8 @@ class NowPlayingPlugin : Plugin() {
             })
         }
         if (!granted()) return
-        msm.addOnActiveSessionsChangedListener({ pick(it) }, component)
+        sessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { pick(it) }
+        msm.addOnActiveSessionsChangedListener(sessionsListener, component)
         pick(msm.getActiveSessions(component))
     }
 
@@ -94,6 +96,8 @@ class NowPlayingPlugin : Plugin() {
 
     private fun pick(list: List<MediaController>?) {
         active?.unregisterCallback(cb)
+        sessionsListener?.let { msm.removeOnActiveSessionsChangedListener(it) }
+        sessionsListener = null
         val external = list?.filter { it.packageName != context.packageName }
         active = external?.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: external?.firstOrNull()
         active?.registerCallback(cb)

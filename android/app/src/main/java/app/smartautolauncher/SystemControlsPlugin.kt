@@ -42,7 +42,12 @@ class SystemControlsPlugin : Plugin() {
             addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
             addAction(Intent.ACTION_CONFIGURATION_CHANGED)
         }
-        context.registerReceiver(receiver, f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, f, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            context.registerReceiver(receiver, f)
+        }
     }
 
     override fun handleOnDestroy() { receiver?.let { context.unregisterReceiver(it) } }
