@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, Navigation, Music, Radio, Phone, LayoutGrid, Settings, CloudSun, type LucideIcon } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Home, Radio, Phone, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { hasUsageAccess, isNativeAvailable, launchApp, listRecentApps, onRecentAppsChanged, openPhone, requestUsageAccess } from "@/services/installed-apps";
 
 interface DockItem {
   id: string;
@@ -11,12 +14,8 @@ interface DockItem {
 
 const dockItems: DockItem[] = [
   { id: "home", label: "Início", icon: Home },
-  { id: "navigation", label: "Mapa", icon: Navigation },
-  { id: "music", label: "Música", icon: Music },
   { id: "radio", label: "Rádios Online", icon: Radio },
   { id: "phone", label: "Telefone", icon: Phone },
-  { id: "apps", label: "Apps", icon: LayoutGrid },
-  { id: "weather", label: "Clima", icon: CloudSun },
   { id: "settings", label: "Ajustes", icon: Settings },
 ];
 
@@ -25,10 +24,30 @@ export function Dock() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [picked, setPicked] = useState("home");
-  const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/apps" ? "apps" : path === "/clima" ? "weather" : path === "/" && (picked === "radio" || picked === "settings" || picked === "apps" || picked === "weather") ? "home" : picked;
-  const routes: Record<string, "/" | "/radio" | "/ajustes" | "/apps" | "/clima"> = { home: "/", radio: "/radio", settings: "/ajustes", apps: "/apps", weather: "/clima" };
+  const [native, setNative] = useState(false);
+  const [usageAllowed, setUsageAllowed] = useState(false);
+  const queryClient = useQueryClient();
+  const recent = useQuery({ queryKey: ["recent-apps"], queryFn: listRecentApps, enabled: native && usageAllowed });
+  useEffect(() => {
+    const available = isNativeAvailable();
+    setNative(available);
+    if (available) void hasUsageAccess().then(setUsageAllowed);
+    if (!available) return;
+    return onRecentAppsChanged(() => {
+      void hasUsageAccess().then((granted) => {
+        setUsageAllowed(granted);
+        if (granted) void queryClient.invalidateQueries({ queryKey: ["recent-apps"] });
+      });
+    });
+  }, [queryClient]);
+  const active = path === "/radio" ? "radio" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "settings") ? "home" : picked;
+  const routes: Record<string, "/" | "/radio" | "/ajustes"> = { home: "/", radio: "/radio", settings: "/ajustes" };
   const setActive = (id: string) => {
     setPicked(id);
+    if (id === "phone") {
+      void openPhone();
+      return;
+    }
     const to = routes[id];
     if (to) void navigate({ to });
   };
@@ -53,6 +72,33 @@ export function Dock() {
           </button>
         );
       })}
+      {(recent.data ?? []).map((app) => (
+        <Button
+          key={app.packageName}
+          type="button"
+          variant="ghost"
+          onClick={() => void launchApp(app.packageName)}
+          aria-label={`Abrir ${app.label}`}
+          title={app.label}
+          className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
+        >
+          <img src={`data:image/png;base64,${app.icon}`} alt="" className="size-7 rounded-md object-contain" />
+          <span className="w-full truncate text-center">{app.label}</span>
+        </Button>
+      ))}
+      {native && !usageAllowed && (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => void requestUsageAccess()}
+          aria-label="Permitir aplicativos recentes"
+          title="Permitir aplicativos recentes"
+          className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
+        >
+          <History className="size-6" />
+          <span className="w-full truncate text-center">Recentes</span>
+        </Button>
+      )}
     </nav>
   );
 }
