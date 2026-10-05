@@ -10,4 +10,5 @@
 - [x] Validar a barra dinâmica em diferentes tamanhos de tela.
 - [x] Padronizar a composição do Launcher em 1280×720 conforme a referência: navegação ampla, relógio, clima e mídia.
 - [x] Criar tela de telefone com discagem, atendimento, encerramento e viva-voz do veículo.
+- [x] Registrar o plugin CarPhone, o serviço InCallService e as permissões no projeto Android.
 - [ ] Confirmar chamadas e roteamento de áudio em uma central Android real após registrar o plugin e o serviço de chamadas.

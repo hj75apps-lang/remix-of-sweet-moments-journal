@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Smart Auto Launcher</string>
+    <string name="title_activity_main">Smart Auto Launcher</string>
+    <string name="package_name">app.smartautolauncher</string>
+    <string name="custom_url_scheme">app.smartautolauncher</string>
+</resources>
