@@ -78,7 +78,8 @@ async function resolvePlace(lat: number, lng: number): Promise<string> {
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=pt`,
     );
     const city = place.city ?? place.locality;
-    const state = place.principalSubdivisionCode?.split("-").at(-1) ?? place.principalSubdivision;
+    const stateParts = place.principalSubdivisionCode?.split("-");
+    const state = stateParts?.[stateParts.length - 1] ?? place.principalSubdivision;
     return [city, state].filter(Boolean).join(" - ");
   } catch {
     return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
