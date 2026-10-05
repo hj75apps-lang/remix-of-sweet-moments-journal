@@ -15,10 +15,10 @@ import { Button } from "@/components/ui/button";
 const LONG_PRESS_MS = 500;
 
 function ItemContent({ item }: { item: HomeItem }) {
+  const navigate = useNavigate();
   if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
   const app = appRegistry[item.ref as AppId];
   const Icon = app.icon;
-  const navigate = useNavigate();
   const routes: Record<AppId, "/" | "/radio" | "/telefone" | "/ajustes"> = {
     map: "/",
     music: "/radio",

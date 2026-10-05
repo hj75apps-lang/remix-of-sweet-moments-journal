@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useRadioPlayer } from "@/hooks/use-radio-player";
 import { publishRadio } from "@/services/now-playing";
 import type { RadioStation } from "@/services/radio-browser";
@@ -39,11 +39,9 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
     } : null);
   }, [current, playing]);
 
-  const value: Player = {
-    ...player,
-    setQueue: (list) => { queueRef.current = list; },
-    step: (d) => stepRef.current(d),
-  };
+  const setQueue = useCallback((list: RadioStation[]) => { queueRef.current = list; }, []);
+  const step = useCallback((d: number) => stepRef.current(d), []);
+  const value = useMemo<Player>(() => ({ ...player, setQueue, step }), [player, setQueue, step]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

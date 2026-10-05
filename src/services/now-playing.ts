@@ -63,6 +63,7 @@ function current() {
 
 let started = false;
 let listenerCleanup: (() => void) | null = null;
+let consumers = 0;
 function startNative() {
   const p = native();
   if (!p || started) return;
@@ -87,9 +88,11 @@ function startNative() {
 
 export function useNowPlaying() {
   useEffect(() => {
+    consumers += 1;
     startNative();
     return () => {
-      if (subs.size === 0) listenerCleanup?.();
+      consumers -= 1;
+      if (consumers === 0) listenerCleanup?.();
     };
   }, []);
   const media = useSyncExternalStore((cb) => { subs.add(cb); return () => subs.delete(cb); }, current, () => null);

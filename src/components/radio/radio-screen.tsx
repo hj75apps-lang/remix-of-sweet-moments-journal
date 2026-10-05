@@ -76,9 +76,10 @@ export function RadioScreen() {
   const results = useMemo(() => searchStations(all, deferred, filters), [all, deferred, filters]);
 
   const player = useRadio();
+  const setQueue = player.setQueue;
   const list = tab === "fav" ? searchStations(player.favorites, deferred, filters) : tab === "mine" ? searchStations(custom.stations, deferred, filters) : results;
   const current = player.station;
-  useEffect(() => player.setQueue(list), [list, player]);
+  useEffect(() => setQueue(list), [list, setQueue]);
   const step = player.step;
   const isFav = (s: RadioStation) => player.favorites.some((f) => f.id === s.id);
   const playing = player.status === "playing";
