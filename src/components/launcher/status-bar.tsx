@@ -1,10 +1,13 @@
-import { Wifi, WifiOff, Bluetooth, MapPin } from "lucide-react";
+import { Wifi, WifiOff, Bluetooth, MapPin, Mic, MicOff } from "lucide-react";
 import { useClock, useOnline } from "@/hooks/use-clock";
+import { Button } from "@/components/ui/button";
+import { useVoiceControl } from "@/contexts/voice-control-context";
 
 /** Top bar: only shows states the device actually reports. */
 export function StatusBar() {
   const now = useClock();
   const online = useOnline();
+  const voice = useVoiceControl();
   const time = now?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) ?? "--:--";
   const date = now?.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }) ?? "";
 
@@ -23,7 +26,23 @@ export function StatusBar() {
         </span>
       </div>
       <time className="font-display text-base sm:text-lg font-semibold tabular-nums" aria-live="off">{time}</time>
-      <span className="truncate text-right capitalize text-muted-foreground">{date}</span>
+      <div className="flex min-w-0 items-center justify-end gap-2">
+        <span className="truncate text-right capitalize text-muted-foreground">{date}</span>
+        {voice.available && (
+          <Button
+            type="button"
+            size="icon"
+            variant={voice.listening ? "default" : "ghost"}
+            onClick={voice.activate}
+            disabled={voice.listening}
+            aria-label={voice.listening ? "Ouvindo comando de voz" : "Ativar comando de voz"}
+            title={voice.listening ? "Ouvindo…" : "Comando de voz"}
+            className="size-9 shrink-0 rounded-full"
+          >
+            {voice.listening ? <Mic className="animate-pulse" /> : <MicOff />}
+          </Button>
+        )}
+      </div>
     </header>
   );
 }

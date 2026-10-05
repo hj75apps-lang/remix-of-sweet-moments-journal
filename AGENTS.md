@@ -15,3 +15,4 @@
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
+- Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
