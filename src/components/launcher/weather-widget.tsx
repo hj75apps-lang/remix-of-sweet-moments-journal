@@ -197,7 +197,7 @@ export function WeatherWidget() {
   const CurrentWeatherIcon = w ? weatherIcon(w.code, w.text) : CloudSun;
 
   const card = (
-    <WidgetCard title="Clima" icon={<CloudSun className="size-4" />} className={w ? "cursor-pointer transition hover:border-primary/40" : undefined}>
+    <WidgetCard title="Clima" icon={<CloudSun className="size-4" />} className={w ? "cursor-pointer transition hover:border-primary/40" : ""}>
       {!pos ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
           <UnavailableState message={gpsError || "Localizando…"} hint="A previsão aparece com a localização ativada." />
