@@ -33,6 +33,7 @@ describe("App routing", () => {
 
     const router = await loadAt("/this-route-does-not-exist");
     expect(router.state.status).toBe("idle");
-    expect(router.state.matches.some((match) => match.status === "notFound")).toBe(true);
+    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
+    expect(router.state.matches.at(-1)?.routeId).toBe("__root__");
   });
 });

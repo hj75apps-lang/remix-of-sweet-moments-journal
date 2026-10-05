@@ -281,7 +281,7 @@ export function useRadioPlayer(options: Options = {}) {
     return () => {
       window.removeEventListener("online", onOnline);
       if (stallTimer) clearTimeout(stallTimer);
-      tokenRef.current++;
+      tokenRef.current += 1;
       hlsRef.current?.destroy();
       plain.pause();
       eq.pause();
