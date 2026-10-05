@@ -17,6 +17,6 @@ export interface HomeItem {
 }
 
 export interface HomeLayout {
-  version: 1;
+  version: 2;
   items: HomeItem[];
 }
