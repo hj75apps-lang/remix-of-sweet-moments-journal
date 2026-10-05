@@ -36,7 +36,10 @@ export function WeatherWidget() {
 
   const q = useQuery({
     queryKey: ["weather", pos?.lat.toFixed(2), pos?.lng.toFixed(2)],
-    queryFn: () => fetchWeather({ data: pos! }),
+    queryFn: () => {
+      if (!pos) throw new Error("Localização indisponível");
+      return fetchWeather({ data: pos });
+    },
     enabled: !!pos,
     staleTime: 15 * 60_000,
     refetchInterval: 30 * 60_000,
@@ -53,7 +56,7 @@ export function WeatherWidget() {
         </div>
       ) : q.isError ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <UnavailableState message="Previsão indisponível" hint="Verifique a internet e tente de novo." />
+          <UnavailableState message="Previsão indisponível" hint="Verifique a conexão e a configuração da Climatempo." />
           <button type="button" onClick={() => void q.refetch()} className="flex min-h-11 items-center gap-2 rounded-2xl bg-secondary px-4 text-sm font-semibold"><RefreshCw className="size-4" />Atualizar</button>
         </div>
       ) : !w ? (
@@ -81,6 +84,7 @@ export function WeatherWidget() {
               </li>
             ))}
           </ul>
+          <p className="shrink-0 text-right text-[0.625rem] text-muted-foreground">Fonte: {w.source}</p>
         </div>
       )}
     </WidgetCard>
