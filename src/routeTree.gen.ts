@@ -14,6 +14,7 @@ import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as ClimaRouteImport } from './routes/clima'
 import { Route as RadioRouteImport } from './routes/radio'
+import { Route as TelefoneRouteImport } from './routes/telefone'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const RadioRoute = RadioRouteImport.update({
   path: '/radio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TelefoneRoute = TelefoneRouteImport.update({
+  id: '/telefone',
+  path: '/telefone',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AppsRoute
   '/clima': typeof ClimaRoute
   '/radio': typeof RadioRoute
+  '/telefone': typeof TelefoneRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/apps': typeof AppsRoute
   '/clima': typeof ClimaRoute
   '/radio': typeof RadioRoute
+  '/telefone': typeof TelefoneRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,15 @@ export interface FileRoutesById {
   '/apps': typeof AppsRoute
   '/clima': typeof ClimaRoute
   '/radio': typeof RadioRoute
+  '/telefone': typeof TelefoneRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ajustes' | '/apps' | '/clima' | '/radio'
+  fullPaths: '/' | '/ajustes' | '/apps' | '/clima' | '/radio' | '/telefone'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ajustes' | '/apps' | '/clima' | '/radio'
-  id: '__root__' | '/' | '/ajustes' | '/apps' | '/clima' | '/radio'
+  to: '/' | '/ajustes' | '/apps' | '/clima' | '/radio' | '/telefone'
+  id:
+    '__root__' | '/' | '/ajustes' | '/apps' | '/clima' | '/radio' | '/telefone'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +87,7 @@ export interface RootRouteChildren {
   AppsRoute: typeof AppsRoute
   ClimaRoute: typeof ClimaRoute
   RadioRoute: typeof RadioRoute
+  TelefoneRoute: typeof TelefoneRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RadioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/telefone': {
+      id: '/telefone'
+      path: '/telefone'
+      fullPath: '/telefone'
+      preLoaderRoute: typeof TelefoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +143,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppsRoute: AppsRoute,
   ClimaRoute: ClimaRoute,
   RadioRoute: RadioRoute,
+  TelefoneRoute: TelefoneRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

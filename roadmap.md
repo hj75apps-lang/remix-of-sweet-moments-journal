@@ -9,3 +9,5 @@
 - [x] Alternar os demais espaços entre aplicativos Android ativos ou usados recentemente, com ícones reais.
 - [x] Validar a barra dinâmica em diferentes tamanhos de tela.
 - [x] Padronizar a composição do Launcher em 1280×720 conforme a referência: navegação ampla, relógio, clima e mídia.
+- [x] Criar tela de telefone com discagem, atendimento, encerramento e viva-voz do veículo.
+- [ ] Confirmar chamadas e roteamento de áudio em uma central Android real após registrar o plugin e o serviço de chamadas.

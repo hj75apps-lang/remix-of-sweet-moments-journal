@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Home, LayoutGrid, Radio, Phone, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { hasUsageAccess, isNativeAvailable, launchApp, listRecentApps, onRecentAppsChanged, openPhone, requestUsageAccess } from "@/services/installed-apps";
+import { hasUsageAccess, isNativeAvailable, launchApp, listRecentApps, onRecentAppsChanged, requestUsageAccess } from "@/services/installed-apps";
 
 interface DockItem {
   id: string;
@@ -41,14 +41,10 @@ export function Dock() {
       });
     });
   }, [queryClient]);
-  const active = path === "/radio" ? "radio" : path === "/apps" ? "apps" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "apps" || picked === "settings") ? "home" : picked;
-  const routes: Record<string, "/" | "/radio" | "/apps" | "/ajustes"> = { home: "/", radio: "/radio", apps: "/apps", settings: "/ajustes" };
+  const active = path === "/radio" ? "radio" : path === "/telefone" ? "phone" : path === "/apps" ? "apps" : path === "/ajustes" ? "settings" : path === "/" && (picked === "radio" || picked === "phone" || picked === "apps" || picked === "settings") ? "home" : picked;
+  const routes: Record<string, "/" | "/radio" | "/telefone" | "/apps" | "/ajustes"> = { home: "/", radio: "/radio", phone: "/telefone", apps: "/apps", settings: "/ajustes" };
   const setActive = (id: string) => {
     setPicked(id);
-    if (id === "phone") {
-      void openPhone();
-      return;
-    }
     const to = routes[id];
     if (to) void navigate({ to });
   };
