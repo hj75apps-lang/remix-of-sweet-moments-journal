@@ -4,9 +4,7 @@ const config: CapacitorConfig = {
   appId: "app.smartautolauncher",
   appName: "Smart Auto Launcher",
   webDir: ".output/public",
-  android: {
-    allowMixedContent: true,
-  },
+  android: {},
 };
 
 export default config;

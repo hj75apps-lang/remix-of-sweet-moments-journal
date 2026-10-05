@@ -19,3 +19,4 @@
 - The launcher dock keeps Home, Online Radio, Phone, Apps, and Settings fixed; remaining slots show up to four recent Android apps with their native icons via UsageStats.
 - The default 1280×720 launcher grid reserves four columns for navigation and stacks clock, weather, and media in the two-column side rail.
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
+- Native Android capabilities live in compiled Capacitor plugins under the app package and are registered in MainActivity; reference-only plugin files are never runtime implementations.

@@ -12,8 +12,7 @@ function renderAt(path: string) {
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  const host = document.documentElement;
-  return { router, host, rendered: render(<RouterProvider router={router} />, { container: host }) };
+  return { router, rendered: render(<RouterProvider router={router} />) };
 }
 
 afterEach(() => {

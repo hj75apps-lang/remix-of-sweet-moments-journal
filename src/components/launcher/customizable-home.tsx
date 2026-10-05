@@ -4,7 +4,6 @@ import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSe
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, Maximize2, Plus, Undo2, RotateCcw, Check } from "lucide-react";
-import { toast } from "sonner";
 import type { HomeItem, AppId, WidgetKind } from "@/types/home";
 import { useHomeLayout } from "@/hooks/use-home-layout";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
@@ -19,9 +18,9 @@ function ItemContent({ item }: { item: HomeItem }) {
   if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
   const app = appRegistry[item.ref as AppId];
   const Icon = app.icon;
-  const routes: Record<AppId, "/" | "/radio" | "/telefone" | "/ajustes"> = {
-    map: "/",
-    music: "/radio",
+  const routes: Record<AppId, "/apps" | "/radio" | "/telefone" | "/ajustes"> = {
+    map: "/apps",
+    music: "/apps",
     radio: "/radio",
     phone: "/telefone",
     settings: "/ajustes",
@@ -31,10 +30,7 @@ function ItemContent({ item }: { item: HomeItem }) {
       type="button"
       variant="outline"
       aria-label={`Abrir ${app.label}`}
-      onClick={() => {
-        if (item.ref === "map") toast.info("Escolha seu aplicativo de navegação no cartão Navegação.");
-        else void navigate({ to: routes[item.ref as AppId] });
-      }}
+      onClick={() => void navigate({ to: routes[item.ref as AppId] })}
       className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition active:scale-95"
     >
       <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
