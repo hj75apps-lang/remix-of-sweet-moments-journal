@@ -58,6 +58,7 @@ interface VoiceControlPlugin {
   startListening(): Promise<void>;
   addListener(event: "voiceResult", callback: (result: VoiceRecognitionResult) => void): Promise<VoicePluginListener> | VoicePluginListener;
   addListener(event: "voiceState", callback: (state: { listening: boolean; error?: string }) => void): Promise<VoicePluginListener> | VoicePluginListener;
+  addListener(event: "voiceActivation", callback: () => void): Promise<VoicePluginListener> | VoicePluginListener;
 }
 
 function plugin(): VoiceControlPlugin | null {
@@ -86,5 +87,12 @@ export function onVoiceState(callback: (state: { listening: boolean; error?: str
   const voice = plugin();
   if (!voice) return () => {};
   const handle = Promise.resolve(voice.addListener("voiceState", callback));
+  return () => { void handle.then((listener) => listener.remove()); };
+}
+
+export function onVoiceActivation(callback: () => void): () => void {
+  const voice = plugin();
+  if (!voice) return () => {};
+  const handle = Promise.resolve(voice.addListener("voiceActivation", callback));
   return () => { void handle.then((listener) => listener.remove()); };
 }

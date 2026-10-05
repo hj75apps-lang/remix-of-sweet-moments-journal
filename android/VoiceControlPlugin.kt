@@ -9,6 +9,7 @@ import android.app.Activity
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import androidx.activity.result.ActivityResult
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -63,11 +64,7 @@ class VoiceControlPlugin : Plugin() {
     override fun handleOnNewIntent(intent: Intent) {
         super.handleOnNewIntent(intent)
         if (intent.action == Intent.ACTION_VOICE_COMMAND || intent.action == Intent.ACTION_ASSIST) {
-            activity.runOnUiThread {
-                val call = savedCall
-                if (call != null) startListening(call)
-                else notifyListeners("voiceState", JSObject().put("listening", false).put("error", "Toque no microfone para ativar"))
-            }
+            notifyListeners("voiceActivation", JSObject())
         }
     }
 

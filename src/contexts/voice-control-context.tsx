@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useRadio } from "@/contexts/radio-player-context";
 import {
   isNativeVoiceAvailable,
+  onVoiceActivation,
   onVoiceResult,
   onVoiceState,
   parseVoiceCommand,
@@ -30,6 +31,10 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
       setListening(state.listening);
       if (state.error) toast.error(state.error);
     });
+    const stopActivation = onVoiceActivation(() => {
+      setListening(true);
+      void startVoiceRecognition()?.catch(() => setListening(false));
+    });
     const stopResult = onVoiceResult(({ transcript }) => {
       const command = parseVoiceCommand(transcript);
       if (command.kind === "navigate") {
@@ -49,6 +54,7 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
     return () => {
       stopState();
       stopResult();
+      stopActivation();
     };
   }, [navigate, radio]);
 
