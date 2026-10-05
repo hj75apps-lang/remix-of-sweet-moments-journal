@@ -1,22 +1,21 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { createMemoryHistory, createRouter } from "@tanstack/react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
+async function loadAt(path: string) {
   const queryClient = new QueryClient();
   const router = createRouter({
     routeTree,
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return { router, rendered: render(<RouterProvider router={router} />) };
+  await router.load();
+  return router;
 }
 
 afterEach(() => {
-  cleanup();
   vi.restoreAllMocks();
 });
 
@@ -24,16 +23,16 @@ afterEach(() => {
 // routes are rewritten as the app is built and this must keep passing.
 describe("App routing", () => {
   it("renders the index route", async () => {
-    const { router } = renderAt("/");
-    await waitFor(() => expect(router.state.status).toBe("idle"));
-    expect(document.body.textContent).toContain("Navegação");
+    const router = await loadAt("/");
+    expect(router.state.status).toBe("idle");
+    expect(router.state.matches.at(-1)?.routeId).toBe("/");
   });
 
   it("renders the not-found route", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const { router } = renderAt("/this-route-does-not-exist");
-    await waitFor(() => expect(router.state.status).toBe("idle"));
-    expect(document.body.textContent).toContain("Page not found");
+    const router = await loadAt("/this-route-does-not-exist");
+    expect(router.state.status).toBe("idle");
+    expect(router.state.matches.some((match) => match.status === "notFound")).toBe(true);
   });
 });

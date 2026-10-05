@@ -23,6 +23,7 @@ function isValid(value: unknown): value is HomeLayout {
     candidate.items.every((item) => {
       if (!item || typeof item !== "object") return false;
       const entry = item as Partial<HomeItem>;
+      if (typeof entry.ref !== "string") return false;
       const validRef =
         entry.type === "WIDGET"
           ? entry.ref in widgetRefs
