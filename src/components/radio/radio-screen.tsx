@@ -17,7 +17,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { discoverStream } from "@/lib/stream-discovery.functions";
+import { discoverRadioWebsite } from "@/services/radio-network";
 import {
   fetchCatalog,
   fetchByName,
@@ -106,7 +106,7 @@ export function RadioScreen() {
   const isUrl = looksLikeUrl(deferred);
   const site = useQuery({
     queryKey: ["radio-site", deferred.trim().toLowerCase()],
-    queryFn: () => discoverStream({ data: { url: deferred.trim() } }),
+    queryFn: () => discoverRadioWebsite(deferred.trim()),
     enabled: isUrl,
     staleTime: 30 * 60_000,
     retry: false,

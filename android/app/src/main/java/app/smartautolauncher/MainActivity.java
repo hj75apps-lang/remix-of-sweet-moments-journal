@@ -13,6 +13,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(SystemControlsPlugin.class);
         registerPlugin(VoiceControlPlugin.class);
         registerPlugin(LauncherSystemPlugin.class);
+        registerPlugin(RadioNetworkPlugin.class);
         super.onCreate(savedInstanceState);
+        // Async playlist/site resolution must not consume the user's playback gesture.
+        getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
     }
 }
