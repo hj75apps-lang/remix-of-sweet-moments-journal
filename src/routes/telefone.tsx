@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Dock } from "@/components/launcher/dock";
 import { StatusBar } from "@/components/launcher/status-bar";
 import { Button } from "@/components/ui/button";
+import { PhoneDirectory } from "@/components/phone/phone-directory";
 import {
   answerCall,
   getPhoneState,
@@ -224,6 +225,7 @@ function PhonePage() {
               </div>
             </div>
           )}
+          {!busy && <PhoneDirectory onPick={setNumber} />}
         </section>
       </main>
     </div>

@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useGlass } from "@/hooks/use-glass";
 import { RadioPlayerProvider } from "@/contexts/radio-player-context";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { LauncherSettingsProvider } from "@/hooks/use-launcher-settings";
 import { VoiceControlProvider } from "@/contexts/voice-control-context";
 
 function NotFoundComponent() {
@@ -128,13 +129,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <RadioPlayerProvider>
-          <VoiceControlProvider>
-            <Outlet />
-          </VoiceControlProvider>
-        </RadioPlayerProvider>
-        <Toaster />
+        <LauncherSettingsProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <RadioPlayerProvider>
+            <VoiceControlProvider>
+              <Outlet />
+            </VoiceControlProvider>
+          </RadioPlayerProvider>
+          <Toaster />
+        </LauncherSettingsProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

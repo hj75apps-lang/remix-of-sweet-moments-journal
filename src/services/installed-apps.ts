@@ -38,7 +38,10 @@ function plugin(): LauncherAppsPlugin | null {
 }
 
 export const isNativeAvailable = () => {
-  if (typeof window !== "undefined" && window.localStorage.getItem("smart_auto_mock_apps") === "true") {
+  if (
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("smart_auto_mock_apps") === "true"
+  ) {
     return true;
   }
   return plugin() !== null;
@@ -93,11 +96,7 @@ export async function listRecentApps(): Promise<InstalledApp[]> {
 export async function hasUsageAccess(): Promise<boolean> {
   const p = plugin();
   if (!p) return true;
-  return (
-    p
-      .hasUsageAccess()
-      .then(({ granted }) => granted) ?? false
-  );
+  return p.hasUsageAccess().then(({ granted }) => granted) ?? false;
 }
 
 export async function requestUsageAccess(): Promise<void> {
