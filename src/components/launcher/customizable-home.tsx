@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   DndContext,
@@ -96,7 +96,7 @@ function Tile({
       : appRegistry[item.ref as AppId].label;
   const size = preview ?? item.size;
 
-  const startResize = (e: React.PointerEvent<HTMLButtonElement>) => {
+  const startResize = (e: ReactPointerEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
     const startX = e.clientX;
