@@ -1,7 +1,9 @@
+import { fetchRadioPlaylist } from "./radio-network";
+
 export type StreamKind = "hls" | "playlist" | "direct";
 
 export function streamKind(url: string): StreamKind {
-  const path = url.split("?")[0]!.toLowerCase();
+  const path = (url.split("?")[0] ?? "").toLowerCase();
   if (path.endsWith(".m3u8")) return "hls";
   if (path.endsWith(".m3u") || path.endsWith(".pls") || path.endsWith(".asx")) return "playlist";
   return "direct";
@@ -21,7 +23,7 @@ export function parsePlaylist(text: string): string[] {
 }
 
 /** Resolves a playlist URL into playable https streams; direct URLs pass through. */
-export async function resolveSource(url: string, fetcher: typeof fetch = fetch): Promise<string[]> {
+export async function resolveSource(url: string, fetcher: (url: string) => Promise<Response> = fetchRadioPlaylist): Promise<string[]> {
   if (streamKind(url) !== "playlist") return [url];
   try {
     const res = await fetcher(url);

@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Preparar Rádio Online no código Android: busca por site sem servidor web, playlists, player compartilhado e lista de uma estação por linha (21 testes passaram).
+- [ ] Validar Rádio Online numa central com APK atualizado (depende do aparelho).
+
 - [x] Integrar seleção automática da fonte ativa, atualização contínua do player e acesso às sessões Android.
 - [ ] Confirmar Spotify e rádio da central em aparelho real (depende do aparelho e das informações publicadas pelo rádio).
 

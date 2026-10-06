@@ -13,7 +13,7 @@
 
 - Radio playback uses a plain <audio> by default and a separate CORS-enabled element for Web Audio EQ, so stations without CORS never go silent.
 - Radio directory requests go through mirror failover (radio-browser.ts) with the verified catalog as offline fallback, so search survives server outages.
-- Radio search by website runs server-side (stream-discovery.functions.ts): fetch the page and its player pages, keep only links that answer with audio, since browsers can't read other sites and many stations aren't in Radio Browser.
+- Radio website discovery shares one parser: web uses the existing server function; APK uses the registered RadioNetwork plugin for bounded public HTTPS page/probe reads and playlists, because the static package has no server RPC and stream hosts may omit CORS. Audio and EQ remain on separate WebView audio elements.
 - Weather data loads directly from Open-Meteo in the browser with a cached last-known forecast; location names use reverse geocoding with coordinate fallback.
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
