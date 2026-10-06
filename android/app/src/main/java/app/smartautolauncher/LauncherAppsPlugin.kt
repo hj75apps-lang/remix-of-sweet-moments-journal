@@ -124,6 +124,16 @@ class LauncherAppsPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getLastLaunchedApp(call: PluginCall) {
+        Thread {
+            val pkg = context.getSharedPreferences("launcher_apps", Context.MODE_PRIVATE)
+                .getString("last_launched_package", null)
+            val app = pkg?.let { runCatching { iconObject(it) }.getOrNull() }
+            call.resolve(JSObject().put("app", app ?: org.json.JSONObject.NULL))
+        }.start()
+    }
+
+    @PluginMethod
     fun hasUsageAccess(call: PluginCall) {
         val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val end = System.currentTimeMillis()
@@ -148,7 +158,15 @@ class LauncherAppsPlugin : Plugin() {
         val pkg = call.getString("packageName") ?: return call.reject("packageName obrigatório")
         val i = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("App não encontrado")
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(i); call.resolve()
+        try {
+            context.startActivity(i)
+            context.getSharedPreferences("launcher_apps", Context.MODE_PRIVATE)
+                .edit().putString("last_launched_package", pkg).apply()
+            notifyListeners("recentAppsChanged", JSObject())
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject("Não foi possível abrir o aplicativo", e)
+        }
     }
 
     @PluginMethod
