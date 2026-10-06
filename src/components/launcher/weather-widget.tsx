@@ -57,9 +57,9 @@ export function WeatherWidget() {
             <span className="truncate">{w.city}</span>
           </p>
           <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
-            <CurrentWeatherIcon className="size-10 shrink-0 text-primary" aria-label={w.text} />
+            <CurrentWeatherIcon className="size-[1.7rem] shrink-0 text-primary" aria-label={w.text} />
             <div className="min-w-0">
-              <p className="font-display text-[clamp(1.25rem,45cqh,2.25rem)] font-semibold leading-none">
+              <p className="font-display text-[clamp(2.125rem,76.5cqh,3.825rem)] font-semibold leading-none">
                 {w.temp}°
               </p>
               <p className="truncate text-[clamp(0.6875rem,18cqh,0.875rem)] text-muted-foreground">
