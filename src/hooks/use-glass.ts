@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 const KEY = "sal.glass";
 const EVENT = "sal-glass-change";
-export const DEFAULT_GLASS = 50;
+export const DEFAULT_GLASS = 100;
 
 function apply(v: number) {
   document.documentElement.style.setProperty("--glass", String(v / 100));
