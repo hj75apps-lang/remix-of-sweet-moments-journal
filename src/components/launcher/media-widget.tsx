@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import { Music, Play, Pause, SkipBack, SkipForward, Radio, Disc3 } from "lucide-react";
+import {
+  Music,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Radio,
+  Disc3,
+  Rewind,
+  FastForward,
+} from "lucide-react";
+import { errorMessage, sendMediaKey } from "@/services/launcher-system";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { useNowPlaying } from "@/services/now-playing";
 import { cn } from "@/lib/utils";
@@ -109,35 +120,49 @@ export function MediaWidget() {
         )}
       </div>
       <div
-        className="mt-auto flex shrink-0 items-center justify-center gap-3 pt-2"
+        className="mt-auto flex shrink-0 items-center justify-center gap-2 pt-2 sm:gap-3"
         role="group"
         aria-label="Controles de mídia"
       >
-        {[
-          { i: SkipBack, l: "Anterior", a: "previous" as const },
-          {
-            i: media?.playing ? Pause : Play,
-            l: media?.playing ? "Pausar" : "Tocar",
-            a: media?.playing ? ("pause" as const) : ("play" as const),
-          },
-          { i: SkipForward, l: "Próxima", a: "next" as const },
-        ].map(({ i: Icon, l, a }, idx) => (
-          <button
-            key={idx}
-            type="button"
-            disabled={!media}
-            aria-label={l}
-            onClick={() => control(a)}
-            className={cn(
-              "grid place-items-center rounded-full transition active:scale-95 disabled:opacity-40",
-              idx === 1
-                ? "size-[clamp(2.25rem,28cqh,3.5rem)] bg-primary text-primary-foreground"
-                : "size-[clamp(2rem,24cqh,3rem)] bg-secondary",
-            )}
-          >
-            <Icon className="size-[clamp(1rem,14cqh,1.5rem)]" />
-          </button>
-        ))}
+        {(() => {
+          // Live radio has no timeline, so seek buttons only appear for other apps.
+          const seekable = !!media && media.kind !== "radio";
+          const seek = (key: "rewind" | "forward") =>
+            void sendMediaKey(key).catch((e: unknown) => toast.error(errorMessage(e)));
+          const items = [
+            ...(seekable
+              ? [{ i: Rewind, l: "Voltar", run: () => seek("rewind"), main: false }]
+              : []),
+            { i: SkipBack, l: "Anterior", run: () => control("previous"), main: false },
+            {
+              i: media?.playing ? Pause : Play,
+              l: media?.playing ? "Pausar" : "Tocar",
+              run: () => control(media?.playing ? "pause" : "play"),
+              main: true,
+            },
+            { i: SkipForward, l: "Próxima", run: () => control("next"), main: false },
+            ...(seekable
+              ? [{ i: FastForward, l: "Avançar", run: () => seek("forward"), main: false }]
+              : []),
+          ];
+          return items.map(({ i: Icon, l, run, main }) => (
+            <button
+              key={l}
+              type="button"
+              disabled={!media}
+              aria-label={l}
+              onClick={run}
+              className={cn(
+                "grid place-items-center rounded-full transition active:scale-95 disabled:opacity-40",
+                main
+                  ? "size-[clamp(2.25rem,28cqh,3.5rem)] bg-primary text-primary-foreground"
+                  : "size-[clamp(2rem,24cqh,3rem)] bg-secondary",
+              )}
+            >
+              <Icon className="size-[clamp(1rem,14cqh,1.5rem)]" />
+            </button>
+          ));
+        })()}
       </div>
     </WidgetCard>
   );
