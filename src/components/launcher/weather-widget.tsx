@@ -52,10 +52,13 @@ export function WeatherWidget() {
         </p>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground">
-            <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{w.city}</span>
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <div />
+            <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground">
+              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate">{w.city}</span>
+            </p>
+          </div>
           <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
             <CurrentWeatherIcon className="size-[1.7rem] shrink-0 text-primary" aria-label={w.text} />
             <div className="min-w-0">
