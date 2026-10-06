@@ -10,7 +10,7 @@ interface WidgetCardProps {
 }
 
 /** Base surface for every Home widget. */
-export function WidgetCard({ title, icon, children, className, hideHeader }: WidgetCardProps) {
+export function WidgetCard({ title, icon, children, className, hideHeader = true }: WidgetCardProps) {
   return (
     <section
       aria-label={title}
