@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, LayoutGrid, Search, Smartphone } from "lucide-react";
@@ -33,9 +33,7 @@ function AppsPage() {
   const [q, setQ] = useState("");
   const qc = useQueryClient();
   useEffect(() => {
-    if (typeof window !== "undefined" && !window.localStorage.getItem("smart_auto_mock_apps")) {
-      window.localStorage.setItem("smart_auto_mock_apps", "true");
-    }
+    window.localStorage.removeItem("smart_auto_mock_apps");
     setNative(isNativeAvailable());
   }, []);
   const apps = useQuery({
@@ -57,11 +55,26 @@ function AppsPage() {
   }, [apps.data, q]);
   const [page, setPage] = useState(0);
   const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  useEffect(() => setPage(0), [q]);
+  const scroller = useRef<HTMLDivElement>(null);
+  const goTo = (target: number) => {
+    const el = scroller.current;
+    const next = Math.min(pages - 1, Math.max(0, target));
+    if (el) el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
+    setPage(next);
+  };
   useEffect(() => {
-    if (page > pages - 1) setPage(pages - 1);
-  }, [page, pages]);
-  const visible = list.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+    scroller.current?.scrollTo({ left: 0 });
+    setPage(0);
+  }, [q]);
+  const onScroll = () => {
+    const el = scroller.current;
+    if (el && el.clientWidth) setPage(Math.round(el.scrollLeft / el.clientWidth));
+  };
+  const pageGroups = useMemo(() => {
+    const out: (typeof list)[] = [];
+    for (let i = 0; i < list.length; i += PAGE_SIZE) out.push(list.slice(i, i + PAGE_SIZE));
+    return out;
+  }, [list]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -109,8 +122,24 @@ function AppsPage() {
             </p>
           ) : (
             <>
-            <ul className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-2">
-              {visible.map((a) => (
+            {!list.length ? (
+              <p className="m-auto p-6 text-center text-sm text-muted-foreground">
+                {q ? "Nenhum app encontrado." : "Nenhum app instalado reconhecido."}
+              </p>
+            ) : (
+            <div
+              ref={scroller}
+              onScroll={onScroll}
+              className="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
+            >
+            {pageGroups.map((group, gi) => (
+            <ul
+              key={gi}
+              aria-label={`Página ${gi + 1}`}
+              className="grid h-full w-full shrink-0 snap-start grid-cols-4 grid-rows-2 gap-2"
+            >
+              {group.map((a) => (
                 <li key={a.packageName} className="flex min-h-0">
                   <button
                     type="button"
@@ -136,17 +165,15 @@ function AppsPage() {
                   </button>
                 </li>
               ))}
-              {!list.length && (
-                <li className="col-span-full p-6 text-center text-sm text-muted-foreground">
-                  Nenhum app encontrado.
-                </li>
-              )}
             </ul>
+            ))}
+            </div>
+            )}
             {pages > 1 && (
               <nav className="flex items-center justify-center gap-4" aria-label="Páginas de apps">
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => goTo(page - 1)}
                   disabled={page === 0}
                   aria-label="Página anterior"
                   className="flex size-11 items-center justify-center rounded-full bg-secondary transition active:scale-95 disabled:opacity-40"
@@ -158,7 +185,7 @@ function AppsPage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+                  onClick={() => goTo(page + 1)}
                   disabled={page >= pages - 1}
                   aria-label="Próxima página"
                   className="flex size-11 items-center justify-center rounded-full bg-secondary transition active:scale-95 disabled:opacity-40"

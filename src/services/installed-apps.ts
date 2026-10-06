@@ -37,60 +37,26 @@ function plugin(): LauncherAppsPlugin | null {
   return (cap.Plugins?.["LauncherApps"] as LauncherAppsPlugin | undefined) ?? null;
 }
 
-export const isNativeAvailable = () => {
-  if (
-    typeof window !== "undefined" &&
-    window.localStorage.getItem("smart_auto_mock_apps") === "true"
-  ) {
-    return true;
-  }
-  return plugin() !== null;
-};
-
-const MOCK_APPS: InstalledApp[] = [
-  { packageName: "com.whatsapp", label: "WhatsApp", icon: "" },
-  { packageName: "com.instagram.android", label: "Instagram", icon: "" },
-  { packageName: "com.google.android.youtube", label: "YouTube", icon: "" },
-  { packageName: "com.spotify.music", label: "Spotify", icon: "" },
-  { packageName: "com.google.android.gm", label: "Gmail", icon: "" },
-  { packageName: "com.android.chrome", label: "Chrome", icon: "" },
-  { packageName: "com.google.android.apps.maps", label: "Google Maps", icon: "" },
-  { packageName: "com.netflix.mediaclient", label: "Netflix", icon: "" },
-  { packageName: "com.waze", label: "Waze", icon: "" },
-];
+export const isNativeAvailable = () => plugin() !== null;
 
 export async function listInstalledApps(): Promise<InstalledApp[]> {
   const p = plugin();
-  if (!p) {
-    return [...MOCK_APPS].sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
-  }
+  if (!p) return [];
   const { apps } = await p.getInstalledApps();
-  if (!apps || apps.length === 0) {
-    return [...MOCK_APPS].sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
-  }
-  return [...apps].sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  return [...(apps ?? [])].sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
 }
 
 export async function launchApp(packageName: string) {
   const p = plugin();
-  if (!p) {
-    console.info("Simulando lançamento do app:", packageName);
-    window.alert(`Abrindo aplicativo: ${packageName}`);
-    return;
-  }
+  if (!p) return;
   await p.launch({ packageName });
 }
 
 export async function listRecentApps(): Promise<InstalledApp[]> {
   const p = plugin();
-  if (!p) {
-    return MOCK_APPS.slice(0, 4);
-  }
+  if (!p) return [];
   const { apps } = await p.getRecentApps();
-  if (!apps || apps.length === 0) {
-    return MOCK_APPS.slice(0, 4);
-  }
-  return apps.slice(0, 4);
+  return (apps ?? []).slice(0, 4);
 }
 
 export async function hasUsageAccess(): Promise<boolean> {
