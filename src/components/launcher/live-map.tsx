@@ -53,12 +53,12 @@ export default function LiveMap({ dark }: { dark: boolean }) {
     const map = mapRef.current;
     if (!map) return;
     tilesRef.current?.remove();
-    tilesRef.current = L.tileLayer(
-      dark
-        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-      { maxZoom: 19, attribution: "© OpenStreetMap © CARTO" },
-    ).addTo(map);
+    tilesRef.current = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+      // Night look without a paid style: invert + hue-rotate keeps roads readable.
+      className: dark ? "map-tiles-dark" : "",
+    }).addTo(map);
   }, [dark]);
 
   return <div ref={el} className="absolute inset-0 z-0" aria-hidden />;
