@@ -30,7 +30,12 @@ function AppsPage() {
   const [native, setNative] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   const qc = useQueryClient();
-  useEffect(() => setNative(isNativeAvailable()), []);
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.localStorage.getItem("smart_auto_mock_apps")) {
+      window.localStorage.setItem("smart_auto_mock_apps", "true");
+    }
+    setNative(isNativeAvailable());
+  }, []);
   const apps = useQuery({
     queryKey: ["installed-apps"],
     queryFn: listInstalledApps,
@@ -103,12 +108,18 @@ function AppsPage() {
                     aria-label={`Abrir ${a.label}`}
                     className="flex w-full min-w-0 flex-col items-center gap-2 rounded-2xl p-2 transition hover:bg-accent active:scale-95"
                   >
-                    <img
-                      src={`data:image/png;base64,${a.icon}`}
-                      alt=""
-                      className="size-14"
-                      loading="lazy"
-                    />
+                    {a.icon ? (
+                      <img
+                        src={`data:image/png;base64,${a.icon}`}
+                        alt=""
+                        className="size-14"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/20 text-xl font-bold text-primary">
+                        {a.label.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
                     <span className="w-full truncate text-center text-xs font-medium">
                       {a.label}
                     </span>
