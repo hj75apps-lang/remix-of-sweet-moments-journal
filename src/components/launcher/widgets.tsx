@@ -24,31 +24,58 @@ import { VolumeControl } from "./volume-control";
 import { ConnectivityControls } from "./connectivity-controls";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
+import { errorMessage, startNavigation, type NavApp } from "@/services/launcher-system";
 
 export function NavigationWidget() {
-  const navigate = useNavigate();
+  const { settings, update } = useLauncherSettings();
+  const [dest, setDest] = useState(settings.lastDestination);
+  const go = async (app: NavApp, destination: string) => {
+    try {
+      await startNavigation(app, destination);
+      if (destination.trim()) update({ lastDestination: destination.trim() });
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
   return (
     <WidgetCard
       title="Navegação"
       icon={<Navigation className="size-4" />}
       className="bg-[image:var(--gradient-map)]"
     >
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <div className="grid size-20 place-items-center rounded-full bg-primary/15 text-primary">
-          <MapPin className="size-10" />
+      <form
+        className="flex min-h-0 flex-1 flex-col justify-center gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void go(settings.navApp, dest);
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <MapPin className="size-6 shrink-0 text-primary" />
+          <Input
+            value={dest}
+            onChange={(e) => setDest(e.target.value.slice(0, 200))}
+            placeholder="Para onde vamos?"
+            aria-label="Destino"
+            className="min-h-12 rounded-2xl text-base"
+          />
         </div>
-        <UnavailableState
-          message="Nenhum app de navegação conectado"
-          hint="O mapa aparece quando o GPS e um provedor de mapas estiverem disponíveis."
-        />
-        <Button
-          type="button"
-          onClick={() => void navigate({ to: "/apps" })}
-          className="min-h-14 rounded-2xl px-8 font-semibold transition active:scale-95"
-        >
-          Escolher app de navegação
+        <Button type="submit" className="min-h-14 rounded-2xl font-semibold">
+          <Navigation /> Iniciar navegação
         </Button>
-      </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button type="button" variant="secondary" className="min-h-12 rounded-2xl" onClick={() => void go("maps", "")}>
+            <Map /> Google Maps
+          </Button>
+          <Button type="button" variant="secondary" className="min-h-12 rounded-2xl" onClick={() => void go("waze", "")}>
+            <Navigation /> Waze
+          </Button>
+        </div>
+      </form>
     </WidgetCard>
   );
 }
@@ -57,7 +84,7 @@ export { MediaWidget } from "./media-widget";
 export { WeatherWidget } from "./weather-widget";
 
 const favoriteApps = [
-  { label: "Mapa", icon: Map, route: "/apps" as const },
+  { label: "Clima", icon: CloudSun, route: "/clima" as const },
   { label: "Rádios Online", icon: Radio, route: "/radio" as const },
   { label: "Telefone", icon: Phone, route: "/telefone" as const },
   { label: "Ajustes", icon: Settings, route: "/ajustes" as const },
