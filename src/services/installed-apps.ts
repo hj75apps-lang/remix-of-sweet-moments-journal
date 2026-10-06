@@ -15,6 +15,7 @@ interface PluginListener {
 interface LauncherAppsPlugin {
   getInstalledApps(): Promise<{ apps: InstalledApp[] }>;
   getRecentApps(): Promise<{ apps: InstalledApp[] }>;
+  getLastLaunchedApp(): Promise<{ app: InstalledApp | null }>;
   hasUsageAccess(): Promise<{ granted: boolean }>;
   requestUsageAccess(): Promise<void>;
   launch(opts: { packageName: string }): Promise<void>;
@@ -50,6 +51,13 @@ export async function launchApp(packageName: string) {
   const p = plugin();
   if (!p) return;
   await p.launch({ packageName });
+}
+
+export async function getLastLaunchedApp(): Promise<InstalledApp | null> {
+  const p = plugin();
+  if (!p) return null;
+  const { app } = await p.getLastLaunchedApp();
+  return app ?? null;
 }
 
 export async function listRecentApps(): Promise<InstalledApp[]> {

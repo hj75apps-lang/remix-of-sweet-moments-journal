@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, LayoutGrid, Radio, Phone, Settings, History, type LucideIcon } from "lucide-react";
+import { Home, LayoutGrid, Radio, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   hasUsageAccess,
+  getLastLaunchedApp,
   isNativeAvailable,
   launchApp,
   listRecentApps,
@@ -22,7 +23,7 @@ interface DockItem {
 const dockItems: DockItem[] = [
   { id: "home", label: "Início", icon: Home },
   { id: "radio", label: "Rádios Online", icon: Radio },
-  { id: "phone", label: "Telefone", icon: Phone },
+  { id: "last-app", label: "Último aplicativo", icon: History },
   { id: "apps", label: "Apps", icon: LayoutGrid },
   { id: "settings", label: "Ajustes", icon: Settings },
 ];
@@ -34,6 +35,12 @@ export function Dock() {
   const [native, setNative] = useState(false);
   const [usageAllowed, setUsageAllowed] = useState(false);
   const queryClient = useQueryClient();
+  const lastLaunched = useQuery({
+    queryKey: ["last-launched-app"],
+    queryFn: getLastLaunchedApp,
+    enabled: native,
+  });
+  const lastApp = lastLaunched.data;
   const recent = useQuery({
     queryKey: ["recent-apps"],
     queryFn: listRecentApps,
@@ -45,6 +52,7 @@ export function Dock() {
     if (available) void hasUsageAccess().then(setUsageAllowed);
     if (!available) return;
     return onRecentAppsChanged(() => {
+      void queryClient.invalidateQueries({ queryKey: ["last-launched-app"] });
       void hasUsageAccess().then((granted) => {
         setUsageAllowed(granted);
         if (granted) void queryClient.invalidateQueries({ queryKey: ["recent-apps"] });
@@ -81,13 +89,22 @@ export function Dock() {
     >
       {dockItems.map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
+        const isLastApp = id === "last-app";
+        const itemLabel = isLastApp && lastApp ? `Abrir ${lastApp.label}` : label;
         return (
           <Button
             key={id}
             type="button"
             variant="ghost"
-            onClick={() => setActive(id)}
-            aria-label={label}
+            onClick={() => {
+              if (isLastApp) {
+                if (lastApp) void launchApp(lastApp.packageName);
+                return;
+              }
+              setActive(id);
+            }}
+            disabled={isLastApp && !lastApp}
+            aria-label={itemLabel}
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center rounded-2xl p-2 md:min-h-16 md:max-h-24 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -95,13 +112,21 @@ export function Dock() {
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95 hover:text-sidebar-foreground",
             )}
-            title={label}
+            title={itemLabel}
           >
-            <Icon className="size-[2.25rem] md:size-[2.5rem] scale-[2.5] my-2" />
+            {isLastApp && lastApp ? (
+              <img
+                src={`data:image/png;base64,${lastApp.icon}`}
+                alt=""
+                className="my-2 size-11 shrink-0 rounded-md object-contain md:size-12"
+              />
+            ) : (
+              <Icon className="size-[2.25rem] md:size-[2.5rem] scale-[2.5] my-2" />
+            )}
           </Button>
         );
       })}
-      {(recent.data ?? []).map((app) => (
+      {(recent.data ?? []).filter((app) => app.packageName !== lastApp?.packageName).map((app) => (
         <Button
           key={app.packageName}
           type="button"
