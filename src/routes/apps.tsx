@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, Search, Smartphone } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, Search, Smartphone } from "lucide-react";
 import { StatusBar } from "@/components/launcher/status-bar";
 import { Dock } from "@/components/launcher/dock";
 import {
@@ -25,6 +25,8 @@ export const Route = createFileRoute("/apps")({
   }),
   component: AppsPage,
 });
+
+const PAGE_SIZE = 8;
 
 function AppsPage() {
   const [native, setNative] = useState<boolean | null>(null);
@@ -53,6 +55,13 @@ function AppsPage() {
     const n = normalizeText(q);
     return (apps.data ?? []).filter((a) => !n || normalizeText(a.label).includes(n));
   }, [apps.data, q]);
+  const [page, setPage] = useState(0);
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  useEffect(() => setPage(0), [q]);
+  useEffect(() => {
+    if (page > pages - 1) setPage(pages - 1);
+  }, [page, pages]);
+  const visible = list.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -99,14 +108,15 @@ function AppsPage() {
               Carregando apps…
             </p>
           ) : (
-            <ul className="grid min-h-0 flex-1 auto-rows-max grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-2 overflow-y-auto">
-              {list.map((a) => (
-                <li key={a.packageName}>
+            <>
+            <ul className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-2">
+              {visible.map((a) => (
+                <li key={a.packageName} className="flex min-h-0">
                   <button
                     type="button"
                     onClick={() => void launchApp(a.packageName)}
                     aria-label={`Abrir ${a.label}`}
-                    className="flex w-full min-w-0 flex-col items-center gap-2 rounded-2xl p-2 transition hover:bg-accent active:scale-95"
+                    className="flex h-full w-full min-w-0 flex-col items-center justify-center gap-2 rounded-2xl p-2 transition hover:bg-accent active:scale-95"
                   >
                     {a.icon ? (
                       <img
@@ -132,6 +142,32 @@ function AppsPage() {
                 </li>
               )}
             </ul>
+            {pages > 1 && (
+              <nav className="flex items-center justify-center gap-4" aria-label="Páginas de apps">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  aria-label="Página anterior"
+                  className="flex size-11 items-center justify-center rounded-full bg-secondary transition active:scale-95 disabled:opacity-40"
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {page + 1} / {pages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+                  disabled={page >= pages - 1}
+                  aria-label="Próxima página"
+                  className="flex size-11 items-center justify-center rounded-full bg-secondary transition active:scale-95 disabled:opacity-40"
+                >
+                  <ChevronRight className="size-5" />
+                </button>
+              </nav>
+            )}
+            </>
           )}
         </section>
       </main>
