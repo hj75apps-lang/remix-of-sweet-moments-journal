@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Home, LayoutGrid, Radio, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import {
   hasUsageAccess,
   getLastLaunchedApp,
@@ -30,6 +31,7 @@ const dockItems: DockItem[] = [
 
 /** Vertical side dock with large touch targets. */
 export function Dock() {
+  const { settings } = useLauncherSettings();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [native, setNative] = useState(false);
