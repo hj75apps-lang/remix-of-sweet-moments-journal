@@ -465,7 +465,7 @@ export function RadioScreen() {
         )}
 
         <ul
-          className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-2 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-2"
+          className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-2 overflow-y-auto overscroll-contain pr-1"
           aria-label="Lista de rádios"
         >
           {isLoading &&
