@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   DndContext,
@@ -56,16 +56,35 @@ interface TileProps {
   onLongPress: () => void;
   onRemove: () => void;
   onResize: () => void;
+  onResizeTo: (size: { w: number; h: number }) => void;
   canResize: boolean;
   cols: number;
+  maxRows: number;
+  cellW: number;
+  cellH: number;
+  gap: number;
 }
 
-function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols }: TileProps) {
+function Tile({
+  item,
+  editing,
+  onLongPress,
+  onRemove,
+  onResize,
+  onResizeTo,
+  canResize,
+  cols,
+  maxRows,
+  cellW,
+  cellH,
+  gap,
+}: TileProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
     disabled: !editing,
   });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [preview, setPreview] = useState<{ w: number; h: number } | null>(null);
   const clear = () => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
@@ -75,6 +94,37 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
     item.type === "WIDGET"
       ? widgetRegistry[item.ref as WidgetKind].label
       : appRegistry[item.ref as AppId].label;
+  const size = preview ?? item.size;
+
+  const startResize = (e: ReactPointerEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const baseW = Math.min(item.size.w, cols);
+    const baseH = item.size.h;
+    const stepX = cellW + gap;
+    const stepY = cellH + gap;
+    let current = { w: baseW, h: baseH };
+    const move = (ev: PointerEvent) => {
+      const w = Math.max(1, Math.min(cols, baseW + Math.round((ev.clientX - startX) / stepX)));
+      const h = Math.max(1, Math.min(maxRows, baseH + Math.round((ev.clientY - startY) / stepY)));
+      if (w !== current.w || h !== current.h) {
+        current = { w, h };
+        setPreview(current);
+      }
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      setPreview(null);
+      if (current.w !== item.size.w || current.h !== item.size.h) onResizeTo(current);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
 
   return (
     <div
@@ -82,13 +132,14 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        gridColumn: `span ${Math.min(item.size.w, cols)}`,
-        gridRow: `span ${cols === 2 ? Math.min(item.size.h, 2) : item.size.h}`,
+        gridColumn: `span ${Math.min(size.w, cols)}`,
+        gridRow: `span ${cols === 2 ? Math.min(size.h, 2) : size.h}`,
       }}
       className={cn(
         "relative min-h-0",
         isDragging && "z-20 opacity-80",
-        editing && "animate-[wiggle_0.3s_ease-in-out_infinite_alternate] cursor-grab touch-none",
+        preview && "z-20 ring-2 ring-primary rounded-3xl",
+        editing && !preview && "animate-[wiggle_0.3s_ease-in-out_infinite_alternate] cursor-grab touch-none",
       )}
       onPointerDown={() => {
         if (editing) return;
@@ -115,6 +166,16 @@ function Tile({ item, editing, onLongPress, onRemove, onResize, canResize, cols 
             <X className="size-5" />
           </TileButton>
         </div>
+      )}
+      {editing && (
+        <button
+          type="button"
+          aria-label={`Arrastar para redimensionar ${label}`}
+          onPointerDown={startResize}
+          className="absolute bottom-0 right-0 z-10 grid size-12 touch-none cursor-se-resize place-items-end rounded-br-3xl p-2"
+        >
+          <span className="block size-5 rounded-br-xl border-b-4 border-r-4 border-primary" />
+        </button>
       )}
     </div>
   );
@@ -251,8 +312,13 @@ export function CustomizableHome() {
                 onLongPress={() => setEditing(true)}
                 onRemove={() => home.remove(item.id)}
                 onResize={() => cycleSize(item)}
+                onResizeTo={(size) => home.resize(item.id, size)}
                 canResize={sizesFor(item.type, item.ref).length > 1}
                 cols={cols}
+                maxRows={cols === 2 ? 2 : Math.max(GRID_ROWS, rows)}
+                cellW={(box.width - (cols - 1) * gap) / cols}
+                cellH={rowHeight}
+                gap={gap}
               />
             ))}
             {editing && (
