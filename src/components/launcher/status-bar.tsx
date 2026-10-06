@@ -1,3 +1,4 @@
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { Wifi, WifiOff, Bluetooth, MapPin, Mic, MicOff } from "lucide-react";
 import { useClock, useOnline } from "@/hooks/use-clock";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,11 @@ import { useVoiceControl } from "@/contexts/voice-control-context";
 
 /** Top bar: only shows states the device actually reports. */
 export function StatusBar() {
+  const { settings } = useLauncherSettings();
   const now = useClock();
   const online = useOnline();
   const voice = useVoiceControl();
-  const time = now?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) ?? "--:--";
+  const time = now?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", hour12: !settings.clock24h }) ?? "--:--";
   const date =
     now?.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }) ?? "";
 
