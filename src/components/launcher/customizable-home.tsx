@@ -39,7 +39,8 @@ function ItemContent({ item }: { item: HomeItem }) {
       variant="outline"
       aria-label={`Abrir ${app.label}`}
       onClick={() => void navigate({ to: routes[item.ref as AppId] })}
-      className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition active:scale-95"
+      className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition-all duration-150 ease-out hover:border-primary/30 active:scale-[0.98]"
+
     >
       <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
         <Icon className="size-7" />

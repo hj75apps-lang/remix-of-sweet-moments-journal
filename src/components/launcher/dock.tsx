@@ -92,8 +92,8 @@ export function Dock() {
             className={cn(
               "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[0.625rem] sm:text-xs md:min-h-11 md:max-h-20 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95",
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95 hover:text-sidebar-foreground",
             )}
           >
             <Icon className="size-6" />
