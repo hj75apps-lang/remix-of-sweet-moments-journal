@@ -127,7 +127,11 @@ export function NavigationWidget() {
                 aria-label="Destino"
                 className="min-h-11 flex-1 rounded-xl border-0 bg-transparent text-base"
               />
-              <Button type="submit" className={cn("min-h-11 rounded-xl px-4")} aria-label="Iniciar navegação">
+              <Button
+                type="submit"
+                className={cn("min-h-11 rounded-xl px-4")}
+                aria-label="Iniciar navegação"
+              >
                 <Search />
               </Button>
             </form>
