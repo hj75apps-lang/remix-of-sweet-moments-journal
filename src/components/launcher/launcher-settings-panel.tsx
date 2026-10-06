@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,17 @@ const NAV_APPS: Array<{ id: NavApp; label: string }> = [
 const card = "rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]";
 
 export function LauncherSettingsPanel() {
+  const [fontScale, setFontScale] = useState<string>(() => {
+    if (typeof window === "undefined") return "24px";
+    return localStorage.getItem("smart_auto_font_scale") || "24px";
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.style.setProperty("--font-scale", fontScale);
+    localStorage.setItem("smart_auto_font_scale", fontScale);
+  }, [fontScale]);
+
   const { settings, update } = useLauncherSettings();
   const info = useQuery({ queryKey: ["device-info"], queryFn: getDeviceInfo, staleTime: 60_000 });
   const device = info.data;
@@ -73,6 +85,35 @@ export function LauncherSettingsPanel() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="space-y-3 rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
+        <h3 className="text-[24px] font-semibold text-foreground">
+          Tamanho da Fonte (Padrão Automotivo)
+        </h3>
+        <p className="text-[16px] text-muted-foreground">
+          Texto principal mínimo de 24px, títulos de 32px a 48px e subtextos entre 16px e 20px (mínimo absoluto de 14px).
+        </p>
+        <div className="grid grid-cols-3 gap-2 pt-2">
+          {[
+            { label: "Normal (24px)", value: "24px" },
+            { label: "Grande (26px)", value: "26px" },
+            { label: "Máximo (28px)", value: "28px" },
+          ].map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => setFontScale(item.value)}
+              className={`flex min-h-12 items-center justify-center rounded-xl border px-3 text-[16px] font-medium transition ${
+                fontScale === item.value
+                  ? "border-primary bg-primary/25 text-primary"
+                  : "border-border bg-secondary/50 hover:bg-accent"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className={card}>
