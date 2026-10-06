@@ -15,6 +15,7 @@ export function WeatherWidget() {
     <WidgetCard
       title="Clima"
       icon={<CloudSun className="size-4" />}
+      hideHeader
       className={w ? "cursor-pointer transition hover:border-primary/40" : ""}
     >
       {!position ? (
@@ -52,7 +53,7 @@ export function WeatherWidget() {
         </p>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 pt-1 pr-2">
             <div />
             <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground">
               <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
