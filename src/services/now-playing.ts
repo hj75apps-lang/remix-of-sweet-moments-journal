@@ -162,7 +162,7 @@ export function useNowPlaying() {
       else if ((action === "play" && !radio.playing) || (action === "pause" && radio.playing)) radio.controls.toggle();
       return;
     }
-    return native()?.control({ action, packageName: media?.packageName });
+    return native()?.control({ action, packageName: media?.packageName ?? "" });
   };
   return {
     media,
