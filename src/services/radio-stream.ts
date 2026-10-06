@@ -23,7 +23,7 @@ export function parsePlaylist(text: string): string[] {
 }
 
 /** Resolves a playlist URL into playable https streams; direct URLs pass through. */
-export async function resolveSource(url: string, fetcher: typeof fetch = fetchRadioPlaylist): Promise<string[]> {
+export async function resolveSource(url: string, fetcher: (url: string) => Promise<Response> = fetchRadioPlaylist): Promise<string[]> {
   if (streamKind(url) !== "playlist") return [url];
   try {
     const res = await fetcher(url);
