@@ -12,3 +12,8 @@
 - [x] Criar tela de telefone com discagem, atendimento, encerramento e viva-voz do veículo.
 - [x] Registrar o plugin CarPhone, o serviço InCallService e as permissões no projeto Android.
 - [ ] Confirmar chamadas e roteamento de áudio em uma central Android real após registrar o plugin e o serviço de chamadas.
+- [x] Comportamento de Launcher: abrir ao ligar, tela cheia, tela sempre ligada, paisagem, pedido de tela inicial padrão.
+- [x] Navegação real via Google Maps/Waze com destino e app padrão.
+- [x] Painel de ajustes persistente (inicialização, tela cheia, brilho, relógio 24h, animações, app de navegação).
+- [x] Contatos e chamadas recentes no telefone, com tratamento de permissão negada.
+- [ ] Gerar o APK e testar boot, chamadas, Bluetooth e volante numa central real (sem SDK Android neste ambiente; empacotamento estático para o Capacitor ainda pendente).

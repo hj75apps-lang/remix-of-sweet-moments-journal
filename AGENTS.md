@@ -23,3 +23,5 @@
 - The default 1280×720 launcher grid reserves four columns for navigation and stacks clock, weather, and media in the two-column side rail.
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
 - Native Android capabilities live in compiled Capacitor plugins under the app package and are registered in MainActivity; reference-only plugin files are never runtime implementations.
+- Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
+- Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
