@@ -30,7 +30,46 @@ import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.io.ByteArrayOutputStream
 
-class MediaListener : NotificationListenerService()
+/**
+ * Notification access is also how Android Auto-style dashboards read turn-by-turn guidance:
+ * Google Maps and Waze post an ongoing notification with the next maneuver while navigating.
+ */
+class MediaListener : NotificationListenerService() {
+    override fun onListenerConnected() {
+        try { activeNotifications?.forEach { onNotificationPosted(it) } } catch (_: Exception) {}
+    }
+
+    override fun onNotificationPosted(sbn: android.service.notification.StatusBarNotification) {
+        if (sbn.packageName !in NAV_PACKAGES) return
+        val n = sbn.notification ?: return
+        if (n.flags and android.app.Notification.FLAG_ONGOING_EVENT == 0) return
+        val e = n.extras
+        val icon = (e.get(android.app.Notification.EXTRA_LARGE_ICON) as? android.graphics.Bitmap)?.let { bmp ->
+            val out = ByteArrayOutputStream()
+            android.graphics.Bitmap.createScaledBitmap(bmp, 96, 96, true).compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+        } ?: ""
+        guidance = JSObject()
+            .put("packageName", sbn.packageName)
+            .put("title", e.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString() ?: "")
+            .put("text", e.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString() ?: "")
+            .put("subText", e.getCharSequence(android.app.Notification.EXTRA_SUB_TEXT)?.toString() ?: "")
+            .put("icon", icon)
+        onGuidance?.invoke(guidance)
+    }
+
+    override fun onNotificationRemoved(sbn: android.service.notification.StatusBarNotification) {
+        if (sbn.packageName !in NAV_PACKAGES || guidance?.getString("packageName") != sbn.packageName) return
+        guidance = null
+        onGuidance?.invoke(null)
+    }
+
+    companion object {
+        val NAV_PACKAGES = setOf("com.google.android.apps.maps", "com.waze", "com.here.app.maps", "com.sygic.aura")
+        @Volatile var guidance: JSObject? = null
+        @Volatile var onGuidance: ((JSObject?) -> Unit)? = null
+    }
+}
 
 @CapacitorPlugin(name = "NowPlaying")
 class NowPlayingPlugin : Plugin() {
@@ -48,6 +87,7 @@ class NowPlayingPlugin : Plugin() {
         ?.contains(context.packageName) == true
 
     override fun load() {
+        MediaListener.onGuidance = { g -> notifyListeners("navigationChanged", JSObject().put("guidance", g)) }
         radioSession = MediaSession(context, "SmartAutoRadio").apply {
             setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
             setCallback(object : MediaSession.Callback() {
@@ -132,6 +172,9 @@ class NowPlayingPlugin : Plugin() {
 
     private fun push() = notifyListeners("mediaChanged", JSObject().put("media", media()))
 
+    @PluginMethod fun getNavigation(call: PluginCall) =
+        call.resolve(JSObject().put("guidance", MediaListener.guidance))
+
     @PluginMethod fun getCurrent(call: PluginCall) = call.resolve(JSObject().put("media", media()))
     @PluginMethod fun hasPermission(call: PluginCall) = call.resolve(JSObject().put("granted", granted()))
     @PluginMethod fun requestPermission(call: PluginCall) {
@@ -160,6 +203,7 @@ class NowPlayingPlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        MediaListener.onGuidance = null
         active?.unregisterCallback(cb)
         radioSession?.release()
         radioSession = null

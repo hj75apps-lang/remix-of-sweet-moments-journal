@@ -26,3 +26,4 @@
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
 - Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
 - The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
+- The home navigation card follows the CarPlay/Android Auto pattern: own live map (Leaflet + OSM, lazy client-only) plus turn-by-turn guidance read from the nav app's ongoing notification; external apps cannot be embedded, so tapping opens the chosen app full screen.
