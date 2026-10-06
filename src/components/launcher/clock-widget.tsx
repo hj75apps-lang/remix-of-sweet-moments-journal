@@ -14,7 +14,7 @@ export function ClockWidget() {
     >
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-[clamp(0.2rem,2cqh,0.65rem)] overflow-hidden">
         <time
-          className="block whitespace-nowrap font-['Arial_Black','Arial',sans-serif] text-[clamp(2.75rem,34cqh,6.5rem)] font-black leading-[0.82] tracking-normal tabular-nums"
+          className="block whitespace-nowrap font-['Arial_Black','Arial',sans-serif] text-[clamp(5.5rem,68cqh,13rem)] font-black leading-[0.82] tracking-normal tabular-nums"
           dateTime={now?.toISOString()}
         >
           {now?.toLocaleTimeString("pt-BR", {
