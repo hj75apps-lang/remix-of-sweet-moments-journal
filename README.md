@@ -22,3 +22,23 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Gerando o Instalador (APK Android)
+
+Para compilar o aplicativo Android e gerar o arquivo instalador `.apk` para a sua central multimídia:
+
+1. Certifique-se de ter o [Android Studio](https://developer.android.com/studio) e o JDK 21 instalados.
+2. Execute o build de produção e sincronize com o Capacitor:
+   ```sh
+   npm run build:android
+   ```
+3. Entre na pasta `android` e compile o APK de debug:
+   ```sh
+   cd android
+   chmod +x gradlew
+   ./gradlew assembleDebug
+   ```
+4. O instalador estará disponível em:
+   `android/app/build/outputs/apk/debug/app-debug.apk`
+
+Também é possível gerar o APK automaticamente utilizando a Action do GitHub configurada em `.github/workflows/android-apk.yml`.
