@@ -123,7 +123,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
                   <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">
                     {fullDay(day.date)}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground sm:mt-0.5 sm:whitespace-normal">
+                  <p className="mt-1 whitespace-normal break-words text-xs font-medium leading-snug text-foreground sm:min-h-10 sm:text-sm" data-weather-summary>
                     {day.text}
                   </p>
                 </div>
