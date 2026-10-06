@@ -60,7 +60,7 @@ export function WeatherWidget() {
             </p>
           </div>
           <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
-            <CurrentWeatherIcon className="size-[2.89rem] shrink-0 text-primary" aria-label={w.text} />
+            <CurrentWeatherIcon className="size-[4.913rem] shrink-0 text-primary" aria-label={w.text} />
             <div className="min-w-0">
               <p className="font-display text-[clamp(2.125rem,76.5cqh,3.825rem)] font-semibold leading-none">
                 {w.temp}°
