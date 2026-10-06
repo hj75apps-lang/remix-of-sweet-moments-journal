@@ -18,7 +18,7 @@ import {
   Phone,
   Settings,
 } from "lucide-react";
-import { WidgetCard, UnavailableState } from "./widget-card";
+import { WidgetCard } from "./widget-card";
 import { cn } from "@/lib/utils";
 import { VolumeControl } from "./volume-control";
 import { ConnectivityControls } from "./connectivity-controls";

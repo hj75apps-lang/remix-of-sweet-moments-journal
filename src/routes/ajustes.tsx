@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { useGlass, DEFAULT_GLASS } from "@/hooks/use-glass";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
+import { LauncherSettingsPanel } from "@/components/launcher/launcher-settings-panel";
 
 export const Route = createFileRoute("/ajustes")({
   head: () => ({
@@ -58,14 +59,15 @@ function SettingsPage() {
             />
             <div className="mt-4 flex gap-2">
               {[0, 25, 50, 75, 100].map((v) => (
-                <button
+                <Button
                   key={v}
                   type="button"
+                  variant="secondary"
                   onClick={() => glass.set(v)}
                   className="min-h-11 flex-1 rounded-2xl bg-secondary text-sm font-semibold transition active:scale-95"
                 >
                   {v === 0 ? "Off" : `${v}%`}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -84,6 +86,7 @@ function SettingsPage() {
               {theme.mode === "dark" ? "Noturno" : "Diurno"}
             </Button>
           </div>
+          <LauncherSettingsPanel />
         </section>
       </main>
     </div>
