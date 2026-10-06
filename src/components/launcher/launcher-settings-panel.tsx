@@ -117,6 +117,54 @@ export function LauncherSettingsPanel() {
       </div>
 
       <div className={card}>
+        <h2 className="text-lg font-semibold">Aparência dos Botões e Ícones</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Personalize a cor base e a opacidade dos botões do Launcher e do Dock.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="button-color-input" className="block text-sm font-medium mb-2">
+              Cor personalizada
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                id="button-color-input"
+                type="color"
+                value={settings.buttonColor || "#3b82f6"}
+                onChange={(e) => update({ buttonColor: e.target.value })}
+                className="size-12 rounded-xl border bg-transparent cursor-pointer"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => update({ buttonColor: "" })}
+                className="rounded-xl"
+              >
+                Restaurar padrão
+              </Button>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="button-opacity" className="text-sm font-medium">
+                Opacidade ({settings.buttonOpacity}%)
+              </label>
+            </div>
+            <Slider
+              id="button-opacity"
+              aria-label="Opacidade dos botões"
+              className="mt-3"
+              min={20}
+              max={100}
+              step={5}
+              value={[settings.buttonOpacity]}
+              onValueChange={([v]) => update({ buttonOpacity: v ?? 100 })}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={card}>
         <div className="flex items-center justify-between gap-4">
           <label htmlFor="brightness" className="text-lg font-semibold">
             Brilho da tela

@@ -12,6 +12,8 @@ export interface LauncherSettings {
   brightness: number;
   animations: boolean;
   lastDestination: string;
+  buttonColor: string;
+  buttonOpacity: number;
 }
 
 const KEY = "sal.launcher-settings";
@@ -25,6 +27,8 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   brightness: -1,
   animations: true,
   lastDestination: "",
+  buttonColor: "",
+  buttonOpacity: 100,
 };
 
 function parse(raw: string | null): LauncherSettings {
@@ -46,6 +50,8 @@ function parse(raw: string | null): LauncherSettings {
           : -1,
       animations: bool(v.animations, true),
       lastDestination: typeof v.lastDestination === "string" ? v.lastDestination.slice(0, 200) : "",
+      buttonColor: typeof v.buttonColor === "string" ? v.buttonColor : "",
+      buttonOpacity: typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 ? v.buttonOpacity : 100,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -80,6 +86,16 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     document.documentElement.classList.toggle("reduce-motion", !settings.animations);
   }, [settings.animations]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (settings.buttonColor) {
+      document.documentElement.style.setProperty("--launcher-button-color", settings.buttonColor);
+    } else {
+      document.documentElement.style.removeProperty("--launcher-button-color");
+    }
+    document.documentElement.style.setProperty("--launcher-button-opacity", String(settings.buttonOpacity / 100));
+  }, [settings.buttonColor, settings.buttonOpacity]);
 
   const update = useCallback<Ctx["update"]>((patch) => {
     setSettings((prev) => {

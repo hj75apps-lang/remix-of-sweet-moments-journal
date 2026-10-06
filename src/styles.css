@@ -273,3 +273,16 @@ body {
 .map-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
+
+:root {
+  --launcher-button-opacity: 1;
+}
+
+.bg-card button, .bg-sidebar button {
+  opacity: var(--launcher-button-opacity);
+}
+
+/* Aplica cor customizada nos botões e ícones se definida */
+:root [style*="--launcher-button-color"] {
+  background-color: var(--launcher-button-color) !important;
+}

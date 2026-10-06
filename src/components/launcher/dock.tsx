@@ -106,10 +106,14 @@ export function Dock() {
             disabled={isLastApp && !lastApp}
             aria-label={itemLabel}
             aria-current={isActive ? "page" : undefined}
+            style={{
+              backgroundColor: settings.buttonColor ? (isActive ? settings.buttonColor : undefined) : undefined,
+              opacity: "var(--launcher-button-opacity, 1)",
+            }}
             className={cn(
               "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center rounded-2xl p-2 md:min-h-16 md:max-h-24 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? !settings.buttonColor && "bg-primary text-primary-foreground shadow-sm"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95 hover:text-sidebar-foreground",
             )}
             title={itemLabel}
