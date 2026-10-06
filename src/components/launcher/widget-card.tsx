@@ -6,10 +6,11 @@ interface WidgetCardProps {
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
+  hideHeader?: boolean;
 }
 
 /** Base surface for every Home widget. */
-export function WidgetCard({ title, icon, children, className }: WidgetCardProps) {
+export function WidgetCard({ title, icon, children, className, hideHeader }: WidgetCardProps) {
   return (
     <section
       aria-label={title}
@@ -19,10 +20,12 @@ export function WidgetCard({ title, icon, children, className }: WidgetCardProps
       )}
     >
       <div className="widget-inner flex h-full min-h-0 flex-col p-3 lg:p-4">
-        <header className="widget-head mb-2 flex min-w-0 shrink-0 items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          <span className="shrink-0">{icon}</span>
-          <h2 className="truncate font-sans">{title}</h2>
-        </header>
+        {!hideHeader && (
+          <header className="widget-head mb-2 flex min-w-0 shrink-0 items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="shrink-0">{icon}</span>
+            <h2 className="truncate font-sans">{title}</h2>
+          </header>
+        )}
         {/* Size container: content scales with the card (cqh/cqw) so nothing is cut. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col [container-type:size]">{children}</div>
       </div>
