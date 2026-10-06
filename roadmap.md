@@ -16,4 +16,5 @@
 - [x] Navegação real via Google Maps/Waze com destino e app padrão.
 - [x] Painel de ajustes persistente (inicialização, tela cheia, brilho, relógio 24h, animações, app de navegação).
 - [x] Contatos e chamadas recentes no telefone, com tratamento de permissão negada.
-- [ ] Gerar o APK e testar boot, chamadas, Bluetooth e volante numa central real (sem SDK Android neste ambiente; empacotamento estático para o Capacitor ainda pendente).
+- [x] Gerar o APK instalável (bun run build:android + Gradle; workflow GitHub para builds automáticos).
+- [ ] Testar boot, chamadas, Bluetooth e volante numa central real.

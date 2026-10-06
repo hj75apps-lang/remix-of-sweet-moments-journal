@@ -73,8 +73,9 @@ class NowPlayingPlugin : Plugin() {
             })
         }
         if (!granted()) return
-        sessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { pick(it) }
-        msm.addOnActiveSessionsChangedListener(sessionsListener, component)
+        val listener = MediaSessionManager.OnActiveSessionsChangedListener { pick(it) }
+        sessionsListener = listener
+        msm.addOnActiveSessionsChangedListener(listener, component)
         pick(msm.getActiveSessions(component))
     }
 
