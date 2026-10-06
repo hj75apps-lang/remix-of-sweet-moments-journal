@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StatusBar } from "@/components/launcher/status-bar";
 import { Dock } from "@/components/launcher/dock";
-import { QuickControls } from "@/components/launcher/widgets";
+
 import { CustomizableHome } from "@/components/launcher/customizable-home";
 
 export const Route = createFileRoute("/")({
@@ -33,7 +33,6 @@ function Home() {
         <Dock />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 md:gap-4">
           <CustomizableHome />
-          <QuickControls />
         </div>
       </main>
     </div>
