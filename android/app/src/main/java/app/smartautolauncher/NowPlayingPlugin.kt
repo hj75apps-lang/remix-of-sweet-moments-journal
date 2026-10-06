@@ -19,6 +19,9 @@ import android.media.session.MediaController
 import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
@@ -78,9 +81,12 @@ class NowPlayingPlugin : Plugin() {
     private var active: MediaController? = null
     private var radioSession: MediaSession? = null
     private var sessionsListener: MediaSessionManager.OnActiveSessionsChangedListener? = null
+    private var controllers: List<MediaController> = emptyList()
+    private val handler = Handler(Looper.getMainLooper())
     private val cb = object : MediaController.Callback() {
-        override fun onMetadataChanged(m: MediaMetadata?) = push()
-        override fun onPlaybackStateChanged(s: PlaybackState?) = push()
+        override fun onMetadataChanged(m: MediaMetadata?) = selectAndPush()
+        override fun onPlaybackStateChanged(s: PlaybackState?) = selectAndPush()
+        override fun onSessionDestroyed() = refreshSessions()
     }
 
     private fun granted() = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
@@ -112,11 +118,29 @@ class NowPlayingPlugin : Plugin() {
                 }
             })
         }
-        if (!granted()) return
-        val listener = MediaSessionManager.OnActiveSessionsChangedListener { pick(it) }
-        sessionsListener = listener
-        msm.addOnActiveSessionsChangedListener(listener, component)
-        pick(msm.getActiveSessions(component))
+        refreshSessions()
+    }
+
+    private fun refreshSessions() {
+        if (!granted()) {
+            sessionsListener?.let { runCatching { msm.removeOnActiveSessionsChangedListener(it) } }
+            sessionsListener = null
+            pick(emptyList())
+            return
+        }
+        runCatching {
+            if (sessionsListener == null) {
+                val listener = MediaSessionManager.OnActiveSessionsChangedListener { pick(it) }
+                msm.addOnActiveSessionsChangedListener(listener, component, handler)
+                sessionsListener = listener
+            }
+            pick(msm.getActiveSessions(component))
+        }
+    }
+
+    override fun handleOnResume() {
+        super.handleOnResume()
+        refreshSessions()
     }
 
     private fun steering(action: String) =
@@ -136,12 +160,19 @@ class NowPlayingPlugin : Plugin() {
         .build()
 
     private fun pick(list: List<MediaController>?) {
-        active?.unregisterCallback(cb)
-        sessionsListener?.let { msm.removeOnActiveSessionsChangedListener(it) }
-        sessionsListener = null
-        val external = list?.filter { it.packageName != context.packageName }
-        active = external?.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: external?.firstOrNull()
-        active?.registerCallback(cb)
+        val external = list.orEmpty().filter { it.packageName != context.packageName }
+        controllers.filter { old -> external.none { it.sessionToken == old.sessionToken } }
+            .forEach { it.unregisterCallback(cb) }
+        external.filter { next -> controllers.none { it.sessionToken == next.sessionToken } }
+            .forEach { it.registerCallback(cb, handler) }
+        controllers = external
+        selectAndPush()
+    }
+
+    private fun selectAndPush() {
+        active = controllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: controllers.firstOrNull { it.sessionToken == active?.sessionToken }
+            ?: controllers.firstOrNull()
         push()
     }
 
@@ -150,22 +181,32 @@ class NowPlayingPlugin : Plugin() {
         val m = c.metadata
         val pm = context.packageManager
         val app = runCatching { pm.getApplicationLabel(pm.getApplicationInfo(c.packageName, 0)).toString() }.getOrDefault(c.packageName)
-        val art: Bitmap? = m?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_ART)
-        val artUri = m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI) ?: m?.getString(MediaMetadata.METADATA_KEY_ART_URI)
+        val art: Bitmap? = m?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: m?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
+        val artUri = m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI) ?: m?.getString(MediaMetadata.METADATA_KEY_ART_URI) ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)
         val artwork = when {
-            art != null -> ByteArrayOutputStream().let { art.compress(Bitmap.CompressFormat.JPEG, 85, it); "data:image/jpeg;base64," + Base64.encodeToString(it.toByteArray(), Base64.NO_WRAP) }
-            artUri?.startsWith("http") == true -> artUri
+            art != null -> ByteArrayOutputStream().let {
+                val scale = minOf(1f, 512f / maxOf(art.width, art.height))
+                val thumbnail = Bitmap.createScaledBitmap(art, maxOf(1, (art.width * scale).toInt()), maxOf(1, (art.height * scale).toInt()), true)
+                thumbnail.compress(Bitmap.CompressFormat.JPEG, 85, it)
+                "data:image/jpeg;base64," + Base64.encodeToString(it.toByteArray(), Base64.NO_WRAP)
+            }
+            artUri?.startsWith("https://") == true || artUri?.startsWith("http://") == true -> artUri
             else -> ""
         }
+        val state = c.playbackState
+        val duration = m?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+        val elapsed = if (state?.state == PlaybackState.STATE_PLAYING && state.lastPositionUpdateTime > 0)
+            ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) * state.playbackSpeed).toLong() else 0L
+        val position = maxOf(0L, (state?.position ?: 0L) + elapsed)
         return JSObject().apply {
             put("title", m?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: "")
-            put("artist", m?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: "")
+            put("artist", m?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: "")
             put("album", m?.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: "")
             put("sourceName", app); put("packageName", c.packageName)
             put("artwork", artwork)
             put("playing", c.playbackState?.state == PlaybackState.STATE_PLAYING)
-            put("duration", m?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L)
-            put("position", c.playbackState?.position ?: 0L)
+            put("duration", duration)
+            put("position", if (duration > 0) minOf(duration, position) else position)
             put("kind", "app")
         }
     }
@@ -175,7 +216,12 @@ class NowPlayingPlugin : Plugin() {
     @PluginMethod fun getNavigation(call: PluginCall) =
         call.resolve(JSObject().put("guidance", MediaListener.guidance))
 
-    @PluginMethod fun getCurrent(call: PluginCall) = call.resolve(JSObject().put("media", media()))
+    @PluginMethod fun getCurrent(call: PluginCall) {
+        activity.runOnUiThread {
+            refreshSessions()
+            call.resolve(JSObject().put("media", media()))
+        }
+    }
     @PluginMethod fun hasPermission(call: PluginCall) = call.resolve(JSObject().put("granted", granted()))
     @PluginMethod fun requestPermission(call: PluginCall) {
         context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); call.resolve()
@@ -197,14 +243,19 @@ class NowPlayingPlugin : Plugin() {
         call.resolve()
     }
     @PluginMethod fun control(call: PluginCall) {
-        val t = active?.transportControls ?: return call.reject("Nada tocando")
+        val targetPackage = call.getString("packageName")
+        val target = if (targetPackage.isNullOrBlank()) active else controllers.firstOrNull { it.packageName == targetPackage }
+        val t = target?.transportControls ?: return call.reject("Player indisponível")
         when (call.getString("action")) { "play" -> t.play(); "pause" -> t.pause(); "next" -> t.skipToNext(); "previous" -> t.skipToPrevious() }
         call.resolve()
     }
 
     override fun handleOnDestroy() {
         MediaListener.onGuidance = null
-        active?.unregisterCallback(cb)
+        controllers.forEach { it.unregisterCallback(cb) }
+        controllers = emptyList()
+        sessionsListener?.let { runCatching { msm.removeOnActiveSessionsChangedListener(it) } }
+        sessionsListener = null
         radioSession?.release()
         radioSession = null
         super.handleOnDestroy()
