@@ -71,8 +71,7 @@ function req(): LauncherSystemPlugin {
 }
 
 export const isLauncherNative = (): boolean => plugin() !== null;
-export const getDeviceInfo = async (): Promise<DeviceInfo | null> =>
-  plugin()?.getInfo() ?? null;
+export const getDeviceInfo = async (): Promise<DeviceInfo | null> => plugin()?.getInfo() ?? null;
 export const applyLauncherPrefs = async (p: {
   immersive: boolean;
   keepScreenOn: boolean;

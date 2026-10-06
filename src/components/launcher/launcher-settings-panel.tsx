@@ -50,7 +50,11 @@ export function LauncherSettingsPanel() {
           <Button className="min-h-12 rounded-2xl" onClick={() => void run(openHomeSettings)}>
             Definir como tela inicial
           </Button>
-          <Button variant="secondary" className="min-h-12 rounded-2xl" onClick={() => void run(openAppSettings)}>
+          <Button
+            variant="secondary"
+            className="min-h-12 rounded-2xl"
+            onClick={() => void run(openAppSettings)}
+          >
             Permissões do app
           </Button>
         </div>
@@ -73,7 +77,9 @@ export function LauncherSettingsPanel() {
 
       <div className={card}>
         <div className="flex items-center justify-between gap-4">
-          <label htmlFor="brightness" className="text-lg font-semibold">Brilho da tela</label>
+          <label htmlFor="brightness" className="text-lg font-semibold">
+            Brilho da tela
+          </label>
           <Button
             variant={settings.brightness < 0 ? "default" : "secondary"}
             className="min-h-11 rounded-2xl"
@@ -100,7 +106,8 @@ export function LauncherSettingsPanel() {
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {NAV_APPS.map((a) => {
             const missing =
-              device && ((a.id === "maps" && !device.googleMaps) || (a.id === "waze" && !device.waze));
+              device &&
+              ((a.id === "maps" && !device.googleMaps) || (a.id === "waze" && !device.waze));
             return (
               <Button
                 key={a.id}

@@ -93,7 +93,9 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     });
   }, []);
 
-  return <SettingsContext.Provider value={{ settings, update }}>{children}</SettingsContext.Provider>;
+  return (
+    <SettingsContext.Provider value={{ settings, update }}>{children}</SettingsContext.Provider>
+  );
 }
 
 export function useLauncherSettings(): Ctx {

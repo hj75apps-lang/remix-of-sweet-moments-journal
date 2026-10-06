@@ -68,10 +68,20 @@ export function NavigationWidget() {
           <Navigation /> Iniciar navegação
         </Button>
         <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="secondary" className="min-h-12 rounded-2xl" onClick={() => void go("maps", "")}>
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-12 rounded-2xl"
+            onClick={() => void go("maps", "")}
+          >
             <Map /> Google Maps
           </Button>
-          <Button type="button" variant="secondary" className="min-h-12 rounded-2xl" onClick={() => void go("waze", "")}>
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-12 rounded-2xl"
+            onClick={() => void go("waze", "")}
+          >
             <Navigation /> Waze
           </Button>
         </div>

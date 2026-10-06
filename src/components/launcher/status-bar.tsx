@@ -10,7 +10,12 @@ export function StatusBar() {
   const now = useClock();
   const online = useOnline();
   const voice = useVoiceControl();
-  const time = now?.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", hour12: !settings.clock24h }) ?? "--:--";
+  const time =
+    now?.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: !settings.clock24h,
+    }) ?? "--:--";
   const date =
     now?.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }) ?? "";
 
