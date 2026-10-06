@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
+import { selectMedia } from "./media-selection";
 
 /** What is playing right now, from any source. */
 export interface NowPlaying {
@@ -22,7 +23,7 @@ type Control = "play" | "pause" | "next" | "previous";
 type SteeringControl = Control | "toggle";
 interface NativePlugin {
   getCurrent(): Promise<{ media: NowPlaying | null }>;
-  control(opts: { action: Control }): Promise<void>;
+  control(opts: { action: Control; packageName?: string }): Promise<void>;
   updateRadioSession(opts: { title: string; artist: string; playing: boolean }): Promise<void>;
   hasPermission(): Promise<{ granted: boolean }>;
   requestPermission(): Promise<void>;
@@ -52,10 +53,13 @@ let radio:
   (NowPlaying & { controls?: { toggle: () => void; next: () => void; prev: () => void } }) | null =
   null;
 let system: NowPlaying | null = null;
+let lastSource: "radio" | "system" = "radio";
+let permission: boolean | null = null;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 
 export function publishRadio(v: typeof radio) {
+  if (v?.playing && !radio?.playing) lastSource = "radio";
   radio = v;
   startNative();
   void native()
@@ -69,10 +73,13 @@ export function publishRadio(v: typeof radio) {
 }
 
 function current() {
-  // The source actually playing wins; otherwise the last known one.
-  if (radio?.playing) return radio;
-  if (system?.playing) return system;
-  return radio ?? system;
+  return selectMedia(radio, system, lastSource);
+}
+
+function receiveSystem(media: NowPlaying | null) {
+  if (media?.playing) lastSource = "system";
+  system = media;
+  emit();
 }
 
 let started = false;
@@ -82,17 +89,31 @@ function startNative() {
   const p = native();
   if (!p || started) return;
   started = true;
-  void p
-    .getCurrent()
-    .then((r) => {
-      system = r.media;
-      emit();
-    })
-    .catch(() => {});
+  let disposed = false;
+  let pending = false;
+  const refresh = async () => {
+    if (disposed || pending) return;
+    pending = true;
+    try {
+      const access = await p.hasPermission();
+      if (disposed) return;
+      permission = access.granted;
+      const result = await p.getCurrent();
+      if (!disposed) receiveSystem(result.media);
+    } catch {
+      /* Retry on the next refresh; keep last-known metadata. */
+    } finally {
+      pending = false;
+    }
+  };
+  void refresh();
+  const timer = setInterval(() => void refresh(), 1000);
+  const onResume = () => void refresh();
+  window.addEventListener("focus", onResume);
+  document.addEventListener("visibilitychange", onResume);
   const mediaListener = Promise.resolve(
     p.addListener("mediaChanged", (d) => {
-      system = d.media;
-      emit();
+      if (!disposed) receiveSystem(d.media);
     }),
   );
   const steeringListener = Promise.resolve(
@@ -107,6 +128,10 @@ function startNative() {
     }),
   );
   listenerCleanup = () => {
+    disposed = true;
+    clearInterval(timer);
+    window.removeEventListener("focus", onResume);
+    document.removeEventListener("visibilitychange", onResume);
     void mediaListener.then((listener) => listener.remove());
     void steeringListener.then((listener) => listener.remove());
     started = false;
@@ -134,15 +159,16 @@ export function useNowPlaying() {
     if (media && media === radio && radio.controls) {
       if (action === "next") radio.controls.next();
       else if (action === "previous") radio.controls.prev();
-      else radio.controls.toggle();
+      else if ((action === "play" && !radio.playing) || (action === "pause" && radio.playing)) radio.controls.toggle();
       return;
     }
-    void native()?.control({ action });
+    return native()?.control({ action, packageName: media?.packageName ?? "" });
   };
   return {
     media,
     control,
     nativeAvailable: native() !== null,
+    permission,
     requestPermission: () => native()?.requestPermission(),
   };
 }

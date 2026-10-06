@@ -9,6 +9,7 @@ import {
   Disc3,
   Rewind,
   FastForward,
+  BellRing,
 } from "lucide-react";
 import { errorMessage, sendMediaKey } from "@/services/launcher-system";
 import { WidgetCard, UnavailableState } from "./widget-card";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { launchApp, isNativeAvailable } from "@/services/installed-apps";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 /** System illustration shown when the source provides no artwork. */
 function ArtFallback({ radio }: { radio: boolean }) {
@@ -30,7 +32,9 @@ function ArtFallback({ radio }: { radio: boolean }) {
 
 /** "Now playing" card fed by any source: in-app radio or other apps (Android). */
 export function MediaWidget() {
-  const { media, control } = useNowPlaying();
+  const { media, control, nativeAvailable, permission, requestPermission } = useNowPlaying();
+  const runControl = (action: "play" | "pause" | "next" | "previous") =>
+    void Promise.resolve(control(action)).catch((e: unknown) => toast.error(errorMessage(e)));
   const [artFailed, setArtFailed] = useState(false);
   useEffect(() => setArtFailed(false), [media?.artwork]);
   const navigate = useNavigate();
@@ -58,11 +62,12 @@ export function MediaWidget() {
     >
       <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
         {media ? (
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={openSource}
             aria-label={`Abrir ${media.sourceName}`}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-2xl text-left transition active:scale-[0.98]"
+            className="flex h-auto min-h-11 min-w-0 flex-1 items-center justify-start gap-3 whitespace-normal rounded-2xl p-0 text-left transition active:scale-[0.98]"
           >
             <div className="aspect-square h-[clamp(2.5rem,55cqh,7rem)] shrink-0 overflow-hidden rounded-2xl">
               {media.artwork && !artFailed ? (
@@ -78,7 +83,7 @@ export function MediaWidget() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[clamp(0.8125rem,14cqh,1.125rem)] font-semibold">
-                {media.title || "Sem título"}
+                {media.title || media.sourceName}
               </p>
               {media.artist && (
                 <p className="truncate text-[clamp(0.6875rem,11cqh,0.875rem)] text-muted-foreground">
@@ -106,19 +111,27 @@ export function MediaWidget() {
                 </div>
               )}
             </div>
-          </button>
+          </Button>
         ) : (
           <>
             <div className="aspect-square h-[clamp(2.5rem,45cqh,6rem)] shrink-0 overflow-hidden rounded-2xl">
               <ArtFallback radio={false} />
             </div>
-            <UnavailableState
-              message="Nada tocando"
-              hint="Toque algo no Spotify, navegador, USB ou na Rádio."
-            />
+            <UnavailableState message="Nada tocando" />
           </>
         )}
       </div>
+      {nativeAvailable && permission === false && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void Promise.resolve(requestPermission()).catch((e: unknown) => toast.error(errorMessage(e)))}
+          className="mt-2 min-h-11 shrink-0 self-center"
+        >
+          <BellRing />
+          Conectar players
+        </Button>
+      )}
       <div
         className="mt-auto flex shrink-0 items-center justify-center gap-2 pt-2 sm:gap-3"
         role="group"
@@ -133,20 +146,22 @@ export function MediaWidget() {
             ...(seekable
               ? [{ i: Rewind, l: "Voltar", run: () => seek("rewind"), main: false }]
               : []),
-            { i: SkipBack, l: "Anterior", run: () => control("previous"), main: false },
+            { i: SkipBack, l: "Anterior", run: () => runControl("previous"), main: false },
             {
               i: media?.playing ? Pause : Play,
               l: media?.playing ? "Pausar" : "Tocar",
-              run: () => control(media?.playing ? "pause" : "play"),
+              run: () => runControl(media?.playing ? "pause" : "play"),
               main: true,
             },
-            { i: SkipForward, l: "Próxima", run: () => control("next"), main: false },
+            { i: SkipForward, l: "Próxima", run: () => runControl("next"), main: false },
             ...(seekable
               ? [{ i: FastForward, l: "Avançar", run: () => seek("forward"), main: false }]
               : []),
           ];
           return items.map(({ i: Icon, l, run, main }) => (
-            <button
+            <Button
+              variant={main ? "default" : "secondary"}
+              size="icon"
               key={l}
               type="button"
               disabled={!media}
@@ -160,7 +175,7 @@ export function MediaWidget() {
               )}
             >
               <Icon className="size-[clamp(1rem,14cqh,1.5rem)]" />
-            </button>
+            </Button>
           ));
         })()}
       </div>
