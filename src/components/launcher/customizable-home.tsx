@@ -21,7 +21,9 @@ import { Button } from "@/components/ui/button";
 
 const LONG_PRESS_MS = 500;
 
-function ItemContent({ item }: { item: HomeItem }) {
+import { memo } from "react";
+
+const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
   const navigate = useNavigate();
   if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
   const app = appRegistry[item.ref as AppId];
@@ -40,7 +42,6 @@ function ItemContent({ item }: { item: HomeItem }) {
       aria-label={`Abrir ${app.label}`}
       onClick={() => void navigate({ to: routes[item.ref as AppId] })}
       className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition-all duration-150 ease-out hover:border-primary/30 active:scale-[0.98]"
-
     >
       <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
         <Icon className="size-7" />
@@ -48,7 +49,17 @@ function ItemContent({ item }: { item: HomeItem }) {
       {app.label}
     </Button>
   );
-}
+});
+  const app = appRegistry[item.ref as AppId];
+  const Icon = app.icon;
+  const routes: Record<AppId, "/apps" | "/radio" | "/telefone" | "/ajustes"> = {
+    map: "/apps",
+    music: "/apps",
+    radio: "/radio",
+    phone: "/telefone",
+    settings: "/ajustes",
+  };
+
 
 interface TileProps {
   item: HomeItem;

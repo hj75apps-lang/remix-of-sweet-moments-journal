@@ -79,6 +79,17 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+const queryClientSingleton = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -123,7 +134,8 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const context = Route.useRouteContext();
+  const queryClient = context?.queryClient ?? queryClientSingleton;
   useGlass();
 
   return (

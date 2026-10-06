@@ -159,9 +159,10 @@
   }
 
   button, a, input, select {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+    transition-property: color, background-color, border-color, opacity, transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition-duration: 100ms;
+    will-change: transform;
   }
   h1,
   h2,
