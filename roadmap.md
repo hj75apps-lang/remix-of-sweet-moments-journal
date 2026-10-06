@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Integrar seleção automática da fonte ativa, atualização contínua do player e acesso às sessões Android.
+- [ ] Confirmar Spotify e rádio da central em aparelho real (depende do aparelho e das informações publicadas pelo rádio).
+
 - [x] Integrar reconhecimento de voz nativo compatível com Android 7+.
 - [x] Interpretar comandos de navegação e controle do rádio.
 - [x] Disponibilizar ativação do microfone em todas as páginas.
