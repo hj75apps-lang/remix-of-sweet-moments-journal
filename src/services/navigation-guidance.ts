@@ -50,8 +50,14 @@ export function useNavGuidance(): { guidance: NavGuidance | null; access: boolea
     if (!p) return;
     let handle: Listener | null = null;
     let gone = false;
-    void p.hasPermission().then((r) => !gone && setAccess(r.granted)).catch(() => undefined);
-    void p.getNavigation().then((r) => !gone && setGuidance(r.guidance)).catch(() => undefined);
+    void p
+      .hasPermission()
+      .then((r) => !gone && setAccess(r.granted))
+      .catch(() => undefined);
+    void p
+      .getNavigation()
+      .then((r) => !gone && setGuidance(r.guidance))
+      .catch(() => undefined);
     void Promise.resolve(p.addListener("navigationChanged", (d) => setGuidance(d.guidance))).then(
       (h) => (gone ? void h.remove() : (handle = h)),
     );
