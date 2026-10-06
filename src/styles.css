@@ -259,7 +259,18 @@ body {
     display: none;
   }
   .widget-inner {
-    padding: 0.5rem 0.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+  .widget-inner * {
+    font-size: smaller;
+  }
+}
+@container widget (max-width: 180px) {
+  .widget-inner {
+    padding: 0.35rem 0.5rem;
+  }
+  .widget-hide-narrow {
+    display: none !important;
   }
 }
 
