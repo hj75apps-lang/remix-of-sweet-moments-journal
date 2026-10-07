@@ -76,7 +76,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.buttonColor === "string" &&
     typeof v.buttonOpacity === "number" &&
     (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
-      (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
+      (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
 
 interface Ctx {
