@@ -4,11 +4,13 @@ type Subscriber = (position: VehiclePosition) => void;
 const subscribers = new Set<Subscriber>();
 let stopWatching: (() => void) | null = null;
 let lastPosition: VehiclePosition | null = null;
+let lastPositionAt = 0;
 
 function ensureStarted(): void {
   if (stopWatching || subscribers.size === 0) return;
   stopWatching = watchVehicle((position) => {
     lastPosition = position;
+    lastPositionAt = Date.now();
     for (const subscriber of subscribers) subscriber(position);
   }, () => undefined);
 }
@@ -39,7 +41,7 @@ export function clearLastLocation(): void {
 }
 
 export function getLocationOnce(timeoutMs = 15_000): Promise<VehiclePosition> {
-  if (lastPosition) return Promise.resolve(lastPosition);
+  if (lastPosition && Date.now() - lastPositionAt <= 10 * 60_000) return Promise.resolve(lastPosition);
   return new Promise((resolve, reject) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const unsubscribe = subscribeLocation((position) => {
