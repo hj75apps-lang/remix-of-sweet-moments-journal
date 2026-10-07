@@ -14,13 +14,18 @@ export function useGlass() {
 
   useEffect(() => {
     const read = () => {
-      const n = Number(localStorage.getItem(KEY));
-      const v =
-        Number.isFinite(n) && localStorage.getItem(KEY) !== null
+      try {
+        const raw = localStorage.getItem(KEY);
+        const n = Number(raw);
+        const v = Number.isFinite(n) && raw !== null
           ? Math.min(100, Math.max(0, n))
           : DEFAULT_GLASS;
-      setLevel(v);
-      apply(v);
+        setLevel(v);
+        apply(v);
+      } catch {
+        setLevel(DEFAULT_GLASS);
+        apply(DEFAULT_GLASS);
+      }
     };
     read();
     window.addEventListener(EVENT, read);
@@ -28,9 +33,10 @@ export function useGlass() {
   }, []);
 
   const set = useCallback((v: number) => {
-    localStorage.setItem(KEY, String(v));
-    apply(v);
-    setLevel(v);
+    const next = Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : DEFAULT_GLASS;
+    try { localStorage.setItem(KEY, String(next)); } catch { /* optional preference */ }
+    apply(next);
+    setLevel(next);
     window.dispatchEvent(new Event(EVENT));
   }, []);
 
