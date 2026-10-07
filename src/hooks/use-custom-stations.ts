@@ -3,6 +3,15 @@ import type { RadioStation } from "@/services/radio-browser";
 
 const KEY = "sal.radio-custom";
 
+function isStation(value: unknown): value is RadioStation {
+  if (!value || typeof value !== "object") return false;
+  const station = value as Partial<RadioStation>;
+  return typeof station.id === "string" &&
+    typeof station.name === "string" &&
+    Array.isArray(station.sources) &&
+    station.sources.every((source) => typeof source === "string" && source.startsWith("https://"));
+}
+
 /** User-added stations, persisted locally. */
 export function useCustomStations() {
   const [stations, setStations] = useState<RadioStation[]>([]);
@@ -10,7 +19,10 @@ export function useCustomStations() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setStations(JSON.parse(raw) as RadioStation[]);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) setStations(parsed.filter(isStation).slice(0, 100));
+      }
     } catch {
       /* ignore corrupt storage */
     }
