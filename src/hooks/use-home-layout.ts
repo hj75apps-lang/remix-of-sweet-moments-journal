@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readStored, writeStored } from "@/services/storage";
 import type { HomeItem, HomeLayout, ItemSize } from "@/types/home";
 
 const STORAGE_KEY = "sal.home-layout";
@@ -53,11 +54,12 @@ export function useHomeLayout() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw);
-        if (isValid(parsed)) setLayout(parsed);
-      }
+      const stored = readStored(STORAGE_KEY, defaultLayout, {
+        schema: 2,
+        validate: isValid,
+        migrateLegacy: (value) => (isValid(value) ? value : null),
+      });
+      setLayout(stored);
     } catch {
       /* corrupted layout: keep default */
     }
@@ -65,7 +67,7 @@ export function useHomeLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+    if (loaded) writeStored(STORAGE_KEY, layout, 2);
   }, [layout, loaded]);
 
   const commit = useCallback((next: (items: HomeItem[]) => HomeItem[]) => {

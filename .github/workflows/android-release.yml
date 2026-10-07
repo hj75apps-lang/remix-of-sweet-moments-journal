@@ -1,0 +1,72 @@
+name: Android Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version name, e.g. 1.1.0"
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+      - name: Validate release secrets
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+      - name: Decode keystore
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/smart-auto-launcher-release.jks"
+      - name: Select version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          VERSION="$INPUT_VERSION"
+          if [ -z "$VERSION" ]; then VERSION="${REF_NAME#v}"; fi
+          test -n "$VERSION"
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$RUN_NUMBER" >> "$GITHUB_OUTPUT"
+      - run: bun install --frozen-lockfile
+      - run: bun run build:android
+      - name: Assemble signed release APK
+        env:
+          APP_VERSION_NAME: ${{ steps.version.outputs.name }}
+          APP_VERSION_CODE: ${{ steps.version.outputs.code }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/smart-auto-launcher-release.jks
+        run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smart-auto-launcher-release-${{ steps.version.outputs.name }}
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
