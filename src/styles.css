@@ -474,3 +474,10 @@ body {
 :root [style*="--launcher-button-color"] {
   background-color: var(--launcher-button-color) !important;
 }
+
+
+/* Keep large radio lists cheap to paint on mobile/automotive WebViews. */
+.radio-station-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 4rem;
+}
