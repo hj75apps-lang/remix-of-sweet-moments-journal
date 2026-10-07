@@ -20,7 +20,7 @@ export default function LiveMap({ dark, position, visible, animated }: { dark: b
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     ro?.observe(el.current);
     window.addEventListener("resize", resize);
-    return () => { ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; markerRef.current = null; firstFix.current = true; };
+    return () => { ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; tilesRef.current = null; markerRef.current = null; firstFix.current = true; };
   }, []);
   useEffect(() => {
     const map = mapRef.current;
