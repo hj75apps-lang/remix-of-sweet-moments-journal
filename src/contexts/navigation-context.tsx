@@ -143,21 +143,21 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       guidance: guidance
         ? {
             ...guidance,
-            remainingDistanceMeters: connectTelemetry?.remainingDistanceMeters ?? guidance.remainingDistanceMeters,
-            remainingDurationSeconds: connectTelemetry?.remainingDurationSeconds ?? guidance.remainingDurationSeconds,
-            etaEpochMs: connectTelemetry?.etaEpochMs ?? guidance.etaEpochMs,
+            ...(connectTelemetry?.remainingDistanceMeters !== undefined ? { remainingDistanceMeters: connectTelemetry.remainingDistanceMeters } : {}),
+            ...(connectTelemetry?.remainingDurationSeconds !== undefined ? { remainingDurationSeconds: connectTelemetry.remainingDurationSeconds } : {}),
+            ...(connectTelemetry?.etaEpochMs !== undefined ? { etaEpochMs: connectTelemetry.etaEpochMs } : {}),
           }
         : null,
       route: connectTelemetry?.route
         ? {
             points: connectTelemetry.route.points,
-            remainingDistanceMeters: connectTelemetry.route.remainingDistanceMeters,
-            remainingDurationSeconds: connectTelemetry.route.remainingDurationSeconds,
-            etaEpochMs: connectTelemetry.route.etaEpochMs,
+            ...(connectTelemetry.route.remainingDistanceMeters !== undefined ? { remainingDistanceMeters: connectTelemetry.route.remainingDistanceMeters } : {}),
+            ...(connectTelemetry.route.remainingDurationSeconds !== undefined ? { remainingDurationSeconds: connectTelemetry.route.remainingDurationSeconds } : {}),
+            ...(connectTelemetry.route.etaEpochMs !== undefined ? { etaEpochMs: connectTelemetry.route.etaEpochMs } : {}),
           }
         : null,
     }),
-    [position, locating, online, active, guidance],
+    [position, locating, online, active, guidance, connectTelemetry],
   );
 
   const provider = useMemo(() => new ExternalNavigationProvider({
