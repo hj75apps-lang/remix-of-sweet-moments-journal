@@ -43,8 +43,8 @@ class MediaListener : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: android.service.notification.StatusBarNotification) {
-        if (sbn.packageName !in NAV_PACKAGES) return
         val n = sbn.notification ?: return
+        if (sbn.packageName !in NAV_PACKAGES && n.category != "navigation") return
         if (n.flags and android.app.Notification.FLAG_ONGOING_EVENT == 0) return
         val e = n.extras
         val icon = (e.get(android.app.Notification.EXTRA_LARGE_ICON) as? android.graphics.Bitmap)?.let { bmp ->
@@ -58,18 +58,26 @@ class MediaListener : NotificationListenerService() {
             .put("text", e.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString() ?: "")
             .put("subText", e.getCharSequence(android.app.Notification.EXTRA_SUB_TEXT)?.toString() ?: "")
             .put("icon", icon)
+        guidanceKey = sbn.key
         onGuidance?.invoke(guidance)
     }
 
     override fun onNotificationRemoved(sbn: android.service.notification.StatusBarNotification) {
-        if (sbn.packageName !in NAV_PACKAGES || guidance?.getString("packageName") != sbn.packageName) return
+        if (guidanceKey != sbn.key) return
         guidance = null
+        guidanceKey = null
+        onGuidance?.invoke(null)
+    }
+
+    override fun onListenerDisconnected() {
+        guidance = null; guidanceKey = null
         onGuidance?.invoke(null)
     }
 
     companion object {
         val NAV_PACKAGES = setOf("com.google.android.apps.maps", "com.waze", "com.here.app.maps", "com.sygic.aura")
         @Volatile var guidance: JSObject? = null
+        @Volatile var guidanceKey: String? = null
         @Volatile var onGuidance: ((JSObject?) -> Unit)? = null
     }
 }
