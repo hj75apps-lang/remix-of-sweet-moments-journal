@@ -154,7 +154,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     hourly: "temperature_2m,weather_code,precipitation_probability",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
     timezone: "auto",
-    forecast_days: "5",
+    forecast_days: "6",
     forecast_hours: "12",
     wind_speed_unit: "kmh",
   });
@@ -186,7 +186,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
       text: weatherDescription(hourly?.weather_code?.[index]),
       code: hourly?.weather_code?.[index],
     })),
-    days: daily.time.slice(0, 5).map((date, index) => ({
+    days: daily.time.slice(0, 6).map((date, index) => ({
       date,
       min: rounded(daily.temperature_2m_min?.[index]),
       max: rounded(daily.temperature_2m_max?.[index]),
