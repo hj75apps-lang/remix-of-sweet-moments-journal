@@ -32,13 +32,15 @@ const card = "rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]";
 export function LauncherSettingsPanel() {
   const [fontScale, setFontScale] = useState<string>(() => {
     if (typeof window === "undefined") return "24px";
-    return localStorage.getItem("smart_auto_font_scale") || "24px";
+    return localStorage.getItem("smart_auto_font_scale") || localStorage.getItem("font_size") || "24px";
   });
 
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.documentElement.style.setProperty("--font-scale", fontScale);
+    document.documentElement.style.fontSize = fontScale;
     localStorage.setItem("smart_auto_font_scale", fontScale);
+    localStorage.setItem("font_size", fontScale);
   }, [fontScale]);
 
   const { settings, update } = useLauncherSettings();
