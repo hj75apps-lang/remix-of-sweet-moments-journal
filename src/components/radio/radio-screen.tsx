@@ -90,6 +90,13 @@ export function RadioScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [showEq, setShowEq] = useState(false);
   const deferred = useDeferredValue(query);
+  const [remoteQuery, setRemoteQuery] = useState("");
+
+  useEffect(() => {
+    const normalized = normalizeText(deferred);
+    const timer = window.setTimeout(() => setRemoteQuery(normalized), 300);
+    return () => window.clearTimeout(timer);
+  }, [deferred]);
 
   const catalog = useQuery({
     queryKey: ["radio-catalog"],
@@ -97,17 +104,18 @@ export function RadioScreen() {
     staleTime: 30 * 60_000,
   });
   const remote = useQuery({
-    queryKey: ["radio-name", normalizeText(deferred)],
-    queryFn: () => fetchByName(deferred),
-    enabled: normalizeText(deferred).length >= 3,
+    queryKey: ["radio-name", remoteQuery],
+    queryFn: () => fetchByName(remoteQuery),
+    enabled: remoteQuery.length >= 3,
     staleTime: 10 * 60_000,
   });
 
   const isUrl = looksLikeUrl(deferred);
+  const remoteIsUrl = looksLikeUrl(remoteQuery);
   const site = useQuery({
-    queryKey: ["radio-site", deferred.trim().toLowerCase()],
-    queryFn: () => discoverRadioWebsite(deferred.trim()),
-    enabled: isUrl,
+    queryKey: ["radio-site", remoteQuery],
+    queryFn: () => discoverRadioWebsite(remoteQuery),
+    enabled: remoteIsUrl,
     staleTime: 30 * 60_000,
     retry: false,
   });
