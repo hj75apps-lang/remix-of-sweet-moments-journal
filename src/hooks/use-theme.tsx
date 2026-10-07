@@ -73,7 +73,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       mode,
       preferredMode,
-      automaticNight: automaticNight && !hasManualPreference,
+      automaticNight,
       setMode,
       toggle,
     }),
