@@ -10,8 +10,8 @@ import {
   getDeviceInfo,
   openAppSettings,
   openHomeSettings,
-  type NavApp,
 } from "@/services/launcher-system";
+import { useNavigationApps } from "@/services/navigation-apps";
 
 type BoolKey = "immersive" | "keepScreenOn" | "autostart" | "clock24h" | "animations";
 const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
@@ -20,11 +20,6 @@ const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
   { key: "keepScreenOn", label: "Manter tela ligada", hint: "Evita que a tela apague dirigindo." },
   { key: "clock24h", label: "Relógio 24 horas", hint: "Desligado usa AM/PM." },
   { key: "animations", label: "Animações", hint: "Desligue em centrais mais lentas." },
-];
-const NAV_APPS: Array<{ id: NavApp; label: string }> = [
-  { id: "maps", label: "Google Maps" },
-  { id: "waze", label: "Waze" },
-  { id: "system", label: "Padrão do sistema" },
 ];
 
 const card = "rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]";
@@ -44,6 +39,7 @@ export function LauncherSettingsPanel() {
   }, [fontScale]);
 
   const { settings, update } = useLauncherSettings();
+  const { apps: navigationApps, ready: navigationReady } = useNavigationApps();
   const info = useQuery({ queryKey: ["device-info"], queryFn: getDeviceInfo, staleTime: 60_000 });
   const device = info.data;
   const run = (fn: () => Promise<void>) => fn().catch((e: unknown) => toast.error(errorMessage(e)));
@@ -193,12 +189,9 @@ export function LauncherSettingsPanel() {
       </div>
 
       <div className={card}>
-        <h2 className="text-lg font-semibold">App de navegação padrão</h2>
+        <h2 className="text-lg font-semibold">Navegação padrão</h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          {NAV_APPS.map((a) => {
-            const missing =
-              device &&
-              ((a.id === "maps" && !device.googleMaps) || (a.id === "waze" && !device.waze));
+          {[...navigationApps, { id: "system" as const, label: "Perguntar sempre" }].map((a) => {
             return (
               <Button
                 key={a.id}
@@ -208,11 +201,11 @@ export function LauncherSettingsPanel() {
                 onClick={() => update({ navApp: a.id })}
               >
                 {a.label}
-                {missing ? " (não instalado)" : ""}
               </Button>
             );
           })}
         </div>
+        {navigationReady && settings.navApp !== "system" && !navigationApps.some(a => a.id === settings.navApp) && <p role="status" className="mt-3 text-sm text-muted-foreground">Escolha outro navegador: o anterior não está instalado.</p>}
       </div>
     </>
   );

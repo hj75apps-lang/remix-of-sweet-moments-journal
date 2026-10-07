@@ -291,6 +291,33 @@ body {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
 
+.vehicle-marker { background: transparent; border: 0; }
+.vehicle-dot { position: absolute; inset: 8px; border-radius: 50%; background: var(--primary); border: 3px solid var(--primary-foreground); box-shadow: var(--shadow-card); }
+.vehicle-heading { display: none; position: absolute; inset: 0; transform: rotate(var(--vehicle-heading, 0deg)); }
+.has-heading .vehicle-heading { display: block; }
+.vehicle-heading::before { content: ""; position: absolute; top: -8px; left: 8px; width: 20px; height: 24px; background: var(--primary); clip-path: polygon(50% 0, 100% 100%, 50% 75%, 0 100%); }
+.navigation-map-target:hover, .navigation-map-target:active { background: transparent; }
+@container widget (max-height: 200px) {
+  .navigation-overlay { padding: 8px; }
+  .navigation-details, .navigation-permission, .navigation-expand { display: none; }
+  .navigation-maneuver { padding: 8px; }
+  .navigation-arrow { width: 24px; height: 24px; }
+}
+@container widget (max-width: 280px) {
+  .navigation-expand, .navigation-details { display: none; }
+  .navigation-instruction { font-size: 14px; }
+  .navigation-status { font-size: 12px; padding: 6px; }
+  .navigation-overlay { padding: 8px; }
+  .navigation-search { flex-wrap: wrap; }
+  .navigation-search input { width: 100%; flex-basis: 100%; }
+}
+@container widget (max-height: 110px) {
+  .navigation-street, .navigation-expand, .navigation-status { display: none; }
+  .navigation-bottom { position: absolute; right: 6px; bottom: 6px; }
+  .navigation-destination { min-height: 36px; padding: 6px; }
+  .navigation-destination span { display: none; }
+}
+
 :root {
   --launcher-button-opacity: 1;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { onLauncherResumed } from "./launcher-system";
 
 /** Next maneuver published by the navigation app (Google Maps, Waze…) while a route is active. */
 export interface NavGuidance {
@@ -50,19 +51,24 @@ export function useNavGuidance(): { guidance: NavGuidance | null; access: boolea
     if (!p) return;
     let handle: Listener | null = null;
     let gone = false;
-    void p
-      .hasPermission()
-      .then((r) => !gone && setAccess(r.granted))
-      .catch(() => undefined);
-    void p
-      .getNavigation()
-      .then((r) => !gone && setGuidance(r.guidance))
-      .catch(() => undefined);
-    void Promise.resolve(p.addListener("navigationChanged", (d) => setGuidance(d.guidance))).then(
+    const refresh = async () => {
+      try {
+        const r = await p.hasPermission();
+        if (gone) return;
+        setAccess(r.granted);
+        if (!r.granted) { setGuidance(null); return; }
+        const current = await p.getNavigation();
+        if (!gone) setGuidance(current.guidance);
+      } catch { /* retain last state during a temporary bridge failure */ }
+    };
+    void refresh();
+    const remove = onLauncherResumed(() => void refresh());
+    void Promise.resolve(p.addListener("navigationChanged", (d) => { if (!gone) setGuidance(d.guidance); })).then(
       (h) => (gone ? void h.remove() : (handle = h)),
-    );
+    ).catch(() => undefined);
     return () => {
       gone = true;
+      remove();
       void handle?.remove();
     };
   }, []);

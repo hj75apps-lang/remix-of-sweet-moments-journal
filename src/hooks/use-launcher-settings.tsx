@@ -39,7 +39,7 @@ function parse(raw: string | null): LauncherSettings {
     const bool = (x: unknown, d: boolean) => (typeof x === "boolean" ? x : d);
     return {
       version: 1,
-      navApp: v.navApp === "waze" || v.navApp === "system" ? v.navApp : "maps",
+      navApp: v.navApp === "waze" || v.navApp === "system" || (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)) ? v.navApp as NavApp : "maps",
       immersive: bool(v.immersive, true),
       keepScreenOn: bool(v.keepScreenOn, true),
       autostart: bool(v.autostart, true),

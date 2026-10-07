@@ -7,6 +7,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.net.Uri
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
+import android.os.Looper
 import android.os.Build
 import android.provider.CallLog
 import android.provider.ContactsContract
@@ -31,10 +36,27 @@ import com.getcapacitor.annotation.PermissionCallback
     permissions = [
         Permission(alias = "contacts", strings = [Manifest.permission.READ_CONTACTS]),
         Permission(alias = "callLog", strings = [Manifest.permission.READ_CALL_LOG]),
+        Permission(alias = "location", strings = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]),
     ],
 )
 class LauncherSystemPlugin : Plugin() {
     private var immersive = false
+    private var wantsLocation = false
+    private val locationManager by lazy { context.getSystemService(Context.LOCATION_SERVICE) as LocationManager }
+    private val locationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            notifyListeners("locationChanged", JSObject().put("position", JSObject().apply {
+                put("latitude", location.latitude); put("longitude", location.longitude)
+                put("heading", if (location.hasBearing()) location.bearing else org.json.JSONObject.NULL)
+                put("speed", if (location.hasSpeed()) location.speed else org.json.JSONObject.NULL)
+                put("accuracy", location.accuracy); put("timestamp", location.time)
+            }))
+        }
+        override fun onProviderDisabled(provider: String) { notifyListeners("locationChanged", JSObject().put("unavailable", true)) }
+        override fun onProviderEnabled(provider: String) { if (wantsLocation) subscribeLocation() }
+        @Suppress("DEPRECATION")
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+    }
 
     private fun prefs() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private fun audio() = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -45,7 +67,56 @@ class LauncherSystemPlugin : Plugin() {
 
     override fun handleOnResume() {
         if (immersive) applyWindow(true, prefs().getBoolean(KEY_SCREEN_ON, true))
+        if (wantsLocation) subscribeLocation()
         notifyListeners("resumed", JSObject())
+    }
+
+    override fun handleOnPause() {
+        locationManager.removeUpdates(locationListener)
+        super.handleOnPause()
+    }
+
+    override fun handleOnDestroy() {
+        wantsLocation = false
+        locationManager.removeUpdates(locationListener)
+        super.handleOnDestroy()
+    }
+
+    @PluginMethod
+    fun startLocation(call: PluginCall) {
+        if (getPermissionState("location") != PermissionState.GRANTED) {
+            return requestPermissionForAlias("location", call, "locationCallback")
+        }
+        wantsLocation = true
+        subscribeLocation()
+        call.resolve()
+    }
+
+    @PermissionCallback
+    private fun locationCallback(call: PluginCall) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            wantsLocation = true; subscribeLocation(); call.resolve()
+        } else call.reject("permission_denied")
+    }
+
+    @PluginMethod
+    fun stopLocation(call: PluginCall) {
+        wantsLocation = false
+        locationManager.removeUpdates(locationListener)
+        call.resolve()
+    }
+
+    @Suppress("MissingPermission")
+    private fun subscribeLocation() {
+        try {
+            locationManager.removeUpdates(locationListener)
+            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).filter { locationManager.allProviders.contains(it) }
+            providers.forEach { provider ->
+                locationManager.requestLocationUpdates(provider, 1000L, 2f, locationListener, Looper.getMainLooper())
+            }
+            if (providers.none { locationManager.isProviderEnabled(it) }) notifyListeners("locationChanged", JSObject().put("unavailable", true))
+        } catch (_: SecurityException) { notifyListeners("locationChanged", JSObject().put("unavailable", true)) }
     }
 
     @Suppress("DEPRECATION")
@@ -131,9 +202,42 @@ class LauncherSystemPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getNavigationApps(call: PluginCall) {
+        val pm = context.packageManager
+        val list = JSArray()
+        val packages = LinkedHashSet<String>()
+        @Suppress("DEPRECATION")
+        val handlers = pm.queryIntentActivities(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=")), PackageManager.MATCH_DEFAULT_ONLY)
+        handlers.forEach { packages.add(it.activityInfo.packageName) }
+        listOf(MAPS, WAZE).filter { installed(it) }.forEach { packages.add(it) }
+        packages.filter { it != context.packageName }.forEach { pkg ->
+            runCatching {
+                val info = pm.getApplicationInfo(pkg, 0)
+                if (info.enabled) list.put(JSObject().put("packageName", pkg).put("label", pm.getApplicationLabel(info).toString()))
+            }
+        }
+        call.resolve(JSObject().put("apps", list))
+    }
+
+    @PluginMethod
+    fun resumeNavigation(call: PluginCall) {
+        val pkg = call.getString("packageName") ?: return call.reject("not_installed")
+        val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
+        launch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        start(launch, call)
+    }
+
+    @PluginMethod
     fun navigate(call: PluginCall) {
         val app = call.getString("app") ?: "maps"
-        val dest = call.getString("destination")?.trim().orEmpty()
+        val dest = call.getString("destination")?.trim().orEmpty().take(200)
+        if (dest.isEmpty() && app != "system") {
+            val pkg = when (app) { "maps" -> MAPS; "waze" -> WAZE; else -> app.removePrefix("package:") }
+            val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
+            launch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            start(launch, call)
+            return
+        }
         val q = Uri.encode(dest)
         val intent = when (app) {
             "waze" -> {
@@ -144,7 +248,13 @@ class LauncherSystemPlugin : Plugin() {
                 if (!installed(MAPS)) return call.reject("not_installed")
                 Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "geo:0,0" else "google.navigation:q=$q")).setPackage(MAPS)
             }
-            else -> Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q"))
+            "system" -> Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")), "Navegar com…")
+            else -> {
+                if (!app.startsWith("package:")) return call.reject("not_installed")
+                val pkg = app.removePrefix("package:")
+                if (!installed(pkg)) return call.reject("not_installed")
+                Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")).setPackage(pkg)
+            }
         }
         start(intent, call)
     }
