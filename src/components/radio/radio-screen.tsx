@@ -121,7 +121,7 @@ export function RadioScreen() {
   });
   const siteStation = useMemo<RadioStation[]>(() => {
     const d = site.data;
-    if (!isUrl || !d || d.status !== "found") return [];
+    if (!remoteIsUrl || !d || d.status !== "found") return [];
     return [
       {
         id: `site-${d.homepage}`,
@@ -135,7 +135,7 @@ export function RadioScreen() {
         homepage: d.homepage,
       },
     ];
-  }, [site.data, isUrl]);
+  }, [site.data, remoteIsUrl]);
   const all = useMemo(
     () =>
       mergeStations(custom.stations, siteStation, catalog.data?.stations ?? [], remote.data ?? []),
