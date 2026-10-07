@@ -1,3 +1,4 @@
+import { buildNavigationUrl } from "./navigation-deep-link-manager";
 /**
  * Bridge to the native "LauncherSystem" plugin. Outside the Android app every
  * call reports "unavailable" instead of pretending to succeed.
@@ -96,11 +97,7 @@ export const getCallLog = async (): Promise<CallEntry[]> => (await req().getCall
 export async function startNavigation(app: NavApp, destination: string): Promise<void> {
   const p = plugin();
   if (p) return p.navigate({ app, destination });
-  const q = encodeURIComponent(destination.trim());
-  const url =
-    app === "waze"
-      ? `https://waze.com/ul${q ? `?q=${q}&navigate=yes` : ""}`
-      : `https://www.google.com/maps/${q ? `dir/?api=1&destination=${q}` : ""}`;
+  const url = buildNavigationUrl({ app, destination });
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
