@@ -114,7 +114,10 @@ class LauncherSystemPlugin : Plugin() {
             locationManager.removeUpdates(locationListener)
             val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).filter { locationManager.allProviders.contains(it) }
             providers.forEach { provider ->
-                locationManager.requestLocationUpdates(provider, 1000L, 2f, locationListener, Looper.getMainLooper())
+                locationManager.getLastKnownLocation(provider)?.let { locationListener.onLocationChanged(it) }
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.requestLocationUpdates(provider, 1000L, 2f, locationListener, Looper.getMainLooper())
+                }
             }
             if (providers.none { locationManager.isProviderEnabled(it) }) notifyListeners("locationChanged", JSObject().put("unavailable", true))
         } catch (_: SecurityException) { notifyListeners("locationChanged", JSObject().put("unavailable", true)) }
