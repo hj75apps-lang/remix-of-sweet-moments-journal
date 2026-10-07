@@ -242,13 +242,13 @@ class LauncherSystemPlugin : Plugin() {
         val intent = when (app) {
             "waze" -> {
                 if (!installed(WAZE)) return call.reject("not_installed")
-                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "waze://" else "waze://?q=$q&navigate=yes")).setPackage(WAZE)
+                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "https://waze.com/ul?navigate=yes" else "https://waze.com/ul?q=$q&navigate=yes")).setPackage(WAZE)
             }
             "maps" -> {
                 if (!installed(MAPS)) return call.reject("not_installed")
-                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "geo:0,0" else "google.navigation:q=$q")).setPackage(MAPS)
+                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "https://www.google.com/maps/@?api=1&map_action=map" else "https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving&dir_action=navigate")).setPackage(MAPS)
             }
-            "system" -> Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")), "Navegar com…")
+            "system" -> Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving&dir_action=navigate")), "Navegar com…")
             else -> {
                 if (!app.startsWith("package:")) return call.reject("not_installed")
                 val pkg = app.removePrefix("package:")
