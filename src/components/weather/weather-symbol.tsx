@@ -10,10 +10,12 @@ export function WeatherSymbol({
   code,
   text,
   large = false,
+  night,
 }: {
   code: number | undefined;
   text: string;
   large?: boolean;
+  night?: boolean;
 }) {
   const Icon = weatherIcon(code, text);
   const partlyCloudy = code === 1 || code === 2;
@@ -21,16 +23,16 @@ export function WeatherSymbol({
   const snow = code !== undefined && code >= 71 && code <= 86;
   const rain = (code !== undefined && code >= 51 && code <= 67) ||
     (code !== undefined && code >= 80 && code <= 82);
-  const night = isNight() && (code === 0 || code === 1 || code === 2);
+  const isNightMode = night ?? (isNight() && (code === 0 || code === 1 || code === 2));
 
   return (
     <span
-      className={`weather-symbol ${large ? "weather-symbol-large" : ""} ${night ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
+      className={`weather-symbol ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
       role="img"
       aria-label={text}
     >
       <span className="weather-symbol-glow" aria-hidden="true" />
-      {night ? (
+      {isNightMode ? (
         <Moon className="weather-symbol-moon" aria-hidden="true" />
       ) : partlyCloudy ? (
         <>
