@@ -82,13 +82,14 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const poll = async () => {
+      if (!visible || !online) return;
       const trip = readNavigationConnectTrip();
       if (!trip) {
         if (!cancelled) setConnectTelemetry(null);
         return;
       }
       try {
-        const telemetry = await getNavigationConnectTelemetry(trip.tripId);
+        const telemetry = await getNavigationConnectTelemetry(trip.tripId, trip.accessKey);
         if (cancelled) return;
         setConnectTelemetry(telemetry);
         if (!telemetry.active) {
@@ -96,7 +97,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
           timer = setTimeout(() => void poll(), 1000);
           return;
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof Error && error.name === "NavigationConnectUnauthorizedError") {
+          clearNavigationConnectTrip();
+          setConnectTelemetry(null);
+          return;
+        }
         // Keep the last authoritative telemetry during transient connectivity loss.
       }
       if (!cancelled) timer = setTimeout(() => void poll(), 5000);
