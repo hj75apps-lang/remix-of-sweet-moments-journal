@@ -11,9 +11,9 @@ export function ClockWidget() {
       className="[&_.widget-inner]:px-4 sm:[&_.widget-inner]:px-5"
       hideHeader
     >
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-0 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col items-end justify-center gap-2 overflow-hidden text-right">
         <time
-          className="block whitespace-nowrap font-['Arial_Black','Arial',sans-serif] text-[clamp(5.5rem,75cqh,14rem)] font-black leading-[0.82] tracking-normal tabular-nums"
+          className="block max-w-full whitespace-nowrap font-['Arial_Black','Arial',sans-serif] text-[min(15cqw,50cqh,8rem)] font-black leading-none tracking-normal tabular-nums"
           dateTime={now?.toISOString()}
         >
           {now?.toLocaleTimeString("pt-BR", {
@@ -21,6 +21,12 @@ export function ClockWidget() {
             minute: "2-digit",
             hour12: !settings.clock24h,
           }) ?? "--:--"}
+        </time>
+        <time
+          className="block max-w-full whitespace-nowrap text-[min(6cqw,18cqh,1.125rem)] font-medium leading-tight text-muted-foreground tabular-nums"
+          dateTime={now ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}` : undefined}
+        >
+          {now?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "--/--/----"}
         </time>
       </div>
     </WidgetCard>
