@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   // unless the user explicitly enables a launcher-specific override.
   immersive: false,
   keepScreenOn: false,
-  autostart: true,
+  autostart: false,
   clock24h: true,
   brightness: -1,
   animations: true,
@@ -105,7 +105,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     const marker = "sal.android-system-integration-v2";
     if (localStorage.getItem(marker)) return;
     setSettings((prev) => {
-      const next = { ...prev, immersive: false, keepScreenOn: false };
+      const next = { ...prev, immersive: false, keepScreenOn: false, autostart: false };
       try { writeStored(KEY, next, 1); } catch { /* keep in memory */ }
       return next;
     });
