@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { createTrackedTrip, getTrackedTrip } from "./services/navigation-connect-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -20,6 +21,37 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
+async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith("/api/navigation/trips")) return null;
+  const cors = { "cache-control": "no-store", "content-type": "application/json; charset=utf-8" };
+  try {
+    if (request.method === "POST" && url.pathname === "/api/navigation/trips") {
+      const body = await request.json() as { app?: string; destination?: string };
+      if (body.app !== "maps" && body.app !== "waze") {
+        return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
+      }
+      const trip = await createTrackedTrip(env as Record<string, unknown>, {
+        app: body.app,
+        destination: String(body.destination ?? "").slice(0, 200),
+      });
+      return new Response(JSON.stringify(trip), { status: 200, headers: cors });
+    }
+
+    const match = url.pathname.match(/^\/api\/navigation\/trips\/([^/]+)$/);
+    if (request.method === "GET" && match?.[1]) {
+      const telemetry = await getTrackedTrip(env as Record<string, unknown>, decodeURIComponent(match[1]));
+      return new Response(JSON.stringify(telemetry), { status: 200, headers: cors });
+    }
+
+    return new Response(JSON.stringify({ error: "not_found" }), { status: 404, headers: cors });
+  } catch (error) {
+    console.error(error);
+    const message = error instanceof Error ? error.message : "Navigation Connect error";
+    return new Response(JSON.stringify({ error: message }), { status: 503, headers: cors });
+  }
+}
+
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -47,6 +79,8 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const navigationResponse = await handleNavigationConnect(request, env);
+      if (navigationResponse) return navigationResponse;
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
