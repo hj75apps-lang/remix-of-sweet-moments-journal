@@ -3,7 +3,7 @@ name: Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, chore/stabilization-roadmap]
+    branches: [main, chore/stabilization-roadmap, feat/live-navigation-widget]
   pull_request:
     branches: [main]
 
