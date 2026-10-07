@@ -15,7 +15,7 @@ describe("stream discovery URL policy", () => {
 
   it("rejects private, loopback, link-local and multicast IPv4", () => {
     for (const host of ["127.0.0.1", "10.0.0.1", "172.16.0.1", "192.168.1.10", "169.254.1.1", "224.0.0.1"]) {
-      expect(isPublicHttps(`https://${host}/stream`).toBe(false);
+      expect(isPublicHttps(`https://${host}/stream`)).toBe(false);
     }
   });
 
