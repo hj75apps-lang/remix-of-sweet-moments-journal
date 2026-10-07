@@ -68,6 +68,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.autostart === "boolean" &&
     typeof v.clock24h === "boolean" &&
     typeof v.animations === "boolean" &&
+    typeof v.brightness === "number" && v.brightness >= -1 && v.brightness <= 1 &&
     typeof v.lastDestination === "string" &&
     typeof v.buttonColor === "string" &&
     typeof v.buttonOpacity === "number" &&
