@@ -111,11 +111,22 @@ class SystemControlsPlugin : Plugin() {
         val bt = adapter()
         val on = try { bt?.isEnabled == true } catch (_: SecurityException) { false }
         // Off → system dialog asks to turn on; On → Bluetooth settings to pair, connect or turn off.
-        activity.startActivity(Intent(if (on) Settings.ACTION_BLUETOOTH_SETTINGS else BluetoothAdapter.ACTION_REQUEST_ENABLE))
-        call.resolve()
+        try {
+            activity.startActivity(
+                Intent(if (on) Settings.ACTION_BLUETOOTH_SETTINGS else BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            )
+            call.resolve()
+        } catch (_: SecurityException) {
+            call.reject("permission_denied")
+        }
     }
 
     @PluginMethod fun openBluetoothSettings(call: PluginCall) {
-        activity.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)); call.resolve()
+        try {
+            activity.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+            call.resolve()
+        } catch (_: SecurityException) {
+            call.reject("permission_denied")
+        }
     }
 }
