@@ -39,6 +39,7 @@ interface LauncherSystemPlugin {
   applyPrefs(p: { immersive: boolean; keepScreenOn: boolean; autostart: boolean }): Promise<void>;
   setBrightness(p: { value: number }): Promise<void>;
   openHomeSettings(): Promise<void>;
+  requestDefaultHome(): Promise<{ supported?: boolean; requested?: boolean; isDefaultHome: boolean }>;
   openAppSettings(): Promise<void>;
   navigate(p: { app: NavApp; destination?: string; launchUrl?: string }): Promise<void>;
   resumeNavigation(p: { packageName: string }): Promise<void>;
@@ -86,6 +87,7 @@ export const setScreenBrightness = async (value: number): Promise<void> => {
   await plugin()?.setBrightness({ value });
 };
 export const openHomeSettings = (): Promise<void> => req().openHomeSettings();
+export const requestDefaultHome = () => req().requestDefaultHome();
 export const openAppSettings = (): Promise<void> => req().openAppSettings();
 export const setSystemVolume = (value: number) => req().setVolume({ value });
 export const toggleSystemMute = () => req().toggleMute();
