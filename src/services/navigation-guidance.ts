@@ -47,9 +47,9 @@ function plugin(): Plugin | null {
 function parseDistance(value: string): number | undefined {
   const match = value.match(/(\d+(?:[.,]\d+)?)\s*(km|m)\b/i);
   if (!match) return undefined;
-  const number = Number(match[1].replace(",", "."));
+  const number = Number(match[1] ?? "");
   if (!Number.isFinite(number)) return undefined;
-  return match[2].toLowerCase() === "km" ? number * 1000 : number;
+  return (match[2] ?? "").toLowerCase() === "km" ? number * 1000 : number;
 }
 
 function parseDuration(value: string): number | undefined {
@@ -66,9 +66,15 @@ export function normalizeGuidance(value: NavGuidance | null): NavGuidance | null
   const duration = value.remainingDurationSeconds ?? parseDuration(combined);
   return {
     ...value,
-    distanceMeters: value.distanceMeters ?? distance,
-    remainingDistanceMeters: value.remainingDistanceMeters ?? distance,
-    remainingDurationSeconds: value.remainingDurationSeconds ?? duration,
+    ...(value.distanceMeters !== undefined || distance !== undefined
+      ? { distanceMeters: value.distanceMeters ?? distance }
+      : {}),
+    ...(value.remainingDistanceMeters !== undefined || distance !== undefined
+      ? { remainingDistanceMeters: value.remainingDistanceMeters ?? distance }
+      : {}),
+    ...(value.remainingDurationSeconds !== undefined || duration !== undefined
+      ? { remainingDurationSeconds: value.remainingDurationSeconds ?? duration }
+      : {}),
     maneuver: value.maneuver ?? value.title,
   };
 }
