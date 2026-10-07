@@ -59,7 +59,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, nextMode); } catch { /* optional preference */ }
   }, []);
   const toggle = useCallback(() => {
-    setHasManualPreference(true);
     setPreferredMode((current) => {
       const next = current === "dark" ? "light" : "dark";
       try { localStorage.setItem(STORAGE_KEY, next); } catch { /* optional preference */ }
