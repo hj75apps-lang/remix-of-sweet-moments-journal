@@ -1,4 +1,5 @@
 import { buildNavigationUrl } from "./navigation-deep-link-manager";
+import { createNavigationConnectTrip } from "./navigation-connect";
 /**
  * Bridge to the native "LauncherSystem" plugin. Outside the Android app every
  * call reports "unavailable" instead of pretending to succeed.
@@ -39,7 +40,7 @@ interface LauncherSystemPlugin {
   setBrightness(p: { value: number }): Promise<void>;
   openHomeSettings(): Promise<void>;
   openAppSettings(): Promise<void>;
-  navigate(p: { app: NavApp; destination?: string }): Promise<void>;
+  navigate(p: { app: NavApp; destination?: string; launchUrl?: string }): Promise<void>;
   resumeNavigation(p: { packageName: string }): Promise<void>;
   setVolume(p: { value: number }): Promise<{ volume: number; maxVolume: number }>;
   toggleMute(): Promise<{ muted: boolean }>;
@@ -96,6 +97,21 @@ export const getCallLog = async (): Promise<CallEntry[]> => (await req().getCall
 /** Opens navigation. In a browser, falls back to the official Google Maps / Waze web links. */
 export async function startNavigation(app: NavApp, destination: string): Promise<void> {
   const p = plugin();
+  const isTrackedApp = (app === "maps" || app === "waze") && destination.trim().length > 0;
+  if (isTrackedApp) {
+    try {
+      const trip = await createNavigationConnectTrip({ app, destination });
+      if (p) {
+        await p.navigate({ app, destination, launchUrl: trip.launchUrl });
+      } else {
+        window.open(trip.launchUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    } catch {
+      // Official telemetry is optional until the server/Google Cloud project is configured.
+      // Preserve the existing navigation behavior rather than blocking navigation.
+    }
+  }
   if (p) return p.navigate({ app, destination });
   const url = buildNavigationUrl({ app, destination });
   window.open(url, "_blank", "noopener,noreferrer");
