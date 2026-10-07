@@ -101,6 +101,9 @@ function AppsPage() {
   const [page, setPage] = useState(0);
   const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const scroller = useRef<HTMLDivElement>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const swipeLocked = useRef(false);
+  const suppressClick = useRef(false);
 
   const goTo = (target: number) => {
     const el = scroller.current;
@@ -114,9 +117,35 @@ function AppsPage() {
     setPage(0);
   }, [q]);
 
-  const onScroll = () => {
-    const el = scroller.current;
-    if (el && el.clientWidth) setPage(Math.round(el.scrollLeft / el.clientWidth));
+  const onSwipeStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (editing || event.pointerType === "mouse") return;
+    swipeStart.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const onSwipeEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (editing || !swipeStart.current || swipeLocked.current) return;
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    const threshold = Math.max(56, (scroller.current?.clientWidth ?? 0) * 0.12);
+
+    if (Math.abs(dx) < threshold || Math.abs(dx) <= Math.abs(dy) * 1.2) return;
+
+    // One gesture = one page. Native horizontal scrolling is disabled below,
+    // so a long/flick gesture can never coast through multiple pages.
+    swipeLocked.current = true;
+    suppressClick.current = true;
+    goTo(page + (dx < 0 ? 1 : -1));
+    window.setTimeout(() => {
+      swipeLocked.current = false;
+      suppressClick.current = false;
+    }, 380);
+  };
+
+  const onSwipeCancel = () => {
+    swipeStart.current = null;
   };
 
   const pageGroups = useMemo(() => {
@@ -231,9 +260,17 @@ function AppsPage() {
                   <SortableContext items={list.map((a) => a.packageName)} strategy={rectSortingStrategy}>
                     <div
                       ref={scroller}
-                      onScroll={onScroll}
-                      className="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                      style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
+                      onPointerDown={onSwipeStart}
+                      onPointerUp={onSwipeEnd}
+                      onPointerCancel={onSwipeCancel}
+                      onClickCapture={(event) => {
+                        if (suppressClick.current) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                        }
+                      }}
+                      className="flex min-h-0 flex-1 overflow-hidden"
+                      style={{ touchAction: "none" }}
                     >
                       {pageGroups.map((group, gi) => (
                         <ul
