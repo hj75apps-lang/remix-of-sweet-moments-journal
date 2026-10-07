@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Aprimorar navegação: mapa GPS fluido, estado compartilhado, apps instalados/perguntar sempre, informações reais e adaptação ao tamanho do card.
+- [ ] Validar navegação/GPS/retorno e escolha de outros navegadores em central Android real (depende do aparelho).
+
 - [x] Preparar Rádio Online no código Android: busca por site sem servidor web, playlists, player compartilhado e lista de uma estação por linha (21 testes passaram).
 - [ ] Validar Rádio Online numa central com APK atualizado (depende do aparelho).
 
