@@ -72,12 +72,6 @@ export function WeatherWidget() {
         <p className="m-auto text-sm text-muted-foreground" aria-live="polite">Carregando previsão…</p>
       ) : (
         <div className={`weather-summary flex min-h-0 flex-1 flex-col${query.isFetching ? " weather-updating" : ""}`}>
-          <div className="weather-atmosphere" aria-hidden="true">
-            <span className="weather-atmosphere-orb" />
-            <span className="weather-atmosphere-cloud weather-atmosphere-cloud-a" />
-            <span className="weather-atmosphere-cloud weather-atmosphere-cloud-b" />
-          </div>
-
           <div className="weather-topline">
             <div className="weather-location">
               <MapPin className="weather-location-icon" aria-hidden="true" />
