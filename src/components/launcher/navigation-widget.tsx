@@ -102,7 +102,7 @@ export function NavigationWidget() {
           <div className="flex min-h-0 items-start justify-between gap-2">
             {g || state.active ? (
               <div className="navigation-maneuver flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-primary p-3 text-primary-foreground shadow-card">
-                {g.icon ? (
+                {g?.icon ? (
                   <img src={g.icon} alt="" className="navigation-arrow size-10 shrink-0" />
                 ) : (
                   <Navigation className="navigation-arrow size-8 shrink-0" />
