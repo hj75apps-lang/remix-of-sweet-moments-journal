@@ -1,0 +1,33 @@
+name: Android Instrumentation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools emulator platforms;android-36 build-tools;36.0.0"
+      - run: bun install --frozen-lockfile
+      - run: bun run build:android
+      - name: Run Android smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: pixel_6
+          script: cd android && chmod +x gradlew && ./gradlew connectedDebugAndroidTest --no-daemon
