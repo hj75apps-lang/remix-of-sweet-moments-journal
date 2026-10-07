@@ -61,7 +61,7 @@ class SystemControlsPlugin : Plugin() {
     private fun adapter(): BluetoothAdapter? =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
 
-    @Suppress("DEPRECATION", "MissingPermission")
+    @Suppress("DEPRECATION", "MissingPermission", "WrongConstant")
     private fun state(): JSObject {
         val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val ssid = try { wifi.connectionInfo?.ssid?.trim('"')?.takeIf { it != "<unknown ssid>" } ?: "" } catch (_: Exception) { "" }
