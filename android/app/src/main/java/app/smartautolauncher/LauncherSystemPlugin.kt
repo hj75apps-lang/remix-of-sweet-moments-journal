@@ -182,9 +182,9 @@ class LauncherSystemPlugin : Plugin() {
     /** Persists launcher prefs natively so the boot receiver and window can read them without the WebView. */
     @PluginMethod
     fun applyPrefs(call: PluginCall) {
-        val im = call.getBoolean("immersive", true) ?: true
-        val on = call.getBoolean("keepScreenOn", true) ?: true
-        val boot = call.getBoolean("autostart", true) ?: true
+        val im = call.getBoolean("immersive", false) ?: false
+        val on = call.getBoolean("keepScreenOn", false) ?: false
+        val boot = call.getBoolean("autostart", false) ?: false
         prefs().edit().putBoolean(KEY_IMMERSIVE, im).putBoolean(KEY_SCREEN_ON, on).putBoolean(KEY_AUTOSTART, boot).apply()
         applyWindow(im, on)
         call.resolve()
