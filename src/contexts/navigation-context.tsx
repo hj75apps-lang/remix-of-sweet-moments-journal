@@ -4,6 +4,12 @@ import { subscribeLocation } from "@/services/location-store";
 import type { VehiclePosition } from "@/services/navigation-location";
 import { onLauncherResumed } from "@/services/launcher-system";
 import { ExternalNavigationProvider } from "@/services/navigation-provider";
+import {
+  clearNavigationConnectTrip,
+  getNavigationConnectTelemetry,
+  readNavigationConnectTrip,
+  type NavigationConnectTelemetry,
+} from "@/services/navigation-connect";
 import type { NavigationState } from "@/services/navigation-state";
 
 export interface NavigationContextState extends NavigationState {
@@ -21,6 +27,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(true);
   const [visible, setVisible] = useState(true);
   const [users, setUsers] = useState(0);
+  const [connectTelemetry, setConnectTelemetry] = useState<NavigationConnectTelemetry | null>(null);
   const lastFix = useRef(0);
 
   const acquireLocation = useCallback(() => {
@@ -52,7 +59,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const active = Boolean(guidance);
+  const active = Boolean(connectTelemetry?.active || guidance);
   const locationActive = users > 0 && visible;
 
   useEffect(() => {
@@ -71,15 +78,78 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     setLocating(true);
   }, [position]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const poll = async () => {
+      const trip = readNavigationConnectTrip();
+      if (!trip) {
+        if (!cancelled) setConnectTelemetry(null);
+        return;
+      }
+      try {
+        const telemetry = await getNavigationConnectTelemetry(trip.tripId);
+        if (cancelled) return;
+        setConnectTelemetry(telemetry);
+        if (!telemetry.active) {
+          clearNavigationConnectTrip();
+          timer = setTimeout(() => void poll(), 1000);
+          return;
+        }
+      } catch {
+        // Keep the last authoritative telemetry during transient connectivity loss.
+      }
+      if (!cancelled) timer = setTimeout(() => void poll(), 5000);
+    };
+    void poll();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [visible, online]);
+
+  useEffect(() => {
+    const latitude = connectTelemetry?.latitude;
+    const longitude = connectTelemetry?.longitude;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    setPosition({
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      accuracy: 0,
+      heading: null,
+      speed: null,
+      timestamp: Date.now(),
+    });
+    setLocating(false);
+  }, [connectTelemetry?.latitude, connectTelemetry?.longitude]);
+
   const state = useMemo<NavigationState>(
     () => ({
       position,
       locating,
       online,
       active,
-      sourcePackage: guidance?.packageName ?? null,
-      guidance,
-      route: null,
+      sourcePackage:
+        connectTelemetry?.sourcePackage ??
+        (connectTelemetry?.active ? (readNavigationConnectTrip()?.app === "waze" ? "com.waze" : "com.google.android.apps.maps") : null) ??
+        guidance?.packageName ??
+        null,
+      guidance: guidance
+        ? {
+            ...guidance,
+            remainingDistanceMeters: connectTelemetry?.remainingDistanceMeters ?? guidance.remainingDistanceMeters,
+            remainingDurationSeconds: connectTelemetry?.remainingDurationSeconds ?? guidance.remainingDurationSeconds,
+            etaEpochMs: connectTelemetry?.etaEpochMs ?? guidance.etaEpochMs,
+          }
+        : null,
+      route: connectTelemetry?.route
+        ? {
+            points: connectTelemetry.route.points,
+            remainingDistanceMeters: connectTelemetry.route.remainingDistanceMeters,
+            remainingDurationSeconds: connectTelemetry.route.remainingDurationSeconds,
+            etaEpochMs: connectTelemetry.route.etaEpochMs,
+          }
+        : null,
     }),
     [position, locating, online, active, guidance],
   );
