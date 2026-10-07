@@ -21,6 +21,18 @@ const VOL_KEY = "sal.radio-volume";
 const EQ_KEY = "sal.radio-eq";
 const START_TIMEOUT_MS = 12000;
 
+function safeSetItem(key: string, value: string): void {
+  try { localStorage.setItem(key, value); } catch { /* optional local preference */ }
+}
+
+function isStoredStation(value: unknown): value is RadioStation & { streamUrl?: string } {
+  if (!value || typeof value !== "object") return false;
+  const station = value as Partial<RadioStation> & { streamUrl?: unknown };
+  return typeof station.id === "string" &&
+    typeof station.name === "string" &&
+    Array.isArray(station.sources ?? (station.streamUrl ? [station.streamUrl] : []));
+}
+
 interface Graph {
   ctx: AudioContext;
   bass: BiquadFilterNode;
@@ -79,7 +91,11 @@ export function useRadioPlayer(options: Options = {}) {
   const [gains, setGains] = useState<EqGains>({ bass: 0, mid: 0, treble: 0 });
 
   const stopAll = useCallback(() => {
-    if (retryTimer.current) clearTimeout(retryTimer.current);
+    if (retryTimer.current) {
+      clearTimeout(retryTimer.current);
+      retryTimer.current = null;
+    }
+    activeRef.current = null;
     hlsRef.current?.destroy();
     hlsRef.current = null;
     for (const el of [plainRef.current, eqElRef.current]) {
@@ -262,11 +278,11 @@ export function useRadioPlayer(options: Options = {}) {
     try {
       const v = localStorage.getItem(VOL_KEY);
       if (v !== null && Number(v) >= 0 && Number(v) <= 1) setVolumeState(Number(v));
-      const favs = JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]") as Array<
-        RadioStation & { streamUrl?: string }
-      >;
+      const rawFavs = JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]") as unknown;
+      const favs = Array.isArray(rawFavs) ? rawFavs.filter(isStoredStation).slice(0, 200) : [];
       setFavorites(
-        favs.map((f) => ({ ...f, sources: f.sources ?? (f.streamUrl ? [f.streamUrl] : []) })),
+        favs.map((f) => ({ ...f, sources: f.sources?.length ? f.sources : f.streamUrl ? [f.streamUrl] : [] }))
+          .filter((f) => f.sources.length),
       );
       const g = JSON.parse(localStorage.getItem(EQ_KEY) ?? "null") as
         (EqGains & { enabled: boolean }) | null;
@@ -286,6 +302,9 @@ export function useRadioPlayer(options: Options = {}) {
       plain.pause();
       eq.pause();
       void graphRef.current?.ctx.close();
+      graphRef.current = null;
+      plainRef.current = null;
+      eqElRef.current = null;
     };
   }, []);
   const reconnectRef = useRef(reconnect);
@@ -342,7 +361,7 @@ export function useRadioPlayer(options: Options = {}) {
   }, [station, status, play, stopAll]);
 
   const persistEq = (enabled: boolean, g: EqGains) =>
-    localStorage.setItem(EQ_KEY, JSON.stringify({ ...g, enabled }));
+    safeSetItem(EQ_KEY, JSON.stringify({ ...g, enabled }));
 
   const setEq = useCallback((enabled: boolean) => {
     setEqEnabled(enabled);
@@ -364,8 +383,9 @@ export function useRadioPlayer(options: Options = {}) {
   }, []);
 
   const setVolume = useCallback((v: number) => {
-    setVolumeState(v);
-    localStorage.setItem(VOL_KEY, String(v));
+    const next = Math.min(1, Math.max(0, Number.isFinite(v) ? v : 0.8));
+    setVolumeState(next);
+    safeSetItem(VOL_KEY, String(Math.min(1, Math.max(0, v))));
   }, []);
 
   const toggleFavorite = useCallback((s: RadioStation) => {
@@ -373,7 +393,7 @@ export function useRadioPlayer(options: Options = {}) {
       const next = prev.some((f) => f.id === s.id)
         ? prev.filter((f) => f.id !== s.id)
         : [...prev, s];
-      localStorage.setItem(FAV_KEY, JSON.stringify(next));
+      safeSetItem(FAV_KEY, JSON.stringify(next.slice(-200)));
       return next;
     });
   }, []);
