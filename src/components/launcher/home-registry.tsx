@@ -29,8 +29,8 @@ export const widgetRegistry: Record<WidgetKind, WidgetDef> = {
     label: "Navegação",
     icon: Map,
     sizes: [
-      { w: 4, h: 4 },
-      { w: 3, h: 3 },
+      { w: 6, h: 4 },
+      { w: 4, h: 3 },
       { w: 2, h: 2 },
     ],
     render: () => <NavigationWidget />,

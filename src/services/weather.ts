@@ -1,3 +1,11 @@
+export interface WeatherHour {
+  time: string;
+  temp: number;
+  rain: number;
+  text: string;
+  code: number | undefined;
+}
+
 export interface WeatherDay {
   date: string;
   min: number;
@@ -16,6 +24,10 @@ export interface WeatherReport {
   text: string;
   code: number | undefined;
   source: "Open-Meteo";
+  updatedAt?: number;
+  sunrise?: string;
+  sunset?: string;
+  hours: WeatherHour[];
   days: WeatherDay[];
 }
 
@@ -32,12 +44,20 @@ interface OpenMeteoForecast {
     wind_speed_10m?: number;
     weather_code?: number;
   };
+  hourly?: {
+    time?: string[];
+    temperature_2m?: number[];
+    weather_code?: number[];
+    precipitation_probability?: number[];
+  };
   daily?: {
     time?: string[];
     weather_code?: number[];
     temperature_2m_max?: number[];
     temperature_2m_min?: number[];
     precipitation_probability_max?: number[];
+    sunrise?: string[];
+    sunset?: string[];
   };
 }
 
@@ -65,7 +85,6 @@ const REQUEST_TIMEOUT = 12_000;
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     if (!response.ok) throw new Error(`Serviço indisponível (${response.status})`);
@@ -132,9 +151,11 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     latitude: String(lat),
     longitude: String(lng),
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
-    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    hourly: "temperature_2m,weather_code,precipitation_probability",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
     timezone: "auto",
     forecast_days: "5",
+    forecast_hours: "12",
     wind_speed_unit: "kmh",
   });
   const [forecast, city] = await Promise.all([
@@ -142,6 +163,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     resolvePlace(lat, lng),
   ]);
   const current = forecast.current;
+  const hourly = forecast.hourly;
   const daily = forecast.daily;
   if (!current || !daily?.time?.length) throw new Error("Previsão incompleta");
 
@@ -152,8 +174,18 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     humidity: rounded(current.relative_humidity_2m),
     wind: rounded(current.wind_speed_10m),
     text: weatherDescription(current.weather_code),
-    code: current.weather_code,
+    code: current.weather_code ?? -1,
     source: "Open-Meteo",
+    updatedAt: Date.now(),
+    ...(daily.sunrise?.[0] !== undefined ? { sunrise: daily.sunrise[0] } : {}),
+    ...(daily.sunset?.[0] !== undefined ? { sunset: daily.sunset[0] } : {}),
+    hours: (hourly?.time ?? []).slice(0, 8).map((time, index) => ({
+      time,
+      temp: rounded(hourly?.temperature_2m?.[index]),
+      rain: rounded(hourly?.precipitation_probability?.[index]),
+      text: weatherDescription(hourly?.weather_code?.[index]),
+      code: hourly?.weather_code?.[index],
+    })),
     days: daily.time.slice(0, 5).map((date, index) => ({
       date,
       min: rounded(daily.temperature_2m_min?.[index]),

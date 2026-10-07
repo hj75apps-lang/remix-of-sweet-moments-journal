@@ -116,7 +116,12 @@ public final class CarPhonePlugin extends Plugin {
         Uri uri = Uri.fromParts("tel", number, null);
         TelecomManager telecom = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
         if (isDefaultDialer() && telecom != null) {
-            telecom.placeCall(uri, new Bundle());
+            try {
+                telecom.placeCall(uri, new Bundle());
+            } catch (SecurityException e) {
+                call.reject("Permissão de chamada negada", e);
+                return;
+            }
         } else {
             Intent intent = new Intent(Intent.ACTION_CALL, uri);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

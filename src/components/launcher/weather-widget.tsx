@@ -1,11 +1,45 @@
 import { Link } from "@tanstack/react-router";
-import { CloudSun, Droplets, LocateFixed, RefreshCw, Wind } from "lucide-react";
+import { CloudSun, LocateFixed, MapPin, RefreshCw } from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
 
-/** Weather card: GPS position -> current conditions and 5-day forecast. */
+function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
+  const now = Date.now();
+  const sunrise = weather.sunrise ? Date.parse(weather.sunrise) : NaN;
+  const sunset = weather.sunset ? Date.parse(weather.sunset) : NaN;
+  return Number.isFinite(sunrise) && Number.isFinite(sunset) ? now < sunrise || now >= sunset : new Date().getHours() < 6 || new Date().getHours() >= 18;
+}
+
+function relativeUpdatedAt(timestamp?: number) {
+  if (!timestamp) return "";
+  const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
+  return minutes < 1 ? "Atualizado agora" : `Atualizado há ${minutes} min`;
+}
+
+function WeatherForecastStrip({ days }: { days: { date: string; max: number; min: number; code: number | undefined; text: string }[] }) {
+  const labels = days.slice(0, 5).map((day, index) =>
+    index === 0 ? "Hoje" : new Date(`${day.date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+  );
+
+  return (
+    <div className="weather-days glass-strip" aria-label="Previsão resumida">
+      {days.slice(0, 5).map((day, index) => (
+        <div className="weather-day" key={day.date}>
+          <span className="weather-day-label">{labels[index]}</span>
+          <span className="weather-day-icon" aria-label={day.text}>
+            <WeatherSymbol code={day.code} text={day.text} />
+          </span>
+          <span className="weather-day-temps">
+            <b>{day.max}°</b><small>{day.min}°</small>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
   const w = query.data;
@@ -15,14 +49,11 @@ export function WeatherWidget() {
       title="Clima"
       icon={<CloudSun className="size-4" />}
       hideHeader
-      className={w ? "cursor-pointer transition hover:border-primary/40" : ""}
+      className={w ? "weather-widget cursor-pointer transition hover:scale-[1.005]" : "weather-widget"}
     >
-      {!position ? (
+      {!position && !w ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <UnavailableState
-            message={gpsError || "Localizando…"}
-            hint="A previsão aparece com a localização ativada."
-          />
+          <UnavailableState message={gpsError || "Localizando…"} hint="A previsão aparece com a localização ativada." />
           {gpsError && (
             <Button type="button" onClick={locate} className="min-h-11">
               <LocateFixed />
@@ -30,55 +61,51 @@ export function WeatherWidget() {
             </Button>
           )}
         </div>
-      ) : query.isError ? (
+      ) : query.isError && !w ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <UnavailableState
-            message="Previsão indisponível"
-            hint="Verifique a conexão e tente novamente."
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => void query.refetch()}
-            className="min-h-11"
-          >
-            <RefreshCw />
-            Atualizar
+          <UnavailableState message="Previsão indisponível" hint="Verifique a conexão e tente novamente." />
+          <Button type="button" variant="secondary" onClick={() => void query.refetch()} className="min-h-11">
+            <RefreshCw /> Atualizar
           </Button>
         </div>
       ) : !w ? (
-        <p className="m-auto text-sm text-muted-foreground" aria-live="polite">
-          Carregando previsão…
-        </p>
+        <p className="m-auto text-sm text-muted-foreground" aria-live="polite">Carregando previsão…</p>
       ) : (
-        <div className="weather-summary flex min-h-0 flex-1 flex-col gap-2">
-          <div className="flex items-center gap-2 pt-1 pr-2">
-            <p className="weather-city flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
+        <div className={`weather-summary flex min-h-0 flex-1 flex-col${query.isFetching ? " weather-updating" : ""}`}>
+          <div className="weather-atmosphere" aria-hidden="true">
+            <span className="weather-atmosphere-orb" />
+            <span className="weather-atmosphere-cloud weather-atmosphere-cloud-a" />
+            <span className="weather-atmosphere-cloud weather-atmosphere-cloud-b" />
+          </div>
+
+          <div className="weather-topline">
+            <div className="weather-location">
+              <MapPin className="weather-location-icon" aria-hidden="true" />
               <span className="truncate">{w.city}</span>
-            </p>
-          </div>
-          <div className="weather-current flex min-h-0 min-w-0 flex-1 items-center gap-3">
-            <WeatherSymbol code={w.code} text={w.text} />
-            <div className="min-w-0 flex-1">
-              <p className="weather-temperature flex items-start font-display font-semibold leading-none tabular-nums">
-                {w.temp}<span className="weather-unit mt-1 font-medium">°C</span>
-              </p>
-              <p className="weather-condition mt-2 font-medium leading-tight text-muted-foreground">
-                {w.text}
-              </p>
             </div>
-            <div className="weather-measures ml-auto flex shrink-0 flex-col justify-center gap-2 text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Droplets className="size-3.5 weather-rain" />
-                {w.humidity}%
-              </span>
-              <span className="flex items-center gap-1">
-                <Wind className="size-3.5" />
-                {w.wind} km/h
-              </span>
-            </div>
+            <span className="weather-updated">{relativeUpdatedAt(w.updatedAt)}</span>
           </div>
-          <span className="weather-forecast-link mt-auto shrink-0 text-center font-semibold text-primary">Ver previsão completa</span>
+
+          <div className="weather-hero">
+            <div className="weather-reading">
+              <p className="weather-temperature">{w.temp}<span>°</span></p>
+              <p className="weather-condition">{w.text}</p>
+              <div className="weather-extremes" aria-label={`Máxima ${w.days[0]?.max} graus, mínima ${w.days[0]?.min} graus`}>
+                <span>↑ {w.days[0]?.max}°</span>
+                <span>↓ {w.days[0]?.min}°</span>
+              </div>
+            </div>
+            <WeatherSymbol code={w.code} text={w.text} large night={isNightBySun(w)} />
+          </div>
+
+          <div className="weather-forecast-medium">
+            <WeatherForecastStrip days={w.days} />
+          </div>
+
+          {query.isError && (
+            <span className="weather-offline" role="status">Sem conexão · mostrando última previsão</span>
+          )}
+          <div className="weather-forecast-link"><span>Ver previsão completa</span></div>
         </div>
       )}
     </WidgetCard>

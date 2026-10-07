@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { applyLauncherPrefs, setScreenBrightness, type NavApp } from "@/services/launcher-system";
+import { readStored, writeStored } from "@/services/storage";
+import { useNavigationApps } from "@/services/navigation-apps";
 
 export interface LauncherSettings {
   version: 1;
@@ -31,10 +33,10 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   buttonOpacity: 100,
 };
 
-function parse(raw: string | null): LauncherSettings {
-  if (!raw) return DEFAULT_SETTINGS;
+function normalize(value: unknown): LauncherSettings {
+  if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
   try {
-    const v = JSON.parse(raw) as Partial<LauncherSettings>;
+    const v = value as Partial<LauncherSettings>;
     if (v.version !== 1) return DEFAULT_SETTINGS;
     const bool = (x: unknown, d: boolean) => (typeof x === "boolean" ? x : d);
     return {
@@ -58,6 +60,23 @@ function parse(raw: string | null): LauncherSettings {
   }
 }
 
+function isLauncherSettings(value: unknown): value is LauncherSettings {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Partial<LauncherSettings>;
+  return v.version === 1 &&
+    typeof v.immersive === "boolean" &&
+    typeof v.keepScreenOn === "boolean" &&
+    typeof v.autostart === "boolean" &&
+    typeof v.clock24h === "boolean" &&
+    typeof v.animations === "boolean" &&
+    typeof v.brightness === "number" && v.brightness >= -1 && v.brightness <= 1 &&
+    typeof v.lastDestination === "string" &&
+    typeof v.buttonColor === "string" &&
+    typeof v.buttonOpacity === "number" &&
+    (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
+      (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
+}
+
 interface Ctx {
   settings: LauncherSettings;
   update: (patch: Partial<Omit<LauncherSettings, "version">>) => void;
@@ -66,9 +85,14 @@ const SettingsContext = createContext<Ctx | null>(null);
 
 export function LauncherSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const { apps: navigationApps, ready: navigationAppsReady } = useNavigationApps();
 
   useEffect(() => {
-    setSettings(parse(localStorage.getItem(KEY)));
+    setSettings(readStored(KEY, DEFAULT_SETTINGS, {
+      schema: 1,
+      validate: isLauncherSettings,
+      migrateLegacy: normalize,
+    }));
   }, []);
 
   useEffect(() => {
@@ -88,6 +112,17 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   }, [settings.animations]);
 
   useEffect(() => {
+    if (!navigationAppsReady || settings.navApp === "system") return;
+    if (!navigationApps.some((app) => app.id === settings.navApp)) {
+      setSettings((prev) => {
+        const next = { ...prev, navApp: "system" as NavApp };
+        try { writeStored(KEY, next, 1); } catch { /* keep in memory */ }
+        return next;
+      });
+    }
+  }, [navigationApps, navigationAppsReady, settings.navApp]);
+
+  useEffect(() => {
     if (typeof document === "undefined") return;
     if (settings.buttonColor) {
       document.documentElement.style.setProperty("--launcher-button-color", settings.buttonColor);
@@ -101,7 +136,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     setSettings((prev) => {
       const next = { ...prev, ...patch };
       try {
-        localStorage.setItem(KEY, JSON.stringify(next));
+        writeStored(KEY, next, 1);
       } catch {
         /* storage full: keep in memory */
       }

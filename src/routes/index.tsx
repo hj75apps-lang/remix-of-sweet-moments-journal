@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StatusBar } from "@/components/launcher/status-bar";
 import { Dock } from "@/components/launcher/dock";
+import { useEffect } from "react";
+import { markHomeVisible } from "@/services/startup-metrics";
 
 import { CustomizableHome } from "@/components/launcher/customizable-home";
 
@@ -26,6 +28,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  useEffect(() => {
+    markHomeVisible();
+  }, []);
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <StatusBar />

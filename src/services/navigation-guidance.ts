@@ -12,6 +12,12 @@ export interface NavGuidance {
   subText: string;
   /** Turn arrow image (data URL), empty when not provided. */
   icon: string;
+  /** Optional structured telemetry supplied by an integration. */
+  distanceMeters?: number;
+  remainingDistanceMeters?: number;
+  remainingDurationSeconds?: number;
+  etaEpochMs?: number;
+  maneuver?: string;
 }
 
 interface Listener {
@@ -38,6 +44,35 @@ function plugin(): Plugin | null {
   return (cap.Plugins?.["NowPlaying"] as Plugin | undefined) ?? null;
 }
 
+function parseDistance(value: string): number | undefined {
+  const match = value.match(/(\d+(?:[.,]\d+)?)\s*(km|m)\b/i);
+  if (!match) return undefined;
+  const number = Number(match[1] ?? "");
+  if (!Number.isFinite(number)) return undefined;
+  return (match[2] ?? "").toLowerCase() === "km" ? number * 1000 : number;
+}
+
+function parseDuration(value: string): number | undefined {
+  const hours = value.match(/(\d+)\s*h/i);
+  const minutes = value.match(/(\d+)\s*min/i);
+  if (!hours && !minutes) return undefined;
+  return (Number(hours?.[1] ?? 0) * 3600) + (Number(minutes?.[1] ?? 0) * 60);
+}
+
+export function normalizeGuidance(value: NavGuidance | null): NavGuidance | null {
+  if (!value) return null;
+  const combined = [value.title, value.text, value.subText].filter(Boolean).join(" · ");
+  const distance = value.remainingDistanceMeters ?? value.distanceMeters ?? parseDistance(combined);
+  const duration = value.remainingDurationSeconds ?? parseDuration(combined);
+  const normalized = { ...value, maneuver: value.maneuver ?? value.title };
+  if (distance !== undefined) {
+    normalized.distanceMeters = value.distanceMeters ?? distance;
+    normalized.remainingDistanceMeters = value.remainingDistanceMeters ?? distance;
+  }
+  if (duration !== undefined) normalized.remainingDurationSeconds = value.remainingDurationSeconds ?? duration;
+  return normalized;
+}
+
 export const requestGuidanceAccess = async (): Promise<void> => {
   await plugin()?.requestPermission();
 };
@@ -58,12 +93,12 @@ export function useNavGuidance(): { guidance: NavGuidance | null; access: boolea
         setAccess(r.granted);
         if (!r.granted) { setGuidance(null); return; }
         const current = await p.getNavigation();
-        if (!gone) setGuidance(current.guidance);
+        if (!gone) setGuidance(normalizeGuidance(current.guidance));
       } catch { /* retain last state during a temporary bridge failure */ }
     };
     void refresh();
     const remove = onLauncherResumed(() => void refresh());
-    void Promise.resolve(p.addListener("navigationChanged", (d) => { if (!gone) setGuidance(d.guidance); })).then(
+    void Promise.resolve(p.addListener("navigationChanged", (d) => { if (!gone) setGuidance(normalizeGuidance(d.guidance)); })).then(
       (h) => (gone ? void h.remove() : (handle = h)),
     ).catch(() => undefined);
     return () => {

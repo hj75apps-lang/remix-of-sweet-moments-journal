@@ -1,3 +1,5 @@
+import { buildNavigationUrl } from "./navigation-deep-link-manager";
+import { createNavigationConnectTrip } from "./navigation-connect";
 /**
  * Bridge to the native "LauncherSystem" plugin. Outside the Android app every
  * call reports "unavailable" instead of pretending to succeed.
@@ -37,8 +39,9 @@ interface LauncherSystemPlugin {
   applyPrefs(p: { immersive: boolean; keepScreenOn: boolean; autostart: boolean }): Promise<void>;
   setBrightness(p: { value: number }): Promise<void>;
   openHomeSettings(): Promise<void>;
+  requestDefaultHome(): Promise<{ supported?: boolean; requested?: boolean; isDefaultHome: boolean }>;
   openAppSettings(): Promise<void>;
-  navigate(p: { app: NavApp; destination?: string }): Promise<void>;
+  navigate(p: { app: NavApp; destination?: string; launchUrl?: string }): Promise<void>;
   resumeNavigation(p: { packageName: string }): Promise<void>;
   setVolume(p: { value: number }): Promise<{ volume: number; maxVolume: number }>;
   toggleMute(): Promise<{ muted: boolean }>;
@@ -84,6 +87,7 @@ export const setScreenBrightness = async (value: number): Promise<void> => {
   await plugin()?.setBrightness({ value });
 };
 export const openHomeSettings = (): Promise<void> => req().openHomeSettings();
+export const requestDefaultHome = () => req().requestDefaultHome();
 export const openAppSettings = (): Promise<void> => req().openAppSettings();
 export const setSystemVolume = (value: number) => req().setVolume({ value });
 export const toggleSystemMute = () => req().toggleMute();
@@ -95,12 +99,23 @@ export const getCallLog = async (): Promise<CallEntry[]> => (await req().getCall
 /** Opens navigation. In a browser, falls back to the official Google Maps / Waze web links. */
 export async function startNavigation(app: NavApp, destination: string): Promise<void> {
   const p = plugin();
+  const isTrackedApp = (app === "maps" || app === "waze") && destination.trim().length > 0;
+  if (isTrackedApp) {
+    try {
+      const trip = await createNavigationConnectTrip({ app, destination });
+      if (p) {
+        await p.navigate({ app, destination, launchUrl: trip.launchUrl });
+      } else {
+        window.open(trip.launchUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    } catch {
+      // Official telemetry is optional until the server/Google Cloud project is configured.
+      // Preserve the existing navigation behavior rather than blocking navigation.
+    }
+  }
   if (p) return p.navigate({ app, destination });
-  const q = encodeURIComponent(destination.trim());
-  const url =
-    app === "waze"
-      ? `https://waze.com/ul${q ? `?q=${q}&navigate=yes` : ""}`
-      : `https://www.google.com/maps/${q ? `dir/?api=1&destination=${q}` : ""}`;
+  const url = buildNavigationUrl({ app, destination });
   window.open(url, "_blank", "noopener,noreferrer");
 }
 

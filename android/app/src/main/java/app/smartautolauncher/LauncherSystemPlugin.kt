@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.os.Build
+import android.app.role.RoleManager
 import android.provider.CallLog
 import android.provider.ContactsContract
 import android.provider.Settings
@@ -113,7 +114,10 @@ class LauncherSystemPlugin : Plugin() {
             locationManager.removeUpdates(locationListener)
             val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).filter { locationManager.allProviders.contains(it) }
             providers.forEach { provider ->
-                locationManager.requestLocationUpdates(provider, 1000L, 2f, locationListener, Looper.getMainLooper())
+                locationManager.getLastKnownLocation(provider)?.let { locationListener.onLocationChanged(it) }
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.requestLocationUpdates(provider, 1000L, 2f, locationListener, Looper.getMainLooper())
+                }
             }
             if (providers.none { locationManager.isProviderEnabled(it) }) notifyListeners("locationChanged", JSObject().put("unavailable", true))
         } catch (_: SecurityException) { notifyListeners("locationChanged", JSObject().put("unavailable", true)) }
@@ -191,6 +195,26 @@ class LauncherSystemPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun requestDefaultHome(call: PluginCall) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return openHomeSettings(call)
+        val roles = context.getSystemService(RoleManager::class.java)
+        if (roles == null || !roles.isRoleAvailable(RoleManager.ROLE_HOME)) {
+            call.resolve(JSObject().put("supported", false).put("isDefaultHome", isDefaultHome()))
+            return
+        }
+        if (roles.isRoleHeld(RoleManager.ROLE_HOME)) {
+            call.resolve(JSObject().put("supported", true).put("isDefaultHome", true))
+            return
+        }
+        try {
+            activity?.startActivity(roles.createRequestRoleIntent(RoleManager.ROLE_HOME))
+            call.resolve(JSObject().put("supported", true).put("requested", true).put("isDefaultHome", false))
+        } catch (_: Exception) {
+            openHomeSettings(call)
+        }
+    }
+
+    @PluginMethod
     fun openHomeSettings(call: PluginCall) {
         start(Intent(Settings.ACTION_HOME_SETTINGS), call) ||
             start(Intent(Settings.ACTION_SETTINGS), call)
@@ -231,6 +255,7 @@ class LauncherSystemPlugin : Plugin() {
     fun navigate(call: PluginCall) {
         val app = call.getString("app") ?: "maps"
         val dest = call.getString("destination")?.trim().orEmpty().take(200)
+        val launchUrl = call.getString("launchUrl")?.trim().orEmpty()
         if (dest.isEmpty() && app != "system") {
             val pkg = when (app) { "maps" -> MAPS; "waze" -> WAZE; else -> app.removePrefix("package:") }
             val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
@@ -239,16 +264,22 @@ class LauncherSystemPlugin : Plugin() {
             return
         }
         val q = Uri.encode(dest)
-        val intent = when (app) {
+        val intent = if (launchUrl.isNotEmpty() && (app == "maps" || app == "waze")) {
+            val packageName = if (app == "maps") MAPS else WAZE
+            if (!installed(packageName)) return call.reject("not_installed")
+            Intent(Intent.ACTION_VIEW, Uri.parse(launchUrl)).setPackage(packageName).apply {
+                putExtra(Intent.EXTRA_REFERRER_NAME, "android-app://${context.packageName}")
+            }
+        } else when (app) {
             "waze" -> {
                 if (!installed(WAZE)) return call.reject("not_installed")
-                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "waze://" else "waze://?q=$q&navigate=yes")).setPackage(WAZE)
+                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "https://waze.com/ul?navigate=yes" else "https://waze.com/ul?q=$q&navigate=yes")).setPackage(WAZE)
             }
             "maps" -> {
                 if (!installed(MAPS)) return call.reject("not_installed")
-                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "geo:0,0" else "google.navigation:q=$q")).setPackage(MAPS)
+                Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "https://www.google.com/maps/@?api=1&map_action=map" else "https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving&dir_action=navigate")).setPackage(MAPS)
             }
-            "system" -> Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")), "Navegar com…")
+            "system" -> Intent.createChooser(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving&dir_action=navigate")), "Navegar com…")
             else -> {
                 if (!app.startsWith("package:")) return call.reject("not_installed")
                 val pkg = app.removePrefix("package:")
