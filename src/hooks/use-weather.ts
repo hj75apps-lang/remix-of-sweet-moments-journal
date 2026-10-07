@@ -2,12 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLocationOnce } from "@/services/location-store";
 import { readStored, writeStored } from "@/services/storage";
-import {
-  fetchWeather,
-  weatherPositionKey,
-  type WeatherPosition,
-  type WeatherReport,
-} from "@/services/weather";
+import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
 
 const POSITION_KEY = "sal.weather-pos";
 const WEATHER_KEY = "sal.weather-report";
@@ -65,6 +60,7 @@ export function useWeather() {
       if (cachedWeather)
         queryClient.setQueryData(["weather", weatherPositionKey(stored)], cachedWeather);
       setPosition(stored);
+      return;
     }
     locate();
   }, [locate, queryClient]);
