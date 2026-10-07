@@ -103,13 +103,17 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
     const marker = "sal.android-system-integration-v2";
-    if (localStorage.getItem(marker)) return;
-    setSettings((prev) => {
-      const next = { ...prev, immersive: false, keepScreenOn: false, autostart: false };
-      try { writeStored(KEY, next, 1); } catch { /* keep in memory */ }
-      return next;
-    });
-    localStorage.setItem(marker, "1");
+    try {
+      if (localStorage.getItem(marker)) return;
+      setSettings((prev) => {
+        const next = { ...prev, immersive: false, keepScreenOn: false, autostart: false };
+        writeStored(KEY, next, 1);
+        return next;
+      });
+      localStorage.setItem(marker, "1");
+    } catch {
+      // Storage can be unavailable in restricted WebViews; native defaults remain safe.
+    }
   }, []);
 
   useEffect(() => {
