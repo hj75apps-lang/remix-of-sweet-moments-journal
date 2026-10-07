@@ -2,7 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { createTrackedTrip, getTrackedTrip } from "./services/navigation-connect-server";
+import { createTrackedTrip, getTrackedTrip, createNavigationConnectAccessKey, verifyNavigationConnectAccessKey } from "./services/navigation-connect-server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -33,7 +33,8 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     "cache-control": "no-store",
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-headers": "content-type,x-navigation-connect-access-key",
+    "vary": "Origin",
   };
   if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
   try {
@@ -49,12 +50,21 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
         app: body.app,
         destination: String(body.destination ?? "").slice(0, 200),
       });
-      return new Response(JSON.stringify(trip), { status: 200, headers: cors });
+      const accessKey = await createNavigationConnectAccessKey(env as Record<string, unknown>, trip.tripId, trip.expiresAt);
+      return new Response(JSON.stringify(trip), {
+        status: 200,
+        headers: { ...cors, "x-navigation-connect-access-key": accessKey },
+      });
     }
 
     const match = url.pathname.match(/^\/api\/navigation\/trips\/([^/]+)$/);
     if (request.method === "GET" && match?.[1]) {
-      const telemetry = await getTrackedTrip(env as Record<string, unknown>, decodeURIComponent(match[1]));
+      const tripId = decodeURIComponent(match[1]);
+      const accessKey = request.headers.get("x-navigation-connect-access-key");
+      if (!accessKey || !(await verifyNavigationConnectAccessKey(env as Record<string, unknown>, tripId, accessKey))) {
+        return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors });
+      }
+      const telemetry = await getTrackedTrip(env as Record<string, unknown>, tripId);
       return new Response(JSON.stringify(telemetry), { status: 200, headers: cors });
     }
 
