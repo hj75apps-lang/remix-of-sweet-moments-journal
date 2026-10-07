@@ -37,6 +37,9 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     "vary": "Origin",
   };
   if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
+  if (allowedOrigin && requestOrigin !== allowedOrigin) {
+    return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: cors });
+  }
   try {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
