@@ -138,7 +138,7 @@ export function WeatherWidget() {
 
       {expanded && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-2 backdrop-blur-sm sm:p-4"
+          className="fixed inset-0 z-[100] flex min-h-0 items-stretch bg-background/95 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-label={`Previsão do tempo para ${w.city}`}
@@ -148,10 +148,10 @@ export function WeatherWidget() {
         >
           <section
             onClick={(event) => event.stopPropagation()}
-            className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl"
+            className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-card text-card-foreground"
           >
             <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center gap-2">
                 <CloudSun className="size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div className="min-w-0">
                   <h2 className="truncate text-base font-semibold sm:text-lg">Previsão do tempo</h2>
@@ -167,7 +167,7 @@ export function WeatherWidget() {
                 <X className="size-5" />
               </button>
             </header>
-            <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <WeatherDetails weather={w} />
             </div>
           </section>
