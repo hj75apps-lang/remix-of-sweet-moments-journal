@@ -379,6 +379,19 @@ body {
 @keyframes weather-snow-fall { 50%{transform:translateY(18px) translateX(5px)} }
 @keyframes weather-flash { 0%,88%,100%{opacity:.12}90%{opacity:.95}93%{opacity:.25} }
 @media (prefers-reduced-motion:reduce){.weather-widget *, .weather-widget *::before, .weather-widget *::after{animation:none!important}}
+@container widget (max-height:220px) {
+  .weather-summary { padding:.42rem .7rem; }
+  .weather-updated,.weather-condition,.weather-forecast-medium,.weather-forecast-link { display:none; }
+  .weather-hero { grid-template-columns:minmax(0,1fr) 5.25rem; gap:.35rem; flex:1; }
+  .weather-reading { display:flex; min-width:0; flex-direction:column; justify-content:center; }
+  .weather-temperature { font-size:min(25cqw,48cqh); line-height:.78; }
+  .weather-extremes { margin-top:.32rem; gap:.35rem; font-size:.78rem; }
+  .weather-extreme { min-width:3.65rem; padding:.18rem .4rem; gap:.25rem; }
+  .weather-extreme > span { font-size:.58rem; }
+  .weather-extreme b { font-size:.82rem; }
+  .weather-symbol-large { width:4.35rem; min-width:4.35rem; max-width:4.35rem; }
+  .weather-symbol-sun { width:72%; height:72%; top:4%; right:4%; }
+}
 @container widget (max-height:170px) {
   .weather-forecast-medium,.weather-condition,.weather-updated,.weather-forecast-link{display:none}
   .weather-summary{padding:.25rem .35rem}.weather-hero{grid-template-columns:minmax(0,1fr) minmax(4rem,35%)}
