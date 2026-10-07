@@ -244,7 +244,7 @@ class LauncherSystemPlugin : Plugin() {
             val packageName = if (app == "maps") MAPS else WAZE
             if (!installed(packageName)) return call.reject("not_installed")
             Intent(Intent.ACTION_VIEW, Uri.parse(launchUrl)).setPackage(packageName).apply {
-                putExtra(Intent.EXTRA_REFERRER_NAME, "android-app://$packageName")
+                putExtra(Intent.EXTRA_REFERRER_NAME, "android-app://${context.packageName}")
             }
         } else when (app) {
             "waze" -> {
