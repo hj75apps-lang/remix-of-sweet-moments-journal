@@ -120,14 +120,21 @@ export function WeatherWidget() {
 
   return (
     <>
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setExpanded(true);
+          }
+        }}
         aria-label={`Abrir previsão do tempo para ${w.city}`}
-        className="block h-full min-h-0 w-full rounded-3xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="block h-full min-h-0 w-full cursor-pointer rounded-3xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         {card}
-      </button>
+      </div>
 
       {expanded && (
         <div
@@ -139,7 +146,10 @@ export function WeatherWidget() {
             if (event.target === event.currentTarget) setExpanded(false);
           }}
         >
-          <section\n            onClick={(event) => event.stopPropagation()}\n            className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl"\n          >
+          <section
+            onClick={(event) => event.stopPropagation()}
+            className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl"
+          >
             <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
               <div className="flex min-w-0 items-center gap-2">
                 <CloudSun className="size-5 shrink-0 text-primary" aria-hidden="true" />
