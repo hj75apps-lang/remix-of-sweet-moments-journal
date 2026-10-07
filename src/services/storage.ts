@@ -16,7 +16,9 @@ function parse(raw: string | null): unknown {
 
 export function readStored<T>(key: string, fallback: T, options: StorageOptions<T>): T {
   if (typeof localStorage === "undefined") return fallback;
-  const value = parse(localStorage.getItem(key));
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(key); } catch { return fallback; }
+  const value = parse(raw);
   if (value && typeof value === "object" && "schema" in value && "data" in value) {
     const envelope = value as Partial<Envelope<unknown>>;
     if (envelope.schema === options.schema && options.validate(envelope.data)) return envelope.data;
@@ -40,5 +42,6 @@ export function writeStored<T>(key: string, data: T, schema: number): void {
 }
 
 export function removeStored(key: string): void {
-  if (typeof localStorage !== "undefined") localStorage.removeItem(key);
+  if (typeof localStorage === "undefined") return;
+  try { localStorage.removeItem(key); } catch { /* optional cache */ }
 }
