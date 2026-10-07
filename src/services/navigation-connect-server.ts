@@ -135,6 +135,14 @@ export async function createTrackedTrip(
   return { tripId, authToken: token, expiresAt, launchUrl: navLaunchUrl(input.app, input.destination, token) };
 }
 
+function durationSeconds(value?: string): number | undefined {
+  if (!value) return undefined;
+  const match = value.match(/^(-?\\d+(?:\\.\\d+)?)s$/);
+  if (!match) return undefined;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) ? seconds : undefined;
+}
+
 export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown> {
   const account = readServiceAccount(env);
   const project = projectId(env, account);
@@ -148,29 +156,37 @@ export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown>
     name?: string;
     state?: string;
     execution?: {
-      currentLocation?: { latitude?: number; longitude?: number };
-      eta?: string;
+      location?: { point?: { latitude?: number; longitude?: number } };
       remainingDistanceMeters?: number;
-      remainingTimeSeconds?: number;
-      remainingRoute?: { points?: Array<{ latitude?: number; longitude?: number }> };
+      remainingDuration?: string;
+      remainingRoute?: { simplePolyline?: { points?: Array<{ latitude?: number; longitude?: number }> } };
     };
     updateTime?: string;
   };
-  const location = payload.execution?.currentLocation;
-  const points = payload.execution?.remainingRoute?.points
+  const execution = payload.execution;
+  const location = execution?.location?.point;
+  const remainingDurationSeconds = durationSeconds(execution?.remainingDuration);
+  const etaEpochMs = remainingDurationSeconds !== undefined ? Date.now() + remainingDurationSeconds * 1000 : undefined;
+  const points = execution?.remainingRoute?.simplePolyline?.points
     ?.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))
     .map((point) => ({ latitude: Number(point.latitude), longitude: Number(point.longitude) })) ?? [];
+  const terminalStates = new Set(["ARRIVED", "FAILED", "CLIENT_ERROR", "CANCELED"]);
   return {
     tripId,
-    state: payload.state ?? "UNKNOWN",
-    active: !["COMPLETED", "CANCELLED", "FAILED", "UNKNOWN"].includes(payload.state ?? "UNKNOWN"),
+    state: payload.state ?? "STATE_UNSPECIFIED",
+    active: !terminalStates.has(payload.state ?? "STATE_UNSPECIFIED"),
     sourcePackage: null,
     latitude: location?.latitude,
     longitude: location?.longitude,
-    etaEpochMs: payload.execution?.eta ? Date.parse(payload.execution.eta) : undefined,
-    remainingDistanceMeters: payload.execution?.remainingDistanceMeters,
-    remainingDurationSeconds: payload.execution?.remainingTimeSeconds,
-    route: points.length ? { points, remainingDistanceMeters: payload.execution?.remainingDistanceMeters, remainingDurationSeconds: payload.execution?.remainingTimeSeconds, etaEpochMs: payload.execution?.eta ? Date.parse(payload.execution.eta) : undefined } : undefined,
+    etaEpochMs,
+    remainingDistanceMeters: execution?.remainingDistanceMeters,
+    remainingDurationSeconds,
+    route: points.length ? {
+      points,
+      remainingDistanceMeters: execution?.remainingDistanceMeters,
+      remainingDurationSeconds,
+      etaEpochMs,
+    } : undefined,
     updatedAt: payload.updateTime,
   };
 }
