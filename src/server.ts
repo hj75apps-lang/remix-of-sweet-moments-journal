@@ -55,7 +55,7 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
   const allowedOrigin =
     typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
       ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
-      : (typeof process !== "undefined" ? process.env?.NAVIGATION_CONNECT_ALLOWED_ORIGIN : undefined);
+      : (typeof process !== "undefined" ? process.env?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] : undefined);
   const requestOrigin = request.headers.get("origin");
   const cors: Record<string, string> = {
     "cache-control": "no-store",
