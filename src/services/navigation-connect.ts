@@ -27,38 +27,40 @@ export interface NavigationConnectTelemetry {
 }
 
 const API_BASE = (import.meta.env.VITE_NAVIGATION_CONNECT_API_BASE ?? "").replace(/\/$/, "");
-const ACTIVE_TRIP_KEY = "smart-auto-launcher:navigation-connect-trip:v1";
+const ACTIVE_TRIP_KEY = "smart-auto-launcher:navigation-connect-trip:v2";
 
 interface ActiveTripRecord {
   tripId: string;
   app: "maps" | "waze";
   expiresAt: string;
+  accessKey: string;
 }
 
-export function rememberNavigationConnectTrip(trip: Pick<NavigationConnectTrip, "tripId" | "expiresAt"> & { app: "maps" | "waze" }): void {
-  if (typeof localStorage === "undefined") return;
+export function rememberNavigationConnectTrip(trip: Pick<NavigationConnectTrip, "tripId" | "expiresAt"> & { app: "maps" | "waze"; accessKey: string }): void {
+  if (typeof sessionStorage === "undefined") return;
   try {
-    localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
+    // Google Navigation Connect authToken is never persisted client-side.
+    sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
   } catch { /* optional cache */ }
 }
 
 export function readNavigationConnectTrip(): ActiveTripRecord | null {
-  if (typeof localStorage === "undefined") return null;
+  if (typeof sessionStorage === "undefined") return null;
   try {
-    const value = JSON.parse(localStorage.getItem(ACTIVE_TRIP_KEY) ?? "null") as Partial<ActiveTripRecord> | null;
-    if (!value?.tripId || (value.app !== "maps" && value.app !== "waze")) return null;
+    const value = JSON.parse(sessionStorage.getItem(ACTIVE_TRIP_KEY) ?? "null") as Partial<ActiveTripRecord> | null;
+    if (!value?.tripId || !value.accessKey || (value.app !== "maps" && value.app !== "waze")) return null;
     if (value.expiresAt && Date.parse(value.expiresAt) <= Date.now()) {
-      localStorage.removeItem(ACTIVE_TRIP_KEY);
+      sessionStorage.removeItem(ACTIVE_TRIP_KEY);
       return null;
     }
-    return { tripId: value.tripId, app: value.app, expiresAt: value.expiresAt ?? "" };
+    return { tripId: value.tripId, app: value.app, expiresAt: value.expiresAt ?? "", accessKey: value.accessKey };
   } catch {
     return null;
   }
 }
 
 export function clearNavigationConnectTrip(): void {
-  if (typeof localStorage !== "undefined") localStorage.removeItem(ACTIVE_TRIP_KEY);
+  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(ACTIVE_TRIP_KEY);
 }
 
 function apiUrl(path: string): string {
@@ -78,21 +80,29 @@ export async function createNavigationConnectTrip(input: {
   const response = await fetch(apiUrl("/api/navigation/trips"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    credentials: "omit",
+    credentials: "same-origin",
     body: JSON.stringify(input),
   });
+  if (response.status === 401 || response.status === 403 || response.status === 404) throw new NavigationConnectUnauthorizedError();
   if (!response.ok) {
     const message = await response.text().catch(() => "");
     throw new Error(message || `Falha ao criar viagem oficial (${response.status})`);
   }
   const trip = await response.json() as NavigationConnectTrip;
-  rememberNavigationConnectTrip({ ...trip, app: input.app });
+  const accessKey = response.headers.get("x-navigation-connect-access-key");
+  if (!accessKey) throw new Error("Servidor não retornou a capacidade da viagem");
+  rememberNavigationConnectTrip({ ...trip, app: input.app, accessKey });
   return trip;
 }
 
-export async function getNavigationConnectTelemetry(tripId: string): Promise<NavigationConnectTelemetry> {
+export class NavigationConnectUnauthorizedError extends Error {
+  constructor() { super("Navigation Connect capability expired or unauthorized"); this.name = "NavigationConnectUnauthorizedError"; }
+}
+
+export async function getNavigationConnectTelemetry(tripId: string, accessKey: string): Promise<NavigationConnectTelemetry> {
   const response = await fetch(apiUrl(`/api/navigation/trips/${encodeURIComponent(tripId)}`), {
-    credentials: "omit",
+    headers: { "x-navigation-connect-access-key": accessKey },
+    credentials: "same-origin",
     cache: "no-store",
   });
   if (!response.ok) {
