@@ -27,6 +27,39 @@ export interface NavigationConnectTelemetry {
 }
 
 const API_BASE = (import.meta.env.VITE_NAVIGATION_CONNECT_API_BASE ?? "").replace(/\/$/, "");
+const ACTIVE_TRIP_KEY = "smart-auto-launcher:navigation-connect-trip:v1";
+
+interface ActiveTripRecord {
+  tripId: string;
+  app: "maps" | "waze";
+  expiresAt: string;
+}
+
+export function rememberNavigationConnectTrip(trip: Pick<NavigationConnectTrip, "tripId" | "expiresAt"> & { app: "maps" | "waze" }): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
+  } catch { /* optional cache */ }
+}
+
+export function readNavigationConnectTrip(): ActiveTripRecord | null {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const value = JSON.parse(localStorage.getItem(ACTIVE_TRIP_KEY) ?? "null") as Partial<ActiveTripRecord> | null;
+    if (!value?.tripId || (value.app !== "maps" && value.app !== "waze")) return null;
+    if (value.expiresAt && Date.parse(value.expiresAt) <= Date.now()) {
+      localStorage.removeItem(ACTIVE_TRIP_KEY);
+      return null;
+    }
+    return { tripId: value.tripId, app: value.app, expiresAt: value.expiresAt ?? "" };
+  } catch {
+    return null;
+  }
+}
+
+export function clearNavigationConnectTrip(): void {
+  if (typeof localStorage !== "undefined") localStorage.removeItem(ACTIVE_TRIP_KEY);
+}
 
 function apiUrl(path: string): string {
   return API_BASE ? `${API_BASE}${path}` : path;
@@ -52,7 +85,9 @@ export async function createNavigationConnectTrip(input: {
     const message = await response.text().catch(() => "");
     throw new Error(message || `Falha ao criar viagem oficial (${response.status})`);
   }
-  return response.json() as Promise<NavigationConnectTrip>;
+  const trip = await response.json() as NavigationConnectTrip;
+  rememberNavigationConnectTrip({ ...trip, app: input.app });
+  return trip;
 }
 
 export async function getNavigationConnectTelemetry(tripId: string): Promise<NavigationConnectTelemetry> {
