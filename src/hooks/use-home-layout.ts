@@ -18,27 +18,26 @@ export const defaultLayout: HomeLayout = {
 function isValid(value: unknown): value is HomeLayout {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<HomeLayout>;
-  return (
-    candidate.version === 2 &&
-    Array.isArray(candidate.items) &&
-    candidate.items.every((item) => {
-      if (!item || typeof item !== "object") return false;
-      const entry = item as Partial<HomeItem>;
-      if (typeof entry.ref !== "string") return false;
-      const validRef =
-        entry.type === "WIDGET"
-          ? entry.ref in widgetRefs
-          : entry.type === "APP"
-            ? entry.ref in appRefs
-            : false;
-      return (
-        typeof entry.id === "string" &&
-        validRef &&
-        typeof entry.size?.w === "number" &&
-        typeof entry.size.h === "number"
-      );
-    })
-  );
+  if (candidate.version !== 2 || !Array.isArray(candidate.items) || candidate.items.length > 24) return false;
+  const ids = new Set<string>();
+  return candidate.items.every((item) => {
+    if (!item || typeof item !== "object") return false;
+    const entry = item as Partial<HomeItem>;
+    if (typeof entry.id !== "string" || !entry.id || entry.id.length > 120 || ids.has(entry.id)) return false;
+    ids.add(entry.id);
+    if (typeof entry.ref !== "string") return false;
+    const validRef =
+      entry.type === "WIDGET"
+        ? entry.ref in widgetRefs
+        : entry.type === "APP"
+          ? entry.ref in appRefs
+          : false;
+    const w = entry.size?.w;
+    const h = entry.size?.h;
+    return validRef &&
+      typeof w === "number" && Number.isInteger(w) && w >= 1 && w <= 6 &&
+      typeof h === "number" && Number.isInteger(h) && h >= 1 && h <= 4;
+  });
 }
 
 const widgetRefs = { navigation: true, media: true, weather: true, favorites: true, clock: true };
