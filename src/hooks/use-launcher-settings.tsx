@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { applyLauncherPrefs, setScreenBrightness, type NavApp } from "@/services/launcher-system";
 import { readStored, writeStored } from "@/services/storage";
+import { useNavigationApps } from "@/services/navigation-apps";
 
 export interface LauncherSettings {
   version: 1;
@@ -84,6 +85,7 @@ const SettingsContext = createContext<Ctx | null>(null);
 
 export function LauncherSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const { apps: navigationApps, ready: navigationAppsReady } = useNavigationApps();
 
   useEffect(() => {
     setSettings(readStored(KEY, DEFAULT_SETTINGS, {
@@ -108,6 +110,17 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     document.documentElement.classList.toggle("reduce-motion", !settings.animations);
   }, [settings.animations]);
+
+  useEffect(() => {
+    if (!navigationAppsReady || settings.navApp === "system") return;
+    if (!navigationApps.some((app) => app.id === settings.navApp)) {
+      setSettings((prev) => {
+        const next = { ...prev, navApp: "system" as NavApp };
+        try { writeStored(KEY, next, 1); } catch { /* keep in memory */ }
+        return next;
+      });
+    }
+  }, [navigationApps, navigationAppsReady, settings.navApp]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
