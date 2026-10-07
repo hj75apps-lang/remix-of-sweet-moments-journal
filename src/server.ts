@@ -22,6 +22,11 @@ function navigationClientKey(request: Request): string {
 
 function allowNavigationCreate(request: Request): boolean {
   const now = Date.now();
+  if (navigationRateLimits.size > 1000) {
+    for (const [storedKey, entry] of navigationRateLimits) {
+      if (now - entry.windowStart >= NAVIGATION_RATE_WINDOW_MS) navigationRateLimits.delete(storedKey);
+    }
+  }
   const key = navigationClientKey(request);
   const current = navigationRateLimits.get(key);
   if (!current || now - current.windowStart >= NAVIGATION_RATE_WINDOW_MS) {
