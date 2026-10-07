@@ -4,6 +4,5 @@ export function markHomeVisible(): number | null {
   if (typeof performance === "undefined") return null;
   const elapsed = Math.round(performance.now() - startedAt);
   performance.mark("smart-auto-launcher:home-visible");
-  performance.measure("smart-auto-launcher:startup-to-home", { start: "navigationStart", end: "smart-auto-launcher:home-visible" });
   return elapsed;
 }
