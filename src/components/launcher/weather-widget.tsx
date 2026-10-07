@@ -1,9 +1,10 @@
-import { Link } from "@tanstack/react-router";
-import { CloudSun, LocateFixed, MapPin, RefreshCw } from "lucide-react";
+import { CloudSun, LocateFixed, MapPin, RefreshCw, X } from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
+import { WeatherDetails } from "@/components/weather/weather-details";
+import { useEffect, useState } from "react";
 
 function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
   const now = Date.now();
@@ -42,6 +43,16 @@ function WeatherForecastStrip({ days }: { days: { date: string; max: number; min
 
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [expanded]);
   const w = query.data;
 
   const card = (
@@ -108,12 +119,50 @@ export function WeatherWidget() {
   if (!w) return card;
 
   return (
-    <Link
-      to="/clima"
-      aria-label={`Abrir previsão completa para ${w.city}`}
-      className="block h-full min-h-0 rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-    >
-      {card}
-    </Link>
+    <>
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label={`Abrir previsão do tempo para ${w.city}`}
+        className="block h-full min-h-0 w-full rounded-3xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {card}
+      </button>
+
+      {expanded && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-2 backdrop-blur-sm sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Previsão do tempo para ${w.city}`}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setExpanded(false);
+          }}
+        >
+          <section className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl">
+            <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
+              <div className="flex min-w-0 items-center gap-2">
+                <CloudSun className="size-5 shrink-0 text-primary" aria-hidden="true" />
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-semibold sm:text-lg">Previsão do tempo</h2>
+                  <p className="truncate text-xs text-muted-foreground sm:text-sm">{w.city}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Fechar previsão"
+              >
+                <X className="size-5" />
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <WeatherDetails weather={w} />
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
