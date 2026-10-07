@@ -78,7 +78,7 @@ export async function createNavigationConnectTrip(input: {
   const response = await fetch(apiUrl("/api/navigation/trips"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    credentials: "include",
+    credentials: "omit",
     body: JSON.stringify(input),
   });
   if (!response.ok) {
@@ -92,7 +92,7 @@ export async function createNavigationConnectTrip(input: {
 
 export async function getNavigationConnectTelemetry(tripId: string): Promise<NavigationConnectTelemetry> {
   const response = await fetch(apiUrl(`/api/navigation/trips/${encodeURIComponent(tripId)}`), {
-    credentials: "include",
+    credentials: "omit",
     cache: "no-store",
   });
   if (!response.ok) {
