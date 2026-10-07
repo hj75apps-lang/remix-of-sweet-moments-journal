@@ -15,6 +15,7 @@ import {
   Wind,
   type LucideIcon,
 } from "lucide-react";
+import type { WeatherReport } from "@/services/weather";
 export function weatherIcon(code: number | undefined, description: string): LucideIcon {
   if (code === 0) return Sun;
   if (code === 1 || code === 2) return CloudSun;
