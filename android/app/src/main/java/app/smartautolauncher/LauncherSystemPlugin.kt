@@ -231,6 +231,7 @@ class LauncherSystemPlugin : Plugin() {
     fun navigate(call: PluginCall) {
         val app = call.getString("app") ?: "maps"
         val dest = call.getString("destination")?.trim().orEmpty().take(200)
+        val launchUrl = call.getString("launchUrl")?.trim().orEmpty()
         if (dest.isEmpty() && app != "system") {
             val pkg = when (app) { "maps" -> MAPS; "waze" -> WAZE; else -> app.removePrefix("package:") }
             val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
@@ -239,7 +240,13 @@ class LauncherSystemPlugin : Plugin() {
             return
         }
         val q = Uri.encode(dest)
-        val intent = when (app) {
+        val intent = if (launchUrl.isNotEmpty() && (app == "maps" || app == "waze")) {
+            val packageName = if (app == "maps") MAPS else WAZE
+            if (!installed(packageName)) return call.reject("not_installed")
+            Intent(Intent.ACTION_VIEW, Uri.parse(launchUrl)).setPackage(packageName).apply {
+                putExtra(Intent.EXTRA_REFERRER_NAME, "android-app://$packageName")
+            }
+        } else when (app) {
             "waze" -> {
                 if (!installed(WAZE)) return call.reject("not_installed")
                 Intent(Intent.ACTION_VIEW, Uri.parse(if (dest.isEmpty()) "https://waze.com/ul?navigate=yes" else "https://waze.com/ul?q=$q&navigate=yes")).setPackage(WAZE)
