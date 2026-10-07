@@ -174,7 +174,7 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     humidity: rounded(current.relative_humidity_2m),
     wind: rounded(current.wind_speed_10m),
     text: weatherDescription(current.weather_code),
-    ...(current.weather_code !== undefined ? { code: current.weather_code } : {}),
+    code: current.weather_code ?? -1,
     source: "Open-Meteo",
     updatedAt: Date.now(),
     ...(daily.sunrise?.[0] !== undefined ? { sunrise: daily.sunrise[0] } : {}),
