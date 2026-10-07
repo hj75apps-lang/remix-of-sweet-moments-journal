@@ -287,6 +287,18 @@ body {
   transition-duration: 0.01ms !important;
 }
 
+/* Clock typography follows its card, not the viewport; keep short-card rules from shrinking it. */
+.widget-inner .clock-time {
+  font-size: min(32cqw, 72cqh);
+  line-height: 0.9;
+}
+.widget-inner .clock-time-12h {
+  font-size: min(23cqw, 72cqh);
+}
+.widget-inner .clock-date {
+  font-size: min(4cqw, 12cqh, 1.125rem);
+}
+
 .map-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }

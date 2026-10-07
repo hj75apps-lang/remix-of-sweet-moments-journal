@@ -5,6 +5,11 @@ import { WidgetCard } from "./widget-card";
 export function ClockWidget() {
   const { settings } = useLauncherSettings();
   const now = useClock();
+  const weekday = now?.toLocaleDateString("pt-BR", { weekday: "long" });
+  const fullDate = now?.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+  const dateLabel = weekday && fullDate
+    ? `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} - ${fullDate}`
+    : "--";
   return (
     <WidgetCard
       title="Relógio"
@@ -13,7 +18,7 @@ export function ClockWidget() {
     >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col items-end justify-center gap-2 overflow-hidden text-right">
         <time
-          className="block max-w-full whitespace-nowrap font-['Arial_Black','Arial',sans-serif] text-[min(15cqw,50cqh,8rem)] font-black leading-none tracking-normal tabular-nums"
+          className={`clock-time ${settings.clock24h ? "" : "clock-time-12h"} block max-w-full whitespace-nowrap font-['Arial_Black','Arial',sans-serif] font-black tracking-normal tabular-nums`}
           dateTime={now?.toISOString()}
         >
           {now?.toLocaleTimeString("pt-BR", {
@@ -23,10 +28,10 @@ export function ClockWidget() {
           }) ?? "--:--"}
         </time>
         <time
-          className="block max-w-full whitespace-nowrap text-[min(6cqw,18cqh,1.125rem)] font-medium leading-tight text-muted-foreground tabular-nums"
+          className="clock-date block max-w-full whitespace-normal font-medium leading-tight text-muted-foreground"
           dateTime={now ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}` : undefined}
         >
-          {now?.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) ?? "--/--/----"}
+          {dateLabel}
         </time>
       </div>
     </WidgetCard>
