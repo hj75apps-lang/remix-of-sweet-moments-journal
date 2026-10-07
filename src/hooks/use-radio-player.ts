@@ -385,7 +385,7 @@ export function useRadioPlayer(options: Options = {}) {
   const setVolume = useCallback((v: number) => {
     const next = Math.min(1, Math.max(0, Number.isFinite(v) ? v : 0.8));
     setVolumeState(next);
-    safeSetItem(VOL_KEY, String(Math.min(1, Math.max(0, v))));
+    safeSetItem(VOL_KEY, String(next));
   }, []);
 
   const toggleFavorite = useCallback((s: RadioStation) => {
