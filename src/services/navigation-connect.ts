@@ -105,6 +105,9 @@ export async function getNavigationConnectTelemetry(tripId: string, accessKey: s
     credentials: "same-origin",
     cache: "no-store",
   });
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    throw new NavigationConnectUnauthorizedError();
+  }
   if (!response.ok) {
     const message = await response.text().catch(() => "");
     throw new Error(message || `Falha ao obter telemetria oficial (${response.status})`);
