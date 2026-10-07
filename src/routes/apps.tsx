@@ -101,6 +101,10 @@ function AppsPage() {
   const [page, setPage] = useState(0);
   const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const scroller = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, pages - 1));
+  }, [pages]);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const swipeLocked = useRef(false);
   const suppressClick = useRef(false);
