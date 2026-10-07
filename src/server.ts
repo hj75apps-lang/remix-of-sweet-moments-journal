@@ -10,6 +10,29 @@ type ServerEntry = {
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
+const navigationRateLimits = new Map<string, { windowStart: number; count: number }>();
+const NAVIGATION_RATE_WINDOW_MS = 60_000;
+const NAVIGATION_RATE_MAX = 5;
+
+function navigationClientKey(request: Request): string {
+  return request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+}
+
+function allowNavigationCreate(request: Request): boolean {
+  const now = Date.now();
+  const key = navigationClientKey(request);
+  const current = navigationRateLimits.get(key);
+  if (!current || now - current.windowStart >= NAVIGATION_RATE_WINDOW_MS) {
+    navigationRateLimits.set(key, { windowStart: now, count: 1 });
+    return true;
+  }
+  if (current.count >= NAVIGATION_RATE_MAX) return false;
+  current.count += 1;
+  return true;
+}
+
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
     serverEntryPromise = import("@tanstack/react-start/server-entry").then(
@@ -46,6 +69,12 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
       return new Response(null, { status: 204, headers: cors });
     }
     if (request.method === "POST" && url.pathname === "/api/navigation/trips") {
+      if (!allowNavigationCreate(request)) {
+        return new Response(JSON.stringify({ error: "rate_limited" }), {
+          status: 429,
+          headers: { ...cors, "retry-after": "60" },
+        });
+      }
       const body = await request.json() as { app?: string; destination?: string };
       if (body.app !== "maps" && body.app !== "waze") {
         return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
