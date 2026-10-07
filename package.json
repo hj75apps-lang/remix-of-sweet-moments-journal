@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:android": "env -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH CAPACITOR_BUILD=1 vite build && cap sync android"
+    "build:android": "env -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH CAPACITOR_BUILD=1 vite build && cap sync android",
+    "typecheck": "tsc --noEmit"
   },
   "overrides": {
     "rolldown": "1.2.1"

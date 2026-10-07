@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavGuidance } from "@/services/navigation-guidance";
-import { watchVehicle, type VehiclePosition } from "@/services/navigation-location";
+import { subscribeLocation } from "@/services/location-store";
+import type { VehiclePosition } from "@/services/navigation-location";
 import { onLauncherResumed } from "@/services/launcher-system";
 
 interface NavigationState {
@@ -37,12 +38,13 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const active = users > 0 && visible;
   useEffect(() => {
     if (!active) return;
-    return watchVehicle(fix => {
+    return subscribeLocation(fix => {
       if (!Number.isFinite(fix.latitude) || !Number.isFinite(fix.longitude)) return;
       if (fix.timestamp - lastFix.current < 1000) return;
       lastFix.current = fix.timestamp;
-      setPosition(fix); setLocating(false);
-    }, () => setLocating(true));
+      setPosition(fix);
+      setLocating(false);
+    });
   }, [active]);
   return <NavigationContext.Provider value={{ position, locating, online, guidance, access, acquireLocation }}>{children}</NavigationContext.Provider>;
 }
