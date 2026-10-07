@@ -19,9 +19,10 @@ import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+import { memo } from "react";
+
 const LONG_PRESS_MS = 500;
 
-import { memo } from "react";
 
 const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
   const navigate = useNavigate();
@@ -50,15 +51,7 @@ const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
     </Button>
   );
 });
-  const app = appRegistry[item.ref as AppId];
-  const Icon = app.icon;
-  const routes: Record<AppId, "/apps" | "/radio" | "/telefone" | "/ajustes"> = {
-    map: "/apps",
-    music: "/apps",
-    radio: "/radio",
-    phone: "/telefone",
-    settings: "/ajustes",
-  };
+
 
 
 interface TileProps {
