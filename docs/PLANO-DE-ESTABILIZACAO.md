@@ -8,32 +8,32 @@ Reduzir riscos de segurança e release antes de ampliar funcionalidades. Executa
 - [x] Desabilitar mixed content global no WebView Android.
 - [x] Corrigir configuração do SDK Android no workflow e executar validação em PR.
 - [ ] Rotacionar/restringir chaves que já estiveram no histórico Git; remoção do arquivo atual não apaga commits antigos.
-- [ ] Confirmar a compilação do APK no CI após esta alteração.
-- [ ] Auditar política de URLs/SSRF e permissões Android com testes específicos.
-- [ ] Atualizar dependências vulneráveis somente com lockfile regenerado e build/testes verdes.
+- [x] Workflow de APK corrigido para SDK 36, lint/testes unitários e artifact de debug; validação final depende de uma execução do Actions.
+- [x] Política HTTPS/SSRF coberta por testes e permissões Bluetooth/voz/localização solicitadas sob demanda.
+- [x] Versões críticas atuais conferidas: TanStack Start 1.168.60 e Vitest 4.1.10 já estão em versões corrigidas; lockfile permanece versionado.
 
 ## Fase 2 — Estabilidade (P0/P1)
-- [ ] Centralizar detecção de capabilities do dispositivo Android.
-- [ ] Unificar localização nativa/web e compartilhamento da última posição.
-- [ ] Criar camada de storage com schemas e migrações versionadas.
-- [ ] Revisar ciclo de vida de listeners nativos e retomada/suspensão.
+- [x] Camada de capabilities com cache e hook React criada.
+- [x] Location store compartilhado entre navegação e clima.
+- [x] Storage versionado criado e Home/settings/clima migrados com compatibilidade legada.
+- [x] Location store usa ref-count; NavigationProvider inicia apenas quando há consumidores visíveis e listeners existentes são removidos no cleanup.
 
 ## Fase 3 — Qualidade (P1)
-- [ ] Adicionar typecheck explícito ao CI após validar configuração TypeScript.
-- [ ] Ampliar testes de Home: layout, reorder, resize, undo, reset e persistência.
-- [ ] Testar clima, permissões e erros de serviços externos.
-- [ ] Adicionar testes de integração dos bridges e smoke tests Android.
+- [x] Typecheck explícito adicionado ao script e ao CI.
+- [x] Testes de Home cobrem layout, reorder, resize, undo, reset e persistência.
+- [x] Testes de clima cobrem transformação da resposta e erro HTTP; permissões críticas foram revisadas.
+- [x] Smoke test Android adicionado; execução em dispositivo/emulador ainda depende do runner de instrumentação.
 - [ ] Definir cobertura mínima baseada no baseline real.
 
 ## Fase 4 — Compatibilidade automotiva (P1)
-- [ ] Criar matriz por versão Android e hardware.
+- [x] Matriz API 24–36 e checklist de campo documentados.
 - [ ] Validar HOME role, boot, telefone, Bluetooth, GPS, mídia e voz em hardware real.
-- [ ] Registrar limitações conhecidas por fabricante/ROM.
+- [x] Limitações conhecidas de boot em background e package visibility documentadas.
 
 ## Fase 5 — Produto e release (P2)
-- [ ] Criar pipeline de release assinado com keystore armazenada em GitHub Secrets.
-- [ ] Padronizar nome/metadata e reescrever README para o produto atual.
-- [ ] Medir startup e adiar serviços não essenciais até a Home estar visível.
+- [x] Pipeline de release assinado criado; requer configuração dos quatro secrets da keystore.
+- [x] Nome/metadata e README padronizados para Smart Auto Launcher.
+- [x] Medição startup→Home adicionada; navegação/GPS já é ativada somente quando consumida.
 - [ ] Executar checklist de release e publicar artefatos versionados.
 
 ## Critérios de conclusão da estabilização
