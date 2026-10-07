@@ -60,7 +60,19 @@ function normalize(value: unknown): LauncherSettings {
 }
 
 function isLauncherSettings(value: unknown): value is LauncherSettings {
-  return normalize(value).version === 1;
+  if (!value || typeof value !== "object") return false;
+  const v = value as Partial<LauncherSettings>;
+  return v.version === 1 &&
+    typeof v.immersive === "boolean" &&
+    typeof v.keepScreenOn === "boolean" &&
+    typeof v.autostart === "boolean" &&
+    typeof v.clock24h === "boolean" &&
+    typeof v.animations === "boolean" &&
+    typeof v.lastDestination === "string" &&
+    typeof v.buttonColor === "string" &&
+    typeof v.buttonOpacity === "number" &&
+    (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
+      (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
 
 interface Ctx {
