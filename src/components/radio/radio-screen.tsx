@@ -492,7 +492,7 @@ export function RadioScreen() {
           {list.slice(0, 150).map((s) => {
             const active = current?.id === s.id;
             return (
-              <li key={s.id} className="flex items-center gap-1">
+              <li key={s.id} className="radio-station-row flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => player.play(s)}
