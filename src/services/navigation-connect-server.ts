@@ -130,7 +130,7 @@ export async function verifyNavigationConnectAccessKey(env: Env, tripId: string,
     const actual = decodeBase64Url(accessKey.slice(separator + 1));
     if (expected.length !== actual.length) return false;
     let diff = 0;
-    for (let i = 0; i < expected.length; i += 1) diff |= expected[i] ^ actual[i];
+    for (let i = 0; i < expected.length; i += 1) diff |= (expected[i] ?? 0) ^ (actual[i] ?? 0);
     return diff === 0;
   } catch { return false; }
 }
