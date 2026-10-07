@@ -1,15 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { CloudSun, Droplets, LocateFixed, MapPin, RefreshCw, Wind } from "lucide-react";
+import { CloudSun, Droplets, LocateFixed, RefreshCw, Wind } from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
-import { shortWeekday, weatherIcon } from "@/components/weather/weather-details";
+import { WeatherSymbol } from "@/components/weather/weather-symbol";
 
 /** Weather card: GPS position -> current conditions and 5-day forecast. */
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
   const w = query.data;
-  const CurrentWeatherIcon = w ? weatherIcon(w.code, w.text) : CloudSun;
 
   const card = (
     <WidgetCard
@@ -52,27 +51,25 @@ export function WeatherWidget() {
           Carregando previsão…
         </p>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between gap-2 pt-1 pr-2">
-            <div />
-            <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground">
-              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+        <div className="weather-summary flex min-h-0 flex-1 flex-col gap-2">
+          <div className="flex items-center gap-2 pt-1 pr-2">
+            <p className="weather-city flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
               <span className="truncate">{w.city}</span>
             </p>
           </div>
-          <div className="flex min-h-0 min-w-0 flex-1 items-center gap-3">
-            <CurrentWeatherIcon className="size-[4.913rem] shrink-0 text-primary" aria-label={w.text} />
-            <div className="min-w-0">
-              <p className="font-display text-[clamp(2.125rem,76.5cqh,3.825rem)] font-semibold leading-none">
-                {w.temp}°
+          <div className="weather-current flex min-h-0 min-w-0 flex-1 items-center gap-3">
+            <WeatherSymbol code={w.code} text={w.text} />
+            <div className="min-w-0 flex-1">
+              <p className="weather-temperature flex items-start font-display font-semibold leading-none tabular-nums">
+                {w.temp}<span className="weather-unit mt-1 font-medium">°C</span>
               </p>
-              <p className="truncate text-[clamp(0.6875rem,18cqh,0.875rem)] text-muted-foreground">
-                {w.text} · sensação {w.feels}°
+              <p className="weather-condition mt-2 font-medium leading-tight text-muted-foreground">
+                {w.text}
               </p>
             </div>
-            <div className="ml-auto flex shrink-0 flex-col justify-center gap-[min(0.25rem,4cqh)] text-[clamp(0.625rem,16cqh,0.75rem)] text-muted-foreground">
+            <div className="weather-measures ml-auto flex shrink-0 flex-col justify-center gap-2 text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Droplets className="size-3.5" />
+                <Droplets className="size-3.5 weather-rain" />
                 {w.humidity}%
               </span>
               <span className="flex items-center gap-1">
@@ -81,28 +78,7 @@ export function WeatherWidget() {
               </span>
             </div>
           </div>
-          <ul
-            className="wx-days mt-auto grid shrink-0 grid-cols-5 gap-1"
-            aria-label="Previsão dos próximos dias"
-          >
-            {w.days.slice(0, 5).map((d) => {
-              const DayIcon = weatherIcon(d.code, d.text);
-              return (
-                <li
-                  key={d.date}
-                  className="flex min-w-0 flex-col items-center gap-0.5 rounded-xl bg-secondary/60 py-1 text-xs"
-                  title={d.text}
-                >
-                  <span className="font-semibold capitalize">{shortWeekday(d.date)}</span>
-                  <DayIcon className="size-4 text-primary" aria-label={d.text} />
-                  <span>
-                    {d.max}° <span className="text-muted-foreground">{d.min}°</span>
-                  </span>
-                  <span className="text-[0.625rem] text-muted-foreground">{d.rain}% chuva</span>
-                </li>
-              );
-            })}
-          </ul>
+          <span className="weather-forecast-link mt-auto shrink-0 text-center font-semibold text-primary">Ver previsão completa</span>
         </div>
       )}
     </WidgetCard>
