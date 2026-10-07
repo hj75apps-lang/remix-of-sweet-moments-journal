@@ -22,7 +22,7 @@ export function NavigationWidget() {
   const [visible, setVisible] = useState(true);
   const section = useRef<HTMLElement | null>(null);
   const missing = ready && settings.navApp !== "system" && !apps.some(a => a.id === settings.navApp);
-  useEffect(() => { if (visible) return acquireLocation(); }, [visible, acquireLocation]);
+  useEffect(() => { if (!visible) return; return acquireLocation(); }, [visible, acquireLocation]);
   useEffect(() => {
     if (!section.current || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? false));

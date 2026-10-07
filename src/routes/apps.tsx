@@ -289,7 +289,7 @@ function AppsPage() {
 }
 
 interface SortableAppItemProps {
-  app: ReturnType<typeof listInstalledApps>[number] extends Promise<infer T> ? (T extends (infer U)[] ? U : never) : never;
+  app: Awaited<ReturnType<typeof listInstalledApps>>[number];
   editing: boolean;
   onStartEditing: () => void;
 }
