@@ -44,9 +44,9 @@ function normalize(value: unknown): LauncherSettings {
     return {
       version: 1,
       navApp: v.navApp === "waze" || v.navApp === "system" || (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)) ? v.navApp as NavApp : "maps",
-      immersive: bool(v.immersive, true),
-      keepScreenOn: bool(v.keepScreenOn, true),
-      autostart: bool(v.autostart, true),
+      immersive: bool(v.immersive, false),
+      keepScreenOn: bool(v.keepScreenOn, false),
+      autostart: bool(v.autostart, false),
       clock24h: bool(v.clock24h, true),
       brightness:
         typeof v.brightness === "number" && v.brightness >= -1 && v.brightness <= 1
