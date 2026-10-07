@@ -96,9 +96,9 @@ function tripUrl(project: string, tripId?: string): string {
 function navLaunchUrl(app: "maps" | "waze", destination: string, token: string): string {
   const encoded = encodeURIComponent(destination.trim());
   if (app === "waze") {
-    return `https://waze.com/ul?q=${encoded}&navigate=yes&token=${encodeURIComponent(token)}`;
+    return `https://waze.com/ul?q=${encoded}&navigate=yes&external_trip_token=${encodeURIComponent(token)}`;
   }
-  return `https://www.google.com/maps/dir/?api=1&destination=${encoded}&travelmode=driving&dir_action=navigate&navconnect=${encodeURIComponent(token)}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encoded}&dir_action=navigate&action_token=${encodeURIComponent(token)}`;
 }
 
 export async function createTrackedTrip(
