@@ -25,7 +25,6 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 /** Shared day/night state. The vehicle's night signal temporarily overrides the saved preference. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preferredMode, setPreferredMode] = useState<ThemeMode>("dark");
-  const [hasManualPreference, setHasManualPreference] = useState(false);
   const [automaticNight, setAutomaticNight] = useState(false);
   // Vehicle headlights have priority while they are on. When they turn off,
   // the user's saved preference is restored automatically.
@@ -35,7 +34,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === "light" || saved === "dark") {
       setPreferredMode(saved);
-      setHasManualPreference(true);
     }
 
     void getConnectivity()
@@ -56,7 +54,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [mode]);
 
   const setMode = useCallback((nextMode: ThemeMode) => {
-    setHasManualPreference(true);
     setPreferredMode(nextMode);
     localStorage.setItem(STORAGE_KEY, nextMode);
   }, []);
@@ -77,7 +74,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setMode,
       toggle,
     }),
-    [automaticNight, hasManualPreference, mode, preferredMode, setMode, toggle],
+    [automaticNight, mode, preferredMode, setMode, toggle],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
