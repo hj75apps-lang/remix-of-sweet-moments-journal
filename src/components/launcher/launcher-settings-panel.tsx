@@ -24,11 +24,16 @@ const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
 
 const card = "rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]";
 
+const FONT_SCALES = new Set(["24px", "26px", "28px"]);
+
+function readFontScale(): string {
+  if (typeof window === "undefined") return "24px";
+  const stored = localStorage.getItem("smart_auto_font_scale") ?? localStorage.getItem("font_size");
+  return stored && FONT_SCALES.has(stored) ? stored : "24px";
+}
+
 export function LauncherSettingsPanel() {
-  const [fontScale, setFontScale] = useState<string>(() => {
-    if (typeof window === "undefined") return "24px";
-    return localStorage.getItem("smart_auto_font_scale") || localStorage.getItem("font_size") || "24px";
-  });
+  const [fontScale, setFontScale] = useState<string>(readFontScale);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
