@@ -32,8 +32,10 @@ export function LauncherSettingsPanel() {
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+    // Keep the browser root size fixed: changing html { font-size } would
+    // rescale every rem-based dimension in the launcher when this page mounts.
     document.documentElement.style.setProperty("--font-scale", fontScale);
-    document.documentElement.style.fontSize = fontScale;
+    document.documentElement.style.removeProperty("font-size");
     localStorage.setItem("smart_auto_font_scale", fontScale);
     localStorage.setItem("font_size", fontScale);
   }, [fontScale]);
