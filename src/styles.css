@@ -162,7 +162,6 @@
     transition-property: color, background-color, border-color, opacity, transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 100ms;
-    will-change: transform;
   }
   h1,
   h2,
@@ -202,7 +201,13 @@ body {
       color-mix(in oklab, var(--glass-glow-2) calc(var(--glass) * 100%), transparent),
       transparent 50%
     );
-  background-attachment: fixed;
+  background-attachment: scroll;
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+  body {
+    background-attachment: fixed;
+  }
 }
 .bg-background {
   background-color: color-mix(
