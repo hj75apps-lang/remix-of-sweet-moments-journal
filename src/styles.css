@@ -395,6 +395,13 @@ body {
 @container widget (min-width:430px) and (min-height:230px) {
   .weather-hero{grid-template-columns:minmax(0,1fr) minmax(9rem,43%)}.weather-symbol-large{width:min(42cqw,45cqh)}
 }
+.weather-hour-card .weather-symbol { width: 1.35rem; min-width: 1.35rem; margin: .15rem auto; }
+.weather-day-detail .weather-symbol { width: min(2.25rem, 11cqw); min-width: 2rem; margin: 0 auto; }
+.weather-hourly-strip { scrollbar-width: thin; }
+.weather-details-panel .weather-symbol-glow { opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  .weather-details-panel * { scroll-behavior: auto; }
+}
 
 .map-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
