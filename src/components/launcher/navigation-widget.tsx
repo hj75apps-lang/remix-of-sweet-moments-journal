@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 
 const LiveMap = lazy(() => import("./live-map"));
 
-const APPS: Array<{ id: NavApp; label: string }> = [
-  { id: "maps", label: "Maps" },
-  { id: "waze", label: "Waze" },
+const APPS: Array<{ id: NavApp; label: string; appLabel: string }> = [
+  { id: "maps", label: "Google Maps", appLabel: "Google Maps" },
+  { id: "waze", label: "Waze", appLabel: "Waze" },
 ];
 const APP_NAME: Record<string, string> = {
   "com.google.android.apps.maps": "Google Maps",
