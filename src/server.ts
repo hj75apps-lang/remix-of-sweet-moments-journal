@@ -34,6 +34,7 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-headers": "content-type,x-navigation-connect-access-key",
+    "access-control-expose-headers": "x-navigation-connect-access-key",
     "vary": "Origin",
   };
   if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
