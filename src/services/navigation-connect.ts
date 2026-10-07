@@ -26,7 +26,7 @@ export interface NavigationConnectTelemetry {
   updatedAt?: string;
 }
 
-const API_BASE = (import.meta.env.VITE_NAVIGATION_CONNECT_API_BASE ?? "").replace(/\/$/, "");
+const API_BASE = (import.meta.env["VITE_NAVIGATION_CONNECT_API_BASE"] ?? "").replace(/\/$/, "");
 const ACTIVE_TRIP_KEY = "smart-auto-launcher:navigation-connect-trip:v2";
 
 interface ActiveTripRecord {
