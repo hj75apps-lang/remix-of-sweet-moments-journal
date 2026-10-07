@@ -89,7 +89,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
           {weather.hours.slice(0, 8).map((hour, index) => (
             <div key={hour.time} className="weather-hour-card min-w-[4.25rem] rounded-xl bg-secondary/55 px-2 py-2 text-center">
               <span className="block text-[10px] font-semibold uppercase text-muted-foreground">{hourLabel(hour.time, index)}</span>
-              <CloudSun className="mx-auto my-1 size-5 text-primary" aria-label={hour.text} />
+              <WeatherSymbol code={hour.code} text={hour.text} />
               <strong className="block text-sm">{hour.temp}°</strong>
               {hour.rain > 0 && <span className="mt-0.5 block text-[10px] text-muted-foreground">💧 {hour.rain}%</span>}
             </div>
@@ -106,7 +106,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
                 <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">{fullDay(day.date)}</p>
                 <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">{day.text}</p>
               </div>
-              <CloudSun className="size-7 shrink-0 text-primary sm:mx-auto sm:size-9" aria-hidden="true" />
+              <WeatherSymbol code={day.code} text={day.text} />
               <div className="grid grid-cols-3 gap-1 text-center text-xs sm:mt-auto sm:border-t sm:pt-2">
                 <div><Thermometer className="mx-auto hidden size-3.5 text-primary sm:block" /><span className="font-semibold">{day.max}°</span><span className="block text-[10px] text-muted-foreground">máx.</span></div>
                 <div><Thermometer className="mx-auto hidden size-3.5 text-muted-foreground sm:block" /><span className="font-semibold">{day.min}°</span><span className="block text-[10px] text-muted-foreground">mín.</span></div>
