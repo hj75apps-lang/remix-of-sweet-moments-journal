@@ -19,7 +19,7 @@ function isPosition(value: unknown): value is WeatherPosition {
 }
 
 function readStoredPosition(): WeatherPosition | null {
-  return readStored(POSITION_KEY, null, {
+  return readStored<WeatherPosition | null>(POSITION_KEY, null, {
     schema: 1,
     validate: isPosition,
     migrateLegacy: (value) => (isPosition(value) ? value : null),
@@ -33,7 +33,7 @@ function isWeather(value: unknown): value is WeatherReport {
 }
 
 function readStoredWeather(): WeatherReport | undefined {
-  return readStored(WEATHER_KEY, undefined, {
+  return readStored<WeatherReport | undefined>(WEATHER_KEY, undefined, {
     schema: 1,
     validate: isWeather,
     migrateLegacy: (value) => (isWeather(value) ? value : null),
