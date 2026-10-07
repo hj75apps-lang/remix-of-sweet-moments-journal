@@ -27,7 +27,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preferredMode, setPreferredMode] = useState<ThemeMode>("dark");
   const [hasManualPreference, setHasManualPreference] = useState(false);
   const [automaticNight, setAutomaticNight] = useState(false);
-  const mode: ThemeMode = !hasManualPreference && automaticNight ? "dark" : preferredMode;
+  // Vehicle headlights have priority while they are on. When they turn off,
+  // the user's saved preference is restored automatically.
+  const mode: ThemeMode = automaticNight ? "dark" : preferredMode;
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
