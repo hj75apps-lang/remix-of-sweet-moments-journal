@@ -31,7 +31,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const mode: ThemeMode = automaticNight ? "dark" : preferredMode;
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(STORAGE_KEY); } catch { /* optional preference */ }
     if (saved === "light" || saved === "dark") {
       setPreferredMode(saved);
     }
@@ -55,13 +56,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setMode = useCallback((nextMode: ThemeMode) => {
     setPreferredMode(nextMode);
-    localStorage.setItem(STORAGE_KEY, nextMode);
+    try { localStorage.setItem(STORAGE_KEY, nextMode); } catch { /* optional preference */ }
   }, []);
   const toggle = useCallback(() => {
     setHasManualPreference(true);
     setPreferredMode((current) => {
       const next = current === "dark" ? "light" : "dark";
-      localStorage.setItem(STORAGE_KEY, next);
+      try { localStorage.setItem(STORAGE_KEY, next); } catch { /* optional preference */ }
       return next;
     });
   }, []);
