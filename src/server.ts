@@ -24,8 +24,22 @@ async function getServerEntry(): Promise<ServerEntry> {
 async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/navigation/trips")) return null;
-  const cors = { "cache-control": "no-store", "content-type": "application/json; charset=utf-8" };
+  const allowedOrigin =
+    typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
+      ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
+      : (typeof process !== "undefined" ? process.env?.NAVIGATION_CONNECT_ALLOWED_ORIGIN : undefined);
+  const requestOrigin = request.headers.get("origin");
+  const cors: Record<string, string> = {
+    "cache-control": "no-store",
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type",
+  };
+  if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
   try {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: cors });
+    }
     if (request.method === "POST" && url.pathname === "/api/navigation/trips") {
       const body = await request.json() as { app?: string; destination?: string };
       if (body.app !== "maps" && body.app !== "waze") {
