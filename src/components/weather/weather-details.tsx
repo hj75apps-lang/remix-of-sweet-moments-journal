@@ -33,10 +33,11 @@ export function weatherIcon(code: number | undefined, description: string): Luci
   return CloudSun;
 }
 export function shortWeekday(date: string) {
+  if (index === 0) return "Hoje";
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
 }
 
-function fullDay(date: string) {
+function fullDay(date: string, index: number) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", {
     weekday: "long", day: "2-digit", month: "short",
   }).replace(".", "");
@@ -54,7 +55,7 @@ function clockLabel(value?: string) {
 
 export function WeatherDetails({ weather }: { weather: WeatherReport }) {
   return (
-    <div className="weather-details-panel grid min-h-0 flex-1 grid-rows-[auto_auto_minmax(0,auto)_minmax(0,1fr)] overflow-hidden p-3 sm:p-4 lg:p-5">
+    <div className="weather-details-panel mx-auto grid min-h-full w-full max-w-7xl grid-rows-[auto_auto_auto_minmax(0,1fr)] p-3 sm:p-5 lg:p-7">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 pb-3">
         <div className="min-w-0">
           <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl">
@@ -101,10 +102,10 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
       <section aria-labelledby="five-day-title" className="flex min-h-0 flex-col pt-3 sm:pt-4">
         <h2 id="five-day-title" className="text-sm font-semibold sm:text-base">Próximos 5 dias</h2>
         <ul className="mt-2 grid min-h-0 flex-1 grid-rows-5 gap-1.5 sm:grid-cols-5 sm:grid-rows-1 sm:gap-2">
-          {weather.days.slice(0, 5).map((day) => (
+          {weather.days.slice(0, 6).map((day, index) => (
             <li key={day.date} className="weather-day-detail grid min-h-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-xl border bg-secondary/35 px-2.5 py-1.5 sm:flex sm:flex-col sm:items-stretch sm:p-2.5">
               <div className="min-w-0 sm:text-center">
-                <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">{fullDay(day.date)}</p>
+                <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">{fullDay(day.date, index)}</p>
                 <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">{day.text}</p>
               </div>
               {(() => { const DayIcon = weatherIcon(day.code, day.text); return <DayIcon className="size-7 shrink-0 text-primary sm:mx-auto sm:size-9" aria-label={day.text} />; })()}
