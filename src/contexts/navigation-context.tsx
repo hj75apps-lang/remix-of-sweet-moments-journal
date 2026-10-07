@@ -42,8 +42,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       if (!Number.isFinite(fix.latitude) || !Number.isFinite(fix.longitude)) return;
       if (fix.timestamp - lastFix.current < 1000) return;
       lastFix.current = fix.timestamp;
-      setPosition(fix); setLocating(false);
-    }, () => setLocating(true));
+      setPosition(fix);
+      setLocating(false);
+    });
   }, [active]);
   return <NavigationContext.Provider value={{ position, locating, online, guidance, access, acquireLocation }}>{children}</NavigationContext.Provider>;
 }
