@@ -18,6 +18,7 @@ import { RadioPlayerProvider } from "@/contexts/radio-player-context";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { LauncherSettingsProvider } from "@/hooks/use-launcher-settings";
 import { VoiceControlProvider } from "@/contexts/voice-control-context";
+import { NavigationProvider } from "@/contexts/navigation-context";
 
 function NotFoundComponent() {
   return (
@@ -145,7 +146,9 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <RadioPlayerProvider>
             <VoiceControlProvider>
+              <NavigationProvider>
               <Outlet />
+              </NavigationProvider>
             </VoiceControlProvider>
           </RadioPlayerProvider>
           <Toaster />

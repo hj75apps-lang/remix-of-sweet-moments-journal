@@ -18,7 +18,7 @@ export interface DeviceInfo {
   maxVolume: number;
   muted: boolean;
 }
-export type NavApp = "maps" | "waze" | "system";
+export type NavApp = "maps" | "waze" | "system" | `package:${string}`;
 export interface Contact {
   name: string;
   number: string;
@@ -39,6 +39,7 @@ interface LauncherSystemPlugin {
   openHomeSettings(): Promise<void>;
   openAppSettings(): Promise<void>;
   navigate(p: { app: NavApp; destination?: string }): Promise<void>;
+  resumeNavigation(p: { packageName: string }): Promise<void>;
   setVolume(p: { value: number }): Promise<{ volume: number; maxVolume: number }>;
   toggleMute(): Promise<{ muted: boolean }>;
   mediaKey(p: { key: "forward" | "rewind" | "next" | "previous" | "toggle" }): Promise<void>;
@@ -101,6 +102,13 @@ export async function startNavigation(app: NavApp, destination: string): Promise
       ? `https://waze.com/ul${q ? `?q=${q}&navigate=yes` : ""}`
       : `https://www.google.com/maps/${q ? `dir/?api=1&destination=${q}` : ""}`;
   window.open(url, "_blank", "noopener,noreferrer");
+}
+
+/** Resume the navigation app's current activity without starting a replacement route. */
+export async function resumeNavigation(packageName: string, fallback: NavApp): Promise<void> {
+  const p = plugin();
+  if (p) return p.resumeNavigation({ packageName });
+  return startNavigation(fallback, "");
 }
 
 export function onLauncherResumed(cb: () => void): () => void {
