@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.os.Build
+import android.app.role.RoleManager
 import android.provider.CallLog
 import android.provider.ContactsContract
 import android.provider.Settings
@@ -187,6 +188,26 @@ class LauncherSystemPlugin : Plugin() {
             lp.screenBrightness = if (v < 0) WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE else v.coerceIn(0.05f, 1f)
             act.window.attributes = lp
             call.resolve()
+        }
+    }
+
+    @PluginMethod
+    fun requestDefaultHome(call: PluginCall) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return openHomeSettings(call)
+        val roles = context.getSystemService(RoleManager::class.java)
+        if (roles == null || !roles.isRoleAvailable(RoleManager.ROLE_HOME)) {
+            call.resolve(JSObject().put("supported", false).put("isDefaultHome", isDefaultHome()))
+            return
+        }
+        if (roles.isRoleHeld(RoleManager.ROLE_HOME)) {
+            call.resolve(JSObject().put("supported", true).put("isDefaultHome", true))
+            return
+        }
+        try {
+            activity?.startActivity(roles.createRequestRoleIntent(RoleManager.ROLE_HOME))
+            call.resolve(JSObject().put("supported", true).put("requested", true).put("isDefaultHome", false))
+        } catch (_: Exception) {
+            openHomeSettings(call)
         }
     }
 
