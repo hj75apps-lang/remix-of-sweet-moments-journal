@@ -44,7 +44,7 @@ export function NavigationWidget() {
   return (
     <section
       aria-label="Navegação"
-      className="widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card shadow-[var(--shadow-card)]"
+      className="widget relative h-full min-h-0 overflow-hidden rounded-3xl border border-white/20 bg-card shadow-[var(--shadow-card)] ring-1 ring-white/10 backdrop-blur-md"
     >
       <ClientOnly fallback={<div className="absolute inset-0 bg-[image:var(--gradient-map)]" />}>
         <Suspense fallback={<div className="absolute inset-0 bg-[image:var(--gradient-map)]" />}>

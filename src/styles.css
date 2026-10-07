@@ -224,6 +224,11 @@ body {
 .bg-card {
   background-color: color-mix(in oklab, var(--card) var(--glass-fill), transparent);
 }
+
+.nav-glass-card {
+  border: 1px solid oklch(1 0 0 / calc(var(--glass, 0.5) * 45%));
+  box-shadow: 0 0 25px -5px oklch(0.68 0.17 250 / 30%), inset 0 1px 1px 0 oklch(1 0 0 / 50%);
+}
 .bg-sidebar {
   background-color: color-mix(in oklab, var(--sidebar) var(--glass-fill), transparent);
 }
