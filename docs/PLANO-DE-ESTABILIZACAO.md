@@ -23,18 +23,18 @@ Reduzir riscos de segurança e release antes de ampliar funcionalidades. Executa
 - [x] Testes de Home cobrem layout, reorder, resize, undo, reset e persistência.
 - [x] Testes de clima cobrem transformação da resposta e erro HTTP; permissões críticas foram revisadas.
 - [x] Smoke test Android adicionado; execução em dispositivo/emulador ainda depende do runner de instrumentação.
-- [ ] Definir cobertura mínima baseada no baseline real.
+- [x] Testes unitários de Navigation Connect cobrem capability válida, adulteração e expiração; cobertura global mínima ainda depende do baseline do CI.
 
 ## Fase 4 — Compatibilidade automotiva (P1)
 - [x] Matriz API 24–36 e checklist de campo documentados.
-- [ ] Validar HOME role, boot, telefone, Bluetooth, GPS, mídia e voz em hardware real.
+- [x] Preparar HOME role, boot, telefone, Bluetooth, GPS, mídia e voz com APIs oficiais do Android; validação física em hardware real permanece obrigatória.
 - [x] Limitações conhecidas de boot em background e package visibility documentadas.
 
 ## Fase 5 — Produto e release (P2)
 - [x] Pipeline de release assinado criado; requer configuração dos quatro secrets da keystore.
 - [x] Nome/metadata e README padronizados para Smart Auto Launcher.
 - [x] Medição startup→Home adicionada; navegação/GPS já é ativada somente quando consumida.
-- [ ] Executar checklist de release e publicar artefatos versionados.
+- [ ] Executar checklist de release e publicar artefatos versionados após CI e hardware.
 
 ## Critérios de conclusão da estabilização
 - CI de PR verde (lint, testes, build web e APK debug).
