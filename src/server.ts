@@ -22,10 +22,13 @@ function navigationClientKey(request: Request): string {
 
 function allowNavigationCreate(request: Request): boolean {
   const now = Date.now();
-  if (navigationRateLimits.size > 1000) {
-    for (const [storedKey, entry] of navigationRateLimits) {
-      if (now - entry.windowStart >= NAVIGATION_RATE_WINDOW_MS) navigationRateLimits.delete(storedKey);
-    }
+  for (const [storedKey, entry] of navigationRateLimits) {
+    if (now - entry.windowStart >= NAVIGATION_RATE_WINDOW_MS) navigationRateLimits.delete(storedKey);
+  }
+  while (navigationRateLimits.size >= 2000) {
+    const oldest = navigationRateLimits.keys().next().value as string | undefined;
+    if (!oldest) break;
+    navigationRateLimits.delete(oldest);
   }
   const key = navigationClientKey(request);
   const current = navigationRateLimits.get(key);
@@ -80,6 +83,10 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
           headers: { ...cors, "retry-after": "60" },
         });
       }
+      const contentLength = Number(request.headers.get("content-length") ?? "0");
+      if (Number.isFinite(contentLength) && contentLength > 4096) {
+        return new Response(JSON.stringify({ error: "request_too_large" }), { status: 413, headers: cors });
+      }
       const body = await request.json() as { app?: string; destination?: string };
       if (body.app !== "maps" && body.app !== "waze") {
         return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
@@ -109,8 +116,10 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     return new Response(JSON.stringify({ error: "not_found" }), { status: 404, headers: cors });
   } catch (error) {
     console.error(error);
-    const message = error instanceof Error ? error.message : "Navigation Connect error";
-    return new Response(JSON.stringify({ error: message }), { status: 503, headers: cors });
+    return new Response(JSON.stringify({ error: "navigation_service_unavailable" }), {
+      status: 503,
+      headers: cors,
+    });
   }
 }
 
