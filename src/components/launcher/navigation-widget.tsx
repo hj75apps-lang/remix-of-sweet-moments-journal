@@ -49,7 +49,7 @@ export function NavigationWidget() {
 
   const open = async (destination?: string) => {
     try {
-      if (destination === undefined && state.guidance && state.sourcePackage) {
+      if (destination === undefined && state.active && state.sourcePackage) {
         await resumeNavigation(state.sourcePackage, navigationId(state.sourcePackage));
       } else {
         await startNavigation(missing ? "system" : settings.navApp, destination ?? "");
@@ -100,7 +100,7 @@ export function NavigationWidget() {
 
         <div className="navigation-overlay pointer-events-none absolute inset-0 z-[500] flex flex-col justify-between gap-2 p-3">
           <div className="flex min-h-0 items-start justify-between gap-2">
-            {g ? (
+            {g || state.active ? (
               <div className="navigation-maneuver flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-primary p-3 text-primary-foreground shadow-card">
                 {g.icon ? (
                   <img src={g.icon} alt="" className="navigation-arrow size-10 shrink-0" />
@@ -108,8 +108,8 @@ export function NavigationWidget() {
                   <Navigation className="navigation-arrow size-8 shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <p className="navigation-instruction break-words text-base font-bold leading-tight">{g.title}</p>
-                  {g.text && <p className="navigation-street mt-1 break-words text-sm leading-snug">{g.text}</p>}
+                  <p className="navigation-instruction break-words text-base font-bold leading-tight">{g?.title ?? "Navegação ativa"}</p>
+                  {g?.text && <p className="navigation-street mt-1 break-words text-sm leading-snug">{g.text}</p>}
                   {distance !== undefined && <p className="navigation-details mt-1 text-sm font-semibold">{formatDistance(distance)}</p>}
                 </div>
               </div>
@@ -126,7 +126,7 @@ export function NavigationWidget() {
           </div>
 
           <div className="navigation-bottom flex min-w-0 flex-col gap-2">
-            {g && (
+            {(g || state.active) && (
               <div className="flex flex-wrap items-center gap-2">
                 {eta && <span className="rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">Chegada {formatEta(eta)}</span>}
                 {duration !== undefined && <span className="rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">{formatDuration(duration)}</span>}
