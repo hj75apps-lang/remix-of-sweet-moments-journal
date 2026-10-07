@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
 
+function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
+  const now = Date.now();
+  const sunrise = weather.sunrise ? Date.parse(weather.sunrise) : NaN;
+  const sunset = weather.sunset ? Date.parse(weather.sunset) : NaN;
+  return Number.isFinite(sunrise) && Number.isFinite(sunset) ? now < sunrise || now >= sunset : new Date().getHours() < 6 || new Date().getHours() >= 18;
+}
+
 function relativeUpdatedAt(timestamp?: number) {
   if (!timestamp) return "";
   const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
@@ -88,7 +95,7 @@ export function WeatherWidget() {
                 <span>↓ {w.days[0]?.min}°</span>
               </div>
             </div>
-            <WeatherSymbol code={w.code} text={w.text} large />
+            <WeatherSymbol code={w.code} text={w.text} large night={isNightBySun(w)} />
           </div>
 
           <div className="weather-forecast-medium">
