@@ -44,9 +44,8 @@ function plugin(): Plugin | null {
   return (cap.Plugins?.["NowPlaying"] as Plugin | undefined) ?? null;
 }
 
-
 function parseDistance(value: string): number | undefined {
-  const match = value.match(/(\\d+(?:[.,]\\d+)?)\\s*(km|m)\\b/i);
+  const match = value.match(/(\d+(?:[.,]\d+)?)\\s*(km|m)\\b/i);
   if (!match) return undefined;
   const number = Number(match[1].replace(",", "."));
   if (!Number.isFinite(number)) return undefined;
@@ -54,8 +53,8 @@ function parseDistance(value: string): number | undefined {
 }
 
 function parseDuration(value: string): number | undefined {
-  const hours = value.match(/(\\d+)\\s*h/i);
-  const minutes = value.match(/(\\d+)\\s*min/i);
+  const hours = value.match(/(\d+)\\s*h/i);
+  const minutes = value.match(/(\d+)\\s*min/i);
   if (!hours && !minutes) return undefined;
   return (Number(hours?.[1] ?? 0) * 3600) + (Number(minutes?.[1] ?? 0) * 60);
 }
