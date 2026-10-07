@@ -151,11 +151,11 @@ function AppsPage() {
                       <img
                         src={`data:image/png;base64,${a.icon}`}
                         alt=""
-                        className="size-14"
+                        className="size-42"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/20 text-xl font-bold text-primary">
+                      <div className="flex size-42 items-center justify-center rounded-2xl bg-primary/20 text-4xl font-bold text-primary">
                         {a.label.slice(0, 2).toUpperCase()}
                       </div>
                     )}
