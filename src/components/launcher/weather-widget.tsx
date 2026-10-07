@@ -139,7 +139,7 @@ export function WeatherWidget() {
             if (event.target === event.currentTarget) setExpanded(false);
           }}
         >
-          <section className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl">
+          <section\n            onClick={(event) => event.stopPropagation()}\n            className="flex h-[min(92dvh,760px)] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-2xl"\n          >
             <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
               <div className="flex min-w-0 items-center gap-2">
                 <CloudSun className="size-5 shrink-0 text-primary" aria-hidden="true" />
