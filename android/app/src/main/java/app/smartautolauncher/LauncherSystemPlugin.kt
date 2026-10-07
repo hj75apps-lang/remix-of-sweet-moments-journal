@@ -18,8 +18,10 @@ import android.provider.CallLog
 import android.provider.ContactsContract
 import android.provider.Settings
 import android.view.KeyEvent
-import android.view.View
 import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.content.ContextCompat
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
@@ -63,7 +65,7 @@ class LauncherSystemPlugin : Plugin() {
     private fun audio() = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     override fun load() {
-        applyWindow(prefs().getBoolean(KEY_IMMERSIVE, true), prefs().getBoolean(KEY_SCREEN_ON, true))
+        applyWindow(prefs().getBoolean(KEY_IMMERSIVE, false), prefs().getBoolean(KEY_SCREEN_ON, false))
     }
 
     override fun handleOnResume() {
@@ -123,7 +125,6 @@ class LauncherSystemPlugin : Plugin() {
         } catch (_: SecurityException) { notifyListeners("locationChanged", JSObject().put("unavailable", true)) }
     }
 
-    @Suppress("DEPRECATION")
     private fun applyWindow(fullscreen: Boolean, keepOn: Boolean) {
         immersive = fullscreen
         val act = activity ?: return
@@ -131,11 +132,18 @@ class LauncherSystemPlugin : Plugin() {
             val w = act.window
             if (keepOn) w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             else w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            w.decorView.systemUiVisibility = if (fullscreen) {
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            } else View.SYSTEM_UI_FLAG_VISIBLE
+
+            // Only enter immersive mode when the user explicitly enables it.
+            // Otherwise leave Android's system bars and insets under system control.
+            WindowCompat.setDecorFitsSystemWindows(w, !fullscreen)
+            val controller = WindowInsetsControllerCompat(w, w.decorView)
+            if (fullscreen) {
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars())
+            }
         }
     }
 
