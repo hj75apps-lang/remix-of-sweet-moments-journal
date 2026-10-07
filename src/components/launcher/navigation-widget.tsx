@@ -1,141 +1,84 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { ClientOnly } from "@tanstack/react-router";
-import { Maximize2, Navigation, Search } from "lucide-react";
+import { Maximize2, Navigation, Search, WifiOff, MapPin, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { useTheme } from "@/hooks/use-theme";
-import { errorMessage, startNavigation, type NavApp } from "@/services/launcher-system";
-import { requestGuidanceAccess, useNavGuidance } from "@/services/navigation-guidance";
-import { cn } from "@/lib/utils";
+import { errorMessage, resumeNavigation, startNavigation, type NavApp } from "@/services/launcher-system";
+import { requestGuidanceAccess } from "@/services/navigation-guidance";
+import { navigationId, useNavigationApps } from "@/services/navigation-apps";
+import { useNavigationState } from "@/contexts/navigation-context";
 
 const LiveMap = lazy(() => import("./live-map"));
-
-const APPS: Array<{ id: NavApp; label: string; appLabel: string }> = [
-  { id: "maps", label: "Google Maps", appLabel: "Google Maps" },
-  { id: "waze", label: "Waze", appLabel: "Waze" },
-];
-const APP_NAME: Record<string, string> = {
-  "com.google.android.apps.maps": "Google Maps",
-  "com.waze": "Waze",
-};
-
-/**
- * CarPlay / Android Auto–style dashboard tile: live map, the chosen app's
- * turn-by-turn guidance on top, and a tap opens that app full screen.
- */
 export function NavigationWidget() {
   const { settings, update } = useLauncherSettings();
   const { mode } = useTheme();
-  const { guidance, access } = useNavGuidance();
+  const { position, locating, online, guidance, access, acquireLocation } = useNavigationState();
+  const { apps, ready } = useNavigationApps();
   const [dest, setDest] = useState(settings.lastDestination);
-
-  const open = async (destination = "") => {
+  const [searching, setSearching] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const section = useRef<HTMLElement | null>(null);
+  const missing = ready && settings.navApp !== "system" && !apps.some(a => a.id === settings.navApp);
+  useEffect(() => { if (visible) return acquireLocation(); }, [visible, acquireLocation]);
+  useEffect(() => {
+    if (!section.current || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry?.isIntersecting ?? false));
+    observer.observe(section.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => { setDest(settings.lastDestination); }, [settings.lastDestination]);
+  const choose = (app: NavApp) => update({ navApp: app });
+  const open = async (destination?: string) => {
     try {
-      await startNavigation(settings.navApp, destination);
-      if (destination.trim()) update({ lastDestination: destination.trim() });
-    } catch (e) {
-      toast.error(errorMessage(e));
-    }
+      if (destination === undefined && guidance) {
+        await resumeNavigation(guidance.packageName, navigationId(guidance.packageName));
+      } else {
+        await startNavigation(missing ? "system" : settings.navApp, destination ?? "");
+        if (destination?.trim()) update({ lastDestination: destination.trim() });
+      }
+      setSearching(false);
+    } catch (e) { toast.error(errorMessage(e)); }
   };
-  const appLabel = APPS.find((a) => a.id === settings.navApp)?.label ?? "Mapa";
-
+  const appLabel = apps.find(a => a.id === settings.navApp)?.label ?? "Navegador";
   return (
-    <section
-      aria-label="Navegação"
-      className="widget relative h-full min-h-0 overflow-hidden rounded-3xl border border-white/20 bg-card shadow-[var(--shadow-card)] ring-1 ring-white/10 backdrop-blur-md"
-    >
-      <ClientOnly fallback={<div className="absolute inset-0 bg-[image:var(--gradient-map)]" />}>
-        <Suspense fallback={<div className="absolute inset-0 bg-[image:var(--gradient-map)]" />}>
-          <LiveMap dark={mode === "dark"} />
+    <section ref={section} aria-label="Navegação" className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+      <ClientOnly fallback={<div className="absolute inset-0 bg-muted" />}>
+        <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
+          <LiveMap dark={mode === "dark"} position={position} visible={visible} animated={settings.animations} />
         </Suspense>
       </ClientOnly>
-
-      {/* Whole map is the tap target that opens the chosen app full screen. */}
-      <button
-        type="button"
-        onClick={() => void open()}
-        aria-label={`Abrir ${appLabel} em tela cheia`}
-        className="absolute inset-0 z-[400] cursor-pointer"
-      />
-
-      <div className="pointer-events-none relative z-[500] flex h-full flex-col justify-between gap-2 p-3 lg:p-4">
-        <div className="flex items-start justify-between gap-2">
-          {guidance ? (
-            <div className="pointer-events-auto flex max-w-[70%] items-center gap-3 rounded-2xl bg-primary p-3 text-primary-foreground shadow-lg">
-              {guidance.icon ? (
-                <img src={guidance.icon} alt="" className="size-12 shrink-0" />
-              ) : (
-                <Navigation className="size-10 shrink-0" />
-              )}
-              <div className="min-w-0">
-                <p className="truncate text-lg font-bold leading-tight">{guidance.title}</p>
-                <p className="truncate text-sm opacity-90">{guidance.text}</p>
-                {guidance.subText && (
-                  <p className="truncate text-xs opacity-80">
-                    {guidance.subText} · {APP_NAME[guidance.packageName] ?? "Navegação"}
-                  </p>
-                )}
-              </div>
+      <Button type="button" variant="ghost" onClick={() => void open()} aria-label={`Abrir ${guidance ? "navegação ativa" : appLabel} em tela cheia`} className="navigation-map-target absolute inset-0 z-[400] h-full w-full rounded-none p-0" />
+      <div className="navigation-overlay pointer-events-none absolute inset-0 z-[500] flex flex-col justify-between gap-2 p-3">
+        <div className="flex min-h-0 items-start justify-between gap-2">
+          {guidance && <div className="navigation-maneuver flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-primary p-3 text-primary-foreground shadow-card">
+            {guidance.icon ? <img src={guidance.icon} alt="" className="navigation-arrow size-10 shrink-0" /> : <Navigation className="navigation-arrow size-8 shrink-0" />}
+            <div className="min-w-0">
+              <p className="navigation-instruction break-words text-base font-bold leading-tight">{guidance.title}</p>
+              {guidance.text && <p className="navigation-street mt-1 break-words text-sm leading-snug">{guidance.text}</p>}
+              {guidance.subText && <p className="navigation-details mt-1 break-words text-sm leading-snug">{guidance.subText}</p>}
             </div>
-          ) : (
-            <div className="pointer-events-auto flex gap-1 rounded-2xl bg-card/90 p-1 shadow-lg backdrop-blur">
-              {APPS.map((a) => (
-                <Button
-                  key={a.id}
-                  type="button"
-                  size="sm"
-                  variant={settings.navApp === a.id ? "default" : "ghost"}
-                  aria-pressed={settings.navApp === a.id}
-                  onClick={() => update({ navApp: a.id })}
-                  className="min-h-10 rounded-xl px-4"
-                >
-                  {a.label}
-                </Button>
-              ))}
-            </div>
-          )}
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-card/90 text-foreground shadow-lg backdrop-blur">
-            <Maximize2 className="size-4" />
-          </span>
+          </div>}
+          {!guidance && <div role="status" className="navigation-status flex min-w-0 flex-wrap items-center gap-2 rounded-xl bg-popover/95 px-3 py-2 text-xs text-popover-foreground">
+            {locating && <span className="flex items-center gap-1"><MapPin className="size-4 shrink-0" />Obtendo localização...</span>}
+            {!online && <span className="flex items-center gap-1"><WifiOff className="size-4 shrink-0" />Sem internet</span>}
+            {!locating && online && <span>{appLabel}</span>}
+          </div>}
+          <span className="navigation-expand grid size-10 shrink-0 place-items-center rounded-full bg-popover/95 text-popover-foreground"><Maximize2 className="size-4" /></span>
         </div>
-
-        <div className="flex flex-col gap-2">
-          {access === false && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => void requestGuidanceAccess()}
-              className="pointer-events-auto min-h-10 self-start rounded-xl bg-card/90 backdrop-blur"
-            >
-              Mostrar instruções de rota aqui
-            </Button>
-          )}
-          {!guidance && (
-            <form
-              className="pointer-events-auto flex gap-2 rounded-2xl bg-card/90 p-1.5 shadow-lg backdrop-blur"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void open(dest);
-              }}
-            >
-              <Input
-                value={dest}
-                onChange={(e) => setDest(e.target.value.slice(0, 200))}
-                placeholder={`Para onde vamos? (${appLabel})`}
-                aria-label="Destino"
-                className="min-h-11 flex-1 rounded-xl border-0 bg-transparent text-base"
-              />
-              <Button
-                type="submit"
-                className={cn("min-h-11 rounded-xl px-4")}
-                aria-label="Iniciar navegação"
-              >
-                <Search />
-              </Button>
-            </form>
-          )}
+        <div className="navigation-bottom flex flex-col gap-2">
+          {guidance && (!online || locating) && <p role="status" className="self-start rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">{!online ? "Sem internet" : "Obtendo localização..."}</p>}
+          {missing && !guidance && <div className="pointer-events-auto rounded-xl bg-popover/95 p-2 text-popover-foreground">
+            <p className="text-sm">Escolha outro navegador</p>
+            <div className="mt-1 flex flex-wrap gap-1">{apps.map(a => <Button key={a.id} size="sm" variant="secondary" onClick={() => choose(a.id)}>{a.label}</Button>)}<Button size="sm" onClick={() => choose("system")}>Perguntar sempre</Button></div>
+          </div>}
+          {access === false && <Button type="button" size="icon" variant="secondary" aria-label="Permitir instruções de navegação" title="Permitir instruções de navegação" onClick={() => void requestGuidanceAccess()} className="navigation-permission pointer-events-auto size-11 self-start rounded-full"><BellRing className="size-5" /></Button>}
+          {!guidance && !missing && (searching ? <form className="navigation-search pointer-events-auto flex min-w-0 gap-1 rounded-xl bg-popover/95 p-1.5" onSubmit={e => { e.preventDefault(); if (dest.trim()) void open(dest); }}>
+            <Input autoFocus value={dest} onChange={e => setDest(e.target.value.slice(0, 200))} placeholder="Para onde?" aria-label="Destino" className="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-base" />
+            <Button type="submit" size="icon" disabled={!dest.trim()} aria-label="Iniciar navegação" className="size-11 shrink-0"><Search className="size-5" /></Button>
+          </form> : <Button type="button" variant="secondary" className="navigation-destination pointer-events-auto min-h-11 self-start rounded-xl bg-popover/95 text-popover-foreground" onClick={() => setSearching(true)}><Search className="size-5" /><span>Para onde?</span></Button>)}
         </div>
       </div>
     </section>

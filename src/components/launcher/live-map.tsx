@@ -1,65 +1,50 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { VehiclePosition } from "@/services/navigation-location";
 
-/** Browser-only live map following the vehicle position (OpenStreetMap tiles). */
-export default function LiveMap({ dark }: { dark: boolean }) {
+/** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
+export default function LiveMap({ dark, position, visible, animated }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean }) {
   const el = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tilesRef = useRef<L.TileLayer | null>(null);
-
+  const markerRef = useRef<L.Marker | null>(null);
+  const firstFix = useRef(true);
   useEffect(() => {
     if (!el.current) return;
-    const map = L.map(el.current, {
-      zoomControl: false,
-      attributionControl: true,
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: false,
-      keyboard: false,
-    }).setView([-15.78, -47.93], 4);
+    const map = L.map(el.current, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([-15.78, -47.93], 4);
     map.attributionControl.setPrefix(false);
     mapRef.current = map;
-    const marker = L.circleMarker([0, 0], {
-      radius: 9,
-      color: "#fff",
-      weight: 3,
-      fillColor: "var(--primary)",
-      fillOpacity: 1,
-    });
-    let first = true;
-    const watch = navigator.geolocation?.watchPosition(
-      (p) => {
-        const ll: L.LatLngExpression = [p.coords.latitude, p.coords.longitude];
-        marker.setLatLng(ll).addTo(map);
-        map.setView(ll, first ? 16 : map.getZoom(), { animate: !first });
-        first = false;
-      },
-      () => undefined,
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
-    );
-    const ro = new ResizeObserver(() => map.invalidateSize());
-    ro.observe(el.current);
-    return () => {
-      if (watch !== undefined) navigator.geolocation.clearWatch(watch);
-      ro.disconnect();
-      map.remove();
-      mapRef.current = null;
-    };
+    markerRef.current = L.marker([0, 0], { interactive: false, icon: L.divIcon({ className: "vehicle-marker", html: '<span class="vehicle-heading"></span><span class="vehicle-dot"></span>', iconSize: [36, 36], iconAnchor: [18, 18] }) });
+    const resize = () => map.invalidateSize({ pan: false });
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+    ro?.observe(el.current);
+    window.addEventListener("resize", resize);
+    return () => { ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; markerRef.current = null; firstFix.current = true; };
   }, []);
-
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    tilesRef.current?.remove();
-    tilesRef.current = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "© OpenStreetMap",
-      // Night look without a paid style: invert + hue-rotate keeps roads readable.
-      className: dark ? "map-tiles-dark" : "",
-    }).addTo(map);
+    // Keep the same layer/cache when the theme changes.
+    if (!tilesRef.current) tilesRef.current = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap", className: "navigation-tiles", keepBuffer: 2 }).addTo(map);
+    tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", dark);
   }, [dark]);
-
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    if (!map || !marker || !position || !visible) return;
+    const ll: L.LatLngExpression = [position.latitude, position.longitude];
+    marker.setLatLng(ll);
+    if (!map.hasLayer(marker)) marker.addTo(map);
+    const icon = marker.getElement();
+    icon?.style.setProperty("--vehicle-heading", `${position.heading ?? 0}deg`);
+    icon?.classList.toggle("has-heading", position.heading !== null);
+    const smooth = animated && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !firstFix.current;
+    map.stop();
+    if (firstFix.current) map.setView(ll, 16, { animate: false });
+    else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
+    firstFix.current = false;
+  }, [position, visible, animated]);
+  useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else mapRef.current?.stop(); }, [visible]);
   return <div ref={el} className="absolute inset-0 z-0" aria-hidden />;
 }
