@@ -122,7 +122,6 @@ export async function createTrackedTrip(
       androidAppId: androidAppId(env),
       config: {
         enableRemainingRouteReporting: input.app === "waze",
-        enableRouteDeviationReporting: input.app === "waze",
         enableHighFrequencyUpdates: true,
       },
     }),
