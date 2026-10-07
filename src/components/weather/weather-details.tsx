@@ -31,22 +31,6 @@ export function weatherIcon(code: number | undefined, description: string): Luci
   if (normalized.includes("nublado")) return Cloud;
   return CloudSun;
 }
-  if (code === 0) return (awaitableIcon("sun"));
-  if (code === 1 || code === 2) return CloudSun;
-  if (code === 3) return CloudSun;
-  if (code === 45 || code === 48) return CloudSun;
-  if ((code !== undefined && code >= 51 && code <= 67) || (code !== undefined && code >= 80 && code <= 82)) return Umbrella;
-  if (code !== undefined && code >= 71 && code <= 86) return CloudSun;
-  if (code !== undefined && code >= 95) return CloudSun;
-  const normalized = description.toLocaleLowerCase("pt-BR");
-  if (normalized.includes("chuva") || normalized.includes("garoa")) return Umbrella;
-  return CloudSun;
-}
-
-function awaitableIcon(kind: "sun") {
-  return CloudSun;
-}
-
 export function shortWeekday(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
 }
