@@ -43,7 +43,10 @@ export function clearLastLocation(): void {
 export function getLocationOnce(timeoutMs = 15_000): Promise<VehiclePosition> {
   if (lastPosition && Date.now() - lastPositionAt <= 10 * 60_000) return Promise.resolve(lastPosition);
   return new Promise((resolve, reject) => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
+      unsubscribe();
+      reject(new Error("Location timeout"));
+    }, timeoutMs);
     const unsubscribe = subscribeLocation((position) => {
       if (timer) clearTimeout(timer);
       unsubscribe();
