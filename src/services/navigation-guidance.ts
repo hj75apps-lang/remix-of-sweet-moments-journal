@@ -64,19 +64,13 @@ export function normalizeGuidance(value: NavGuidance | null): NavGuidance | null
   const combined = [value.title, value.text, value.subText].filter(Boolean).join(" · ");
   const distance = value.remainingDistanceMeters ?? value.distanceMeters ?? parseDistance(combined);
   const duration = value.remainingDurationSeconds ?? parseDuration(combined);
-  return {
-    ...value,
-    ...(value.distanceMeters !== undefined || distance !== undefined
-      ? { distanceMeters: value.distanceMeters ?? distance }
-      : {}),
-    ...(value.remainingDistanceMeters !== undefined || distance !== undefined
-      ? { remainingDistanceMeters: value.remainingDistanceMeters ?? distance }
-      : {}),
-    ...(value.remainingDurationSeconds !== undefined || duration !== undefined
-      ? { remainingDurationSeconds: value.remainingDurationSeconds ?? duration }
-      : {}),
-    maneuver: value.maneuver ?? value.title,
-  };
+  const normalized = { ...value, maneuver: value.maneuver ?? value.title };
+  if (distance !== undefined) {
+    normalized.distanceMeters = value.distanceMeters ?? distance;
+    normalized.remainingDistanceMeters = value.remainingDistanceMeters ?? distance;
+  }
+  if (duration !== undefined) normalized.remainingDurationSeconds = value.remainingDurationSeconds ?? duration;
+  return normalized;
 }
 
 export const requestGuidanceAccess = async (): Promise<void> => {
