@@ -93,6 +93,47 @@ function tripUrl(project: string, tripId?: string): string {
     : `https://navigationconnect.googleapis.com/v1/projects/${encodeURIComponent(project)}/trips`;
 }
 
+function navigationSecret(env: Env): string {
+  const secret = envValue(env, "NAVIGATION_CONNECT_SESSION_SECRET");
+  if (!secret || secret.length < 32) throw new Error("NAVIGATION_CONNECT_SESSION_SECRET ausente ou fraco (mínimo 32 caracteres)");
+  return secret;
+}
+
+function decodeBase64Url(value: string): Uint8Array {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  const binary = atob(normalized);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function signCapability(env: Env, tripId: string, expiresAt: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(navigationSecret(env)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const payload = `${tripId}.${expiresAt}`;
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  return base64Url(signature);
+}
+
+export async function createNavigationConnectAccessKey(env: Env, tripId: string, expiresAt: string): Promise<string> {
+  const expiry = base64Url(expiresAt);
+  const signature = await signCapability(env, tripId, expiresAt);
+  return `${expiry}.${signature}`;
+}
+
+export async function verifyNavigationConnectAccessKey(env: Env, tripId: string, accessKey: string): Promise<boolean> {
+  const separator = accessKey.indexOf(".");
+  if (separator <= 0) return false;
+  try {
+    const expiresAt = new TextDecoder().decode(decodeBase64Url(accessKey.slice(0, separator)));
+    if (!expiresAt || !Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now()) return false;
+    const expected = decodeBase64Url(await signCapability(env, tripId, expiresAt));
+    const actual = decodeBase64Url(accessKey.slice(separator + 1));
+    if (expected.length !== actual.length) return false;
+    let diff = 0;
+    for (let i = 0; i < expected.length; i += 1) diff |= expected[i] ^ actual[i];
+    return diff === 0;
+  } catch { return false; }
+}
 function navLaunchUrl(app: "maps" | "waze", destination: string, token: string): string {
   const encoded = encodeURIComponent(destination.trim());
   if (app === "waze") {
