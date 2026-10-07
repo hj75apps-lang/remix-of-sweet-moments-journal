@@ -24,10 +24,16 @@ import android.provider.Settings
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
+import com.getcapacitor.PermissionState
+import com.getcapacitor.annotation.Permission
+import com.getcapacitor.annotation.PermissionCallback
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 
-@CapacitorPlugin(name = "SystemControls")
+@CapacitorPlugin(
+    name = "SystemControls",
+    permissions = [Permission(alias = "nearby", strings = [android.Manifest.permission.BLUETOOTH_CONNECT])],
+)
 class SystemControlsPlugin : Plugin() {
     private var receiver: BroadcastReceiver? = null
 
@@ -83,6 +89,25 @@ class SystemControlsPlugin : Plugin() {
     }
 
     @PluginMethod fun toggleBluetooth(call: PluginCall) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            getPermissionState("nearby") != PermissionState.GRANTED) {
+            requestPermissionForAlias("nearby", call, "nearbyPermission")
+            return
+        }
+        openBluetoothPanel(call)
+    }
+
+    @PermissionCallback
+    private fun nearbyPermission(call: PluginCall) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            getPermissionState("nearby") == PermissionState.GRANTED) {
+            openBluetoothPanel(call)
+        } else {
+            call.reject("permission_denied")
+        }
+    }
+
+    private fun openBluetoothPanel(call: PluginCall) {
         val bt = adapter()
         val on = try { bt?.isEnabled == true } catch (_: SecurityException) { false }
         // Off → system dialog asks to turn on; On → Bluetooth settings to pair, connect or turn off.
