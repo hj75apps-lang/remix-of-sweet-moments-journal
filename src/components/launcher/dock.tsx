@@ -87,7 +87,7 @@ export function Dock() {
   return (
     <nav
       aria-label="Menu principal"
-      className="flex shrink-0 items-center justify-between gap-1 overflow-x-auto rounded-3xl bg-sidebar p-1.5 md:w-20 md:flex-col md:justify-start md:gap-2 md:overflow-hidden md:py-3 lg:w-24"
+      className="flex shrink-0 items-center justify-between gap-1 overflow-x-auto rounded-3xl bg-sidebar p-1.5 md:w-24 md:flex-col md:justify-start md:gap-2 md:overflow-hidden md:py-3 lg:w-24"
     >
       {dockItems.map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
@@ -124,10 +124,10 @@ export function Dock() {
               <img
                 src={`data:image/png;base64,${lastApp.icon}`}
                 alt=""
-                className="my-2 size-11 shrink-0 rounded-md object-contain md:size-12 scale-[3.5]"
+                className="size-6 shrink-0 rounded-md object-contain scale-[3.5]"
               />
             ) : (
-              <Icon className="size-[2.25rem] md:size-[2.5rem] my-2 scale-[3.5]" />
+              <Icon className="size-6 shrink-0 scale-[3.5]" />
             )}
           </Button>
         );
@@ -145,7 +145,7 @@ export function Dock() {
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-[1.75rem] md:size-[2rem] my-2 rounded-md object-contain scale-[3.5]"
+            className="size-5 shrink-0 rounded-md object-contain scale-[3.5]"
           />
           <span className="w-full truncate text-center">{app.label}</span>
         </Button>
@@ -159,7 +159,7 @@ export function Dock() {
           title="Permitir aplicativos recentes"
           className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
         >
-          <History className="size-[1.5rem] md:size-[1.75rem] my-2 scale-[3.5]" />
+          <History className="size-5 shrink-0 scale-[3.5]" />
           <span className="w-full truncate text-center">Recentes</span>
         </Button>
       )}
