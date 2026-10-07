@@ -124,10 +124,10 @@ export function Dock() {
               <img
                 src={`data:image/png;base64,${lastApp.icon}`}
                 alt=""
-                className="my-2 size-11 shrink-0 rounded-md object-contain md:size-12"
+                className="my-2 size-11 shrink-0 rounded-md object-contain md:size-12 scale-[3.5]"
               />
             ) : (
-              <Icon className="size-[2.25rem] md:size-[2.5rem] my-2" />
+              <Icon className="size-[2.25rem] md:size-[2.5rem] my-2 scale-[3.5]" />
             )}
           </Button>
         );
@@ -145,7 +145,7 @@ export function Dock() {
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-[1.75rem] md:size-[2rem] my-2 rounded-md object-contain"
+            className="size-[1.75rem] md:size-[2rem] my-2 rounded-md object-contain scale-[3.5]"
           />
           <span className="w-full truncate text-center">{app.label}</span>
         </Button>
@@ -159,7 +159,7 @@ export function Dock() {
           title="Permitir aplicativos recentes"
           className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
         >
-          <History className="size-[1.5rem] md:size-[1.75rem] my-2" />
+          <History className="size-[1.5rem] md:size-[1.75rem] my-2 scale-[3.5]" />
           <span className="w-full truncate text-center">Recentes</span>
         </Button>
       )}
