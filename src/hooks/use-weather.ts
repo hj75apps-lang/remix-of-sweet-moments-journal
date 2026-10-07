@@ -38,6 +38,8 @@ function readStoredWeather(): WeatherReport | undefined {
 export function useWeather() {
   const [position, setPosition] = useState<WeatherPosition | null>(null);
   const [gpsError, setGpsError] = useState("");
+  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
+  const [visible, setVisible] = useState(typeof document === "undefined" ? true : !document.hidden);
   const queryClient = useQueryClient();
 
   const locate = useCallback(() => {
@@ -51,6 +53,22 @@ export function useWeather() {
         ? "Não foi possível obter a localização"
         : "Permissão de localização negada ou GPS indisponível");
     });
+  }, []);
+
+  useEffect(() => {
+    const sync = () => {
+      setOnline(navigator.onLine);
+      setVisible(!document.hidden);
+    };
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.removeEventListener("online", sync);
+      window.removeEventListener("offline", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, []);
 
   useEffect(() => {
@@ -78,9 +96,9 @@ export function useWeather() {
         return weather;
       });
     },
-    enabled: !!position,
+    enabled: !!position && online,
     staleTime: 15 * 60_000,
-    refetchInterval: 30 * 60_000,
+    refetchInterval: visible && online ? 30 * 60_000 : false,
     retry: 2,
   });
 
