@@ -3,7 +3,7 @@ name: Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, chore/stabilization-roadmap]
   pull_request:
     branches: [main]
 
@@ -19,6 +19,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - run: bun run typecheck
       - run: bun run lint
       - run: bun run test
       - run: bun run build
@@ -34,13 +35,12 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
-          packages: |-
-            platform-tools
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
       - run: bun install --frozen-lockfile
       - run: bun run build:android
-      - run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - run: chmod +x gradlew && ./gradlew lintDebug testDebugUnitTest assembleDebug --no-daemon
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
