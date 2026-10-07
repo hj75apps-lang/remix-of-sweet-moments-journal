@@ -22,8 +22,10 @@ const KEY = "sal.launcher-settings";
 export const DEFAULT_SETTINGS: LauncherSettings = {
   version: 1,
   navApp: "maps",
-  immersive: true,
-  keepScreenOn: true,
+  // System-neutral defaults: Android controls bars, screen timeout and rotation
+  // unless the user explicitly enables a launcher-specific override.
+  immersive: false,
+  keepScreenOn: false,
   autostart: true,
   clock24h: true,
   brightness: -1,
@@ -93,6 +95,21 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
       validate: isLauncherSettings,
       migrateLegacy: normalize,
     }));
+  }, []);
+
+  // Older builds defaulted to immersive + keep-screen-on and could therefore
+  // override the head unit's Android window policy on first launch. Reset only
+  // those system-facing preferences once; all other launcher preferences stay intact.
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    const marker = "sal.android-system-integration-v2";
+    if (localStorage.getItem(marker)) return;
+    setSettings((prev) => {
+      const next = { ...prev, immersive: false, keepScreenOn: false };
+      try { writeStored(KEY, next, 1); } catch { /* keep in memory */ }
+      return next;
+    });
+    localStorage.setItem(marker, "1");
   }, []);
 
   useEffect(() => {
