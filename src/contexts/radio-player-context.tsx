@@ -8,10 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import { useRadioPlayer } from "@/hooks/use-radio-player";
+import { useRadioListening } from "@/hooks/use-radio-listening";
+import type { RadioListeningEntry } from "@/services/radio-listening";
 import { publishRadio } from "@/services/now-playing";
 import type { RadioStation } from "@/services/radio-browser";
 
 type Player = ReturnType<typeof useRadioPlayer> & {
+  listeningHistory: RadioListeningEntry[];
   /** The list used by next/previous (set by the Rádio screen; kept after leaving it). */
   setQueue: (list: RadioStation[]) => void;
   step: (d: number) => void;
@@ -31,7 +34,8 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
   stepRef.current = (d: number) => {
     const list = queueRef.current;
     if (!list.length) return;
-    const idx = player.station ? list.findIndex((s) => s.id === player.station!.id) : -1;
+    const currentId = player.station?.id;
+    const idx = currentId ? list.findIndex((s) => s.id === currentId) : -1;
     const next = list[(idx + d + list.length) % list.length];
     if (next) player.play(next);
   };
@@ -40,6 +44,7 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
 
   const current = player.station;
   const playing = player.status === "playing";
+  const listeningHistory = useRadioListening(current, playing && player.audioConfirmed);
   useEffect(() => {
     publishRadio(
       current
@@ -70,7 +75,7 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
     queueRef.current = list;
   }, []);
   const step = useCallback((d: number) => stepRef.current(d), []);
-  const value = useMemo<Player>(() => ({ ...player, setQueue, step }), [player, setQueue, step]);
+  const value = useMemo<Player>(() => ({ ...player, listeningHistory, setQueue, step }), [player, listeningHistory, setQueue, step]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
