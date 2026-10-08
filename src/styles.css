@@ -182,6 +182,9 @@
 /* Liquid glass: --glass (0–1) set from Ajustes drives translucency, blur and sheen. */
 :root {
   --glass: 0.5;
+  --card-glass-fill: calc(100% - var(--glass) * 55%);
+  --card-glass-surface: color-mix(in oklab, var(--card) var(--card-glass-fill), transparent);
+  --card-glass-border: var(--border);
   --glass-glow-1: oklch(0.68 0.17 250 / 35%);
   --glass-glow-2: oklch(0.6 0.15 250 / 35%);
 }
@@ -221,13 +224,13 @@ body {
 .bg-popover {
   --glass-fill: calc(100% - var(--glass) * 55%);
   backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
-  -webkit-backdrop-filter: blur(calc(var(--glass) * 28px)) saturate(calc(1 + var(--glass) * 0.8));
   box-shadow:
     inset 0 1px 0 0 oklch(1 0 0 / calc(var(--glass) * 25%)),
     var(--shadow-card);
 }
 .bg-card {
-  background-color: color-mix(in oklab, var(--card) var(--glass-fill), transparent);
+  background-color: var(--card-glass-surface);
+  border-color: var(--card-glass-border);
 }
 
 .nav-glass-card {
@@ -322,30 +325,12 @@ body {
 .weather-storm { color: var(--weather-storm); }
 
 .weather-widget {
-  --weather-bg-a: oklch(0.34 0.09 235);
-  --weather-bg-b: oklch(0.18 0.07 255);
-  --weather-text: oklch(1 0 0 / 96%);
-  --weather-text-soft: oklch(1 0 0 / 86%);
-  --weather-text-muted: oklch(1 0 0 / 62%);
-  --weather-surface: oklch(1 0 0 / 8%);
-  --weather-border: oklch(1 0 0 / 13%);
-  background: linear-gradient(145deg, var(--weather-bg-a), var(--weather-bg-b) 78%);
-  border-color: var(--weather-border);
-  color: var(--weather-text);
+  --weather-text: var(--card-foreground);
+  --weather-text-soft: var(--card-foreground);
+  --weather-text-muted: var(--muted-foreground);
+  --weather-surface: var(--muted);
+  --weather-border: var(--card-glass-border);
   isolation: isolate;
-}
-.weather-widget:has(.weather-symbol-rain) { --weather-bg-a: oklch(0.32 0.09 240); --weather-bg-b: oklch(0.16 0.08 255); }
-.weather-widget:has(.weather-symbol-storm) { --weather-bg-a: oklch(0.28 0.07 255); --weather-bg-b: oklch(0.13 0.05 270); }
-.weather-widget:has(.weather-night) { --weather-bg-a: oklch(0.24 0.09 260); --weather-bg-b: oklch(0.09 0.045 275); }
-.weather-widget:has(.weather-symbol-snow) { --weather-bg-a: oklch(0.42 0.06 235); --weather-bg-b: oklch(0.24 0.06 255); }
-.light .weather-widget {
-  --weather-bg-a: oklch(0.98 0.012 225);
-  --weather-bg-b: oklch(0.88 0.035 225);
-  --weather-text: oklch(0.18 0.025 255);
-  --weather-text-soft: oklch(0.27 0.025 255);
-  --weather-text-muted: oklch(0.42 0.02 255);
-  --weather-surface: oklch(1 0 0 / 58%);
-  --weather-border: oklch(0.2 0.04 255 / 12%);
 }
 .weather-summary { position: relative; overflow: hidden; border-radius: inherit; padding: clamp(.55rem, 1.6cqw, .85rem); }
 .weather-summary > * { position: relative; z-index: 2; }
@@ -428,8 +413,8 @@ body {
 }
 /* Home summary follows the compact three-line reference, independent of the forecast layout. */
 .weather-widget {
-  background: var(--card);
-  border-color: var(--border);
+  background: var(--card-glass-surface);
+  border-color: var(--card-glass-border);
   color: var(--card-foreground);
 }
 .weather-widget .weather-summary { padding: 0; justify-content: center; }
