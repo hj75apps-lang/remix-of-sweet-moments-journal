@@ -165,7 +165,7 @@ export function WeatherWidget() {
           role="region"
           aria-label={`Previsão do tempo para ${w.city}`}
         >
-          <header className="forecast-overlay-header grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border px-3 py-1">
+          <header className="forecast-overlay-header">
             <Button
               ref={backButtonRef}
               type="button"
@@ -177,13 +177,6 @@ export function WeatherWidget() {
             >
               <ArrowLeft className="size-5" aria-hidden="true" />
             </Button>
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <CloudSun className="size-6 shrink-0 text-primary" aria-hidden="true" />
-              <div className="min-w-0">
-                <h2 className="truncate text-base font-semibold sm:text-xl">Previsão do tempo</h2>
-                <p className="truncate text-xs text-muted-foreground sm:text-sm">{w.city}</p>
-              </div>
-            </div>
           </header>
           <div className="forecast-viewport">
             <WeatherDetails weather={w} />

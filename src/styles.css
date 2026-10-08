@@ -430,7 +430,8 @@ body {
 
 /* A portal must establish its own layout outside the home widget grid. */
 .forecast-overlay { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; border-radius:1.5rem; background:var(--card); }
-.forecast-overlay-header { display:grid; grid-template-columns:auto minmax(0,1fr); flex:0 0 52px; min-width:0; }
+.forecast-overlay-header { position:absolute; top:12px; left:12px; z-index:2; }
+.forecast-overlay .weather-week-current { padding-left:52px; min-height:48px; }
 .forecast-viewport { container:weather-forecast / size; position:relative; display:flex; flex:1 1 0%; min-width:0; min-height:0; overflow:hidden; }
 .weather-week-panel {
   --forecast-ink: var(--foreground);
@@ -449,7 +450,7 @@ body {
 .weather-week-header h1 { margin-top:4px; font-family:var(--font-display); font-size:24px; line-height:1.2; font-weight:700; letter-spacing:0; }
 .weather-week-subtitle { display:none; }
 .weather-week-source { border:1px solid var(--forecast-line); border-radius:6px; padding:4px 8px; font-size:12px; color:var(--forecast-muted); }
-.weather-week-current { display:flex; align-items:center; justify-content:space-between; gap:12px; border-block:1px solid var(--forecast-line); padding-block:10px; flex-shrink:0; }
+.weather-week-current { display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--forecast-line); padding-block:10px; flex-shrink:0; }
 .weather-week-current-reading { display:flex; align-items:center; gap:12px; min-width:0; }
 .weather-week-current-icon { width:40px; height:40px; color:var(--forecast-sun); stroke-width:1.5; flex-shrink:0; }
 .weather-week-current-temp { font-size:40px; line-height:1; font-weight:650; font-variant-numeric:tabular-nums; white-space:nowrap; letter-spacing:0; }
@@ -505,6 +506,7 @@ body {
 }
 @container weather-forecast (max-width:699px) {
   .weather-week-panel { padding:10px; gap:8px; }
+  .forecast-overlay .weather-week-current { padding-left:48px; }
   .weather-week-header h1 { font-size:20px; }
   .weather-week-source { display:none; }
   .weather-week-current { flex-wrap:wrap; gap:8px; padding-block:8px; }

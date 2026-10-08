@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Retirar cabeçalhos, localização duplicada e selo da previsão expandida; aproveitar a área disponível mantendo Hoje + cinco dias e o botão voltar.
+
 - [x] Garantir seis previsões (Hoje + cinco dias seguintes), atualizando imediatamente caches incompletos quando online; validado com previsão antiga de cinco dias e dados reais em 1280 e 390px, sem rolagem.
 
 - [x] Separar Hoje em destaque dos próximos cinco dias, começando amanhã; previsão expandida e /clima validadas em 1280 e 390px, sem rolagem, com dados reais e 11 testes aprovados.
