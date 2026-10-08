@@ -11,6 +11,7 @@ vi.mock("@/hooks/use-weather", () => ({
       data: {
         city: "Cuiabá",
         temp: 31,
+        feels: 34,
         text: "Ensolarado",
         code: 0,
         updatedAt: Date.now(),
@@ -53,6 +54,11 @@ describe("weather expansion in launcher workspace", () => {
     renderHome();
     expect(screen.getByLabelText("Condição do tempo")).toHaveTextContent("Ensolarado");
     expect(screen.getByText("°C")).toBeInTheDocument();
+    expect(screen.getByLabelText("Condição do tempo")).toHaveTextContent("Hoje · Ensolarado");
+    expect(screen.getByText("Sensação de 34°")).toBeInTheDocument();
+    expect(screen.getByLabelText("Temperaturas de hoje")).toHaveTextContent("Máx. 33° · Mín. 24°");
+    expect(screen.queryByText("Cuiabá")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ver previsão completa")).not.toBeInTheDocument();
   });
 
   it("opens within the home content area without covering or disabling the Dock", () => {

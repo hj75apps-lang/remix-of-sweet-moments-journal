@@ -426,6 +426,36 @@ body {
 @container widget (min-width:430px) and (min-height:230px) {
   .weather-hero{grid-template-columns:minmax(0,1fr) minmax(5.5rem,30%)}.weather-symbol-large{width:min(28cqw,4.75rem); min-width:4rem}
 }
+/* Home summary follows the compact three-line reference, independent of the forecast layout. */
+.weather-widget {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
+}
+.weather-widget .weather-summary { padding: 0; justify-content: center; }
+.weather-reference-row { display:grid; grid-template-columns:48px auto minmax(0,1fr); align-items:center; gap:12px; min-width:0; }
+.weather-reference-temperature { margin:0; white-space:nowrap; font-family:var(--font-display); font-size:56px; line-height:1; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.weather-reference-temperature > span { font-size:24px; vertical-align:top; line-height:1.4; }
+.weather-reference-row .weather-symbol { width:48px; min-width:0; max-width:100%; }
+.weather-reference-row .weather-reading { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.weather-reference-condition { margin:0; font-size:16px; line-height:1.3; font-weight:700; letter-spacing:0; overflow-wrap:anywhere; }
+.weather-reference-detail { margin:0; font-size:14px; line-height:1.35; color:var(--muted-foreground); }
+.weather-widget .weather-offline { color:var(--muted-foreground); background:var(--muted); }
+@container widget (max-width:440px) {
+  .weather-reference-row { grid-template-columns:36px auto minmax(0,1fr); gap:8px; }
+  .weather-reference-row .weather-symbol { width:36px; }
+  .weather-reference-temperature { font-size:44px; }
+  .weather-reference-temperature > span { font-size:18px; }
+  .weather-reference-condition { font-size:13px; }
+  .weather-reference-detail { font-size:12px; }
+  .weather-reference-row .weather-reading { gap:4px; }
+}
+@container widget (max-width:300px) {
+  .weather-reference-row { grid-template-columns:32px minmax(0,1fr); gap:6px 10px; }
+  .weather-reference-row .weather-symbol { width:32px; }
+  .weather-reference-row .weather-reading { grid-column:1 / -1; }
+  .weather-reference-temperature { font-size:40px; }
+}
 .weather-hour-card .weather-symbol { width: 1.35rem; min-width: 1.35rem; margin: .15rem auto; }
 .weather-day-detail .weather-symbol { width: min(2.25rem, 11cqw); min-width: 2rem; margin: 0 auto; }
 .weather-hourly-strip { scrollbar-width: thin; }
