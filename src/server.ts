@@ -130,12 +130,21 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
           headers: cors,
         });
       }
+      if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return new Response(JSON.stringify({ error: "invalid_request_body" }), { status: 400, headers: cors });
+      }
       if (body.app !== "maps" && body.app !== "waze") {
         return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
       }
+      if (typeof body.destination !== "string" || !body.destination.trim() || body.destination.trim().length > 200) {
+        return new Response(JSON.stringify({ error: "destination must be a non-empty string of at most 200 characters" }), {
+          status: 400,
+          headers: cors,
+        });
+      }
       const trip = await createTrackedTrip(env as Record<string, unknown>, {
         app: body.app,
-        destination: String(body.destination ?? "").slice(0, 200),
+        destination: body.destination.trim(),
       });
       const accessKey = await createNavigationConnectAccessKey(env as Record<string, unknown>, trip.tripId, trip.expiresAt);
       return new Response(JSON.stringify(trip), {
