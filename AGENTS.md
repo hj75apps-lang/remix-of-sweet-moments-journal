@@ -18,6 +18,7 @@
 - Validate and migrate weather caches through weather-cache before query hydration; legacy daily-only reports receive empty hourly arrays so offline forecasts remain usable after upgrades.
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
+- Expanded weather uses a dedicated workspace overlay and a bounded forecast size container shared with /clima; daily layout adapts by available width and height without scroll or changes to weather fetching.
 - The home weather presentation uses WeatherSymbol for condition-coloured artwork and links to the existing full forecast; keep weather fetching and state unchanged during visual restyles.
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
 - Now-playing selection uses external Android MediaSessions plus the in-app radio store; all external sessions are observed and permission is refreshed on resume so source changes and late grants are detected.

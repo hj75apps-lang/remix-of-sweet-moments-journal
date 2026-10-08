@@ -53,6 +53,9 @@ export function WeatherWidget() {
     const homeGrid = document.getElementById("launcher-home-grid");
     // Keep the Dock active, but remove the covered widgets from the tab order.
     homeGrid?.setAttribute("inert", "");
+    homeGrid?.setAttribute("aria-hidden", "true");
+    homeGrid?.style.setProperty("visibility", "hidden");
+    homeGrid?.style.setProperty("opacity", "0");
     backButtonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -62,6 +65,9 @@ export function WeatherWidget() {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       homeGrid?.removeAttribute("inert");
+      homeGrid?.removeAttribute("aria-hidden");
+      homeGrid?.style.removeProperty("visibility");
+      homeGrid?.style.removeProperty("opacity");
       previousFocus?.focus();
     };
   }, [expanded]);
@@ -155,11 +161,11 @@ export function WeatherWidget() {
 
       {workspace && createPortal(
         <section
-          className="absolute inset-0 z-50 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-[var(--shadow-card)]"
+          className="forecast-overlay absolute inset-0 border border-border bg-card text-card-foreground shadow-[var(--shadow-card)]"
           role="region"
           aria-label={`Previsão do tempo para ${w.city}`}
         >
-          <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-2 sm:px-5 sm:py-3">
+          <header className="forecast-overlay-header grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-border px-3 py-1">
             <Button
               ref={backButtonRef}
               type="button"
@@ -179,7 +185,7 @@ export function WeatherWidget() {
               </div>
             </div>
           </header>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="forecast-viewport">
             <WeatherDetails weather={w} />
           </div>
         </section>,

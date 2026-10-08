@@ -428,118 +428,124 @@ body {
 .weather-hourly-strip { scrollbar-width: thin; }
 .weather-details-panel .weather-symbol-glow { opacity: .7; }
 
-/* Full forecast: readable daily columns inspired by the weekly reference. */
+/* A portal must establish its own layout outside the home widget grid. */
+.forecast-overlay { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; border-radius:1.5rem; background:var(--card); }
+.forecast-overlay-header { display:grid; grid-template-columns:auto minmax(0,1fr); flex:0 0 52px; min-width:0; }
+.forecast-viewport { container:weather-forecast / size; position:relative; display:flex; flex:1 1 0%; min-width:0; min-height:0; overflow:hidden; }
 .weather-week-panel {
-  --forecast-ink: oklch(.97 .015 90);
-  --forecast-muted: oklch(.85 .025 225);
-  --forecast-surface: oklch(.45 .08 235 / 68%);
-  --forecast-line: oklch(.9 .04 220 / 15%);
-  --forecast-sun: oklch(.88 .14 85);
-  --forecast-cloud: oklch(.83 .035 225);
-  container: weather-forecast / inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  width: 100%;
-  min-height: 100%;
-  padding: clamp(1rem, 2.5vw, 1.75rem);
-  color: var(--forecast-ink);
-  background: linear-gradient(155deg, oklch(.33 .075 240), oklch(.43 .08 235));
+  --forecast-ink: var(--foreground);
+  --forecast-muted: var(--muted-foreground);
+  --forecast-surface: var(--muted);
+  --forecast-line: var(--border);
+  --forecast-sun: var(--weather-sun);
+  --forecast-cloud: var(--weather-cloud);
+  display:flex; flex-direction:column; gap:12px; width:100%; height:100%; min-height:0; min-width:0; padding:16px; overflow:hidden;
+  color:var(--forecast-ink); background:var(--card);
 }
-.light .weather-week-panel {
-  --forecast-ink: oklch(.27 .06 240);
-  --forecast-muted: oklch(.44 .045 240);
-  --forecast-surface: oklch(.99 .008 220 / 84%);
-  --forecast-line: oklch(.42 .075 240 / 18%);
-  --forecast-sun: oklch(.64 .14 75);
-  --forecast-cloud: oklch(.5 .045 235);
-  background: linear-gradient(155deg, oklch(.93 .035 225), oklch(.88 .055 225));
+.weather-week-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px; flex-shrink:0; }
+.weather-week-header > div { min-width:0; }
+.weather-week-location { display:flex; align-items:center; gap:6px; font-size:14px; color:var(--forecast-muted); }
+.weather-week-location svg { width:16px; height:16px; flex-shrink:0; }
+.weather-week-header h1 { margin-top:4px; font-family:var(--font-display); font-size:24px; line-height:1.2; font-weight:700; letter-spacing:0; }
+.weather-week-subtitle { display:none; }
+.weather-week-source { border:1px solid var(--forecast-line); border-radius:6px; padding:4px 8px; font-size:12px; color:var(--forecast-muted); }
+.weather-week-current { display:flex; align-items:center; justify-content:space-between; gap:12px; border-block:1px solid var(--forecast-line); padding-block:10px; flex-shrink:0; }
+.weather-week-current-reading { display:flex; align-items:center; gap:12px; min-width:0; }
+.weather-week-current-icon { width:40px; height:40px; color:var(--forecast-sun); stroke-width:1.5; flex-shrink:0; }
+.weather-week-current-temp { font-size:40px; line-height:1; font-weight:650; font-variant-numeric:tabular-nums; white-space:nowrap; letter-spacing:0; }
+.weather-week-current-temp > span { font-size:18px; vertical-align:top; line-height:1.5; }
+.weather-week-current-copy { display:flex; flex-direction:column; gap:3px; font-size:14px; min-width:0; }
+.weather-week-current-copy p { font-weight:600; }
+.weather-week-current-copy > span { font-size:12px; color:var(--forecast-muted); }
+.weather-week-current-metrics { display:flex; align-items:center; gap:16px; flex-shrink:0; }
+.weather-week-current-metrics dt { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--forecast-muted); }
+.weather-week-current-metrics dt svg { width:14px; height:14px; }
+.weather-week-current-metrics dd { margin-top:4px; font-size:18px; font-weight:650; }
+.weather-week-current-metrics dd > span { font-size:12px; font-weight:500; }
+.weather-week-forecast { display:flex; flex-direction:column; flex:1 1 0%; min-height:0; gap:8px; }
+.weather-week-section-title { font-size:16px; font-weight:650; flex-shrink:0; }
+.weather-week-grid { display:grid; flex:1 1 0%; min-height:0; grid-template-columns:repeat(5,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); gap:10px; list-style:none; }
+.weather-week-day { display:flex; flex-direction:column; justify-content:space-between; align-items:center; min-width:0; min-height:0; gap:8px; padding:12px 8px; border:1px solid var(--forecast-line); border-radius:8px; background:var(--forecast-surface); text-align:center; }
+.weather-week-today { border-color:var(--primary); }
+.weather-week-day-heading { display:flex; flex-direction:column; gap:4px; width:100%; min-width:0; }
+.weather-week-day-heading h3 { font-size:14px; line-height:1.25; font-weight:700; overflow-wrap:anywhere; letter-spacing:0; }
+.weather-week-day-heading time { font-size:12px; color:var(--forecast-muted); }
+.weather-week-day-condition { display:flex; flex-direction:column; align-items:center; gap:6px; width:100%; min-width:0; }
+.weather-week-day-icon { width:56px; height:56px; flex-shrink:0; color:var(--forecast-sun); stroke-width:1.5; }
+.weather-week-day-icon.weather-week-cloud { color:var(--forecast-cloud); }
+.weather-week-day-icon.weather-week-rain { color:var(--weather-rain); }
+.weather-week-day-condition p { font-size:13px; line-height:1.3; overflow-wrap:anywhere; }
+.weather-week-day-temperatures { display:flex; justify-content:center; gap:12px; width:100%; }
+.weather-week-day-temperatures > div,.weather-week-day-rain > div { display:flex; flex-direction:column; }
+.weather-week-day-temperatures dt,.weather-week-day-rain dt { order:2; font-size:11px; color:var(--forecast-muted); }
+.weather-week-day-temperatures dd,.weather-week-day-rain dd { order:1; }
+.weather-week-day-high dd { font-size:28px; line-height:1.15; font-weight:650; letter-spacing:0; white-space:nowrap; }
+.weather-week-day-low dd { font-size:22px; line-height:1.45; white-space:nowrap; }
+.weather-week-day-temperatures dd > span { font-size:12px; }
+.weather-week-day-rain { width:100%; border-top:1px solid var(--forecast-line); padding-top:6px; }
+.weather-week-day-rain dd { display:flex; justify-content:center; align-items:center; gap:4px; font-size:20px; font-weight:600; }
+.weather-week-day-rain dd > svg { width:14px; height:14px; }
+.weather-week-day-rain dd > span { font-size:12px; }
+.weather-week-hourly { display:none; flex-shrink:0; }
+.weather-week-hourly-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.weather-week-sun-times { display:flex; gap:12px; font-size:12px; color:var(--forecast-muted); }
+.weather-week-sun-times > span { display:flex; align-items:center; gap:4px; }
+.weather-week-sun-times svg { width:16px; height:16px; }
+.weather-week-hourly-strip { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; margin-top:6px; overflow:hidden; }
+.weather-week-hourly-strip > p { grid-column:1 / -1; }
+.weather-week-hour { display:flex; min-width:0; flex-direction:column; align-items:center; gap:3px; border:1px solid var(--forecast-line); border-radius:6px; padding:6px; background:var(--forecast-surface); }
+.weather-week-hour > span { font-size:11px; color:var(--forecast-muted); }
+.weather-week-hour > svg { width:20px; height:20px; color:var(--forecast-sun); }
+.weather-week-hour > strong { font-size:14px; }
+.weather-week-hour-rain { display:flex; align-items:center; gap:3px; }
+.weather-week-hour-rain svg { width:12px; height:12px; }
+@container weather-forecast (min-width:700px) and (min-height:680px) {
+  .weather-week-hourly { display:block; }
+  .weather-week-day-icon { width:72px; height:72px; }
 }
-.weather-week-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.weather-week-header > div { min-width: 0; }
-.weather-week-location { display: flex; align-items: center; gap: .4rem; font-size: .875rem; color: var(--forecast-muted); overflow-wrap: anywhere; }
-.weather-week-location svg { width: 1rem; height: 1rem; flex-shrink: 0; }
-.weather-week-header h1 { margin-top: .45rem; font-family: var(--font-display); font-size: clamp(1.4rem, 3.5cqw, 2.5rem); line-height: 1.15; font-weight: 700; text-transform: uppercase; letter-spacing: -.025em; }
-.weather-week-subtitle { margin-top: .45rem; font-size: .875rem; color: var(--forecast-muted); }
-.weather-week-source { flex-shrink: 0; border: 1px solid var(--forecast-line); border-radius: .5rem; padding: .35rem .6rem; font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-current { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-block: 1px solid var(--forecast-line); padding-block: .8rem; }
-.weather-week-current-reading { display: flex; align-items: center; gap: .85rem; min-width: 0; }
-.weather-week-current-icon { width: 2.75rem; height: 2.75rem; color: var(--forecast-sun); stroke-width: 1.4; flex-shrink: 0; }
-.weather-week-current-temp { font-size: 2.6rem; line-height: 1; font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.weather-week-current-temp > span { font-size: .45em; vertical-align: top; margin-left: .12em; line-height: 1.5; }
-.weather-week-current-copy { display: flex; flex-direction: column; gap: .2rem; font-size: .875rem; min-width: 0; }
-.weather-week-current-copy p { font-weight: 600; }
-.weather-week-current-copy > span { font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-current-metrics { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
-.weather-week-current-metrics dt { display: flex; align-items: center; gap: .3rem; font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-current-metrics dt svg { width: .9rem; height: .9rem; }
-.weather-week-current-metrics dd { margin-top: .3rem; font-size: 1.125rem; font-weight: 650; font-variant-numeric: tabular-nums; }
-.weather-week-current-metrics dd > span { font-size: .75rem; font-weight: 500; }
-.weather-week-section-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; font-size: 1rem; font-weight: 650; }
-.weather-week-section-title > span { font-size: .75rem; font-weight: 400; color: var(--forecast-muted); }
-.weather-week-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .65rem; margin-top: .8rem; list-style: none; }
-.weather-week-day { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: .75rem; padding: 1.15rem .7rem; border: 1px solid var(--forecast-line); border-radius: .85rem; background: var(--forecast-surface); text-align: center; }
-.weather-week-today { border-color: oklch(.83 .1 220 / 55%); background: linear-gradient(180deg, oklch(.6 .1 230 / 28%), var(--forecast-surface)); }
-.weather-week-day-heading { display: flex; flex-direction: column; justify-content: flex-start; gap: .35rem; width: 100%; min-height: 3.2rem; }
-.weather-week-day-heading h3 { font-size: .875rem; line-height: 1.35; font-weight: 750; text-transform: uppercase; overflow-wrap: anywhere; }
-.weather-week-day-heading time { font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-day-condition { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: .6rem; width: 100%; }
-.weather-week-day-icon { width: clamp(3rem, 7cqw, 5.25rem); height: clamp(3rem, 7cqw, 5.25rem); color: var(--forecast-sun); stroke-width: 1.3; }
-.weather-week-day-icon.weather-week-cloud { color: var(--forecast-cloud); }
-.weather-week-day-icon.weather-week-rain { color: oklch(.81 .065 225); }
-.light .weather-week-day-icon.weather-week-rain { color: oklch(.51 .09 240); }
-.weather-week-day-condition p { width: 100%; min-height: 2.6em; font-size: .75rem; line-height: 1.3; color: var(--forecast-muted); }
-.weather-week-day-temperatures { display: flex; flex-direction: column; gap: .65rem; width: 100%; margin-top: auto; }
-.weather-week-day-temperatures > div, .weather-week-day-rain > div { display: flex; flex-direction: column; }
-.weather-week-day-temperatures dt, .weather-week-day-rain dt { order: 2; }
-.weather-week-day-temperatures dd, .weather-week-day-rain dd { order: 1; }
-.weather-week-day-high dd { font-family: var(--font-display); font-size: clamp(2rem, 4.5cqw, 3.25rem); font-weight: 650; line-height: 1.1; letter-spacing: -.06em; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.weather-week-day-high dd > span { font-size: .43em; vertical-align: top; line-height: 1.6; letter-spacing: -.025em; margin-left: .07em; }
-.weather-week-day-low dd { font-size: 1.5rem; font-weight: 500; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.weather-week-day-low dd > span { font-size: .7em; margin-left: .08em; }
-.weather-week-day-temperatures dt { margin-top: .2rem; font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-day-rain { width: 100%; border-top: 1px solid var(--forecast-line); padding-top: .9rem; margin-top: .1rem; }
-.weather-week-day-rain dd { display: flex; justify-content: center; align-items: center; gap: .3rem; font-size: 1.65rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.weather-week-day-rain dd > svg { width: 1rem; height: 1rem; opacity: .75; }
-.weather-week-day-rain dd > span { font-size: .65em; }
-.weather-week-day-rain dt { font-size: .75rem; color: var(--forecast-muted); margin-top: .2rem; }
-.weather-week-hourly-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.weather-week-sun-times { display: flex; gap: 1rem; font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-sun-times > span { display: flex; align-items: center; gap: .35rem; }
-.weather-week-sun-times svg { width: 1rem; height: 1rem; }
-.weather-week-hourly-strip { display: flex; min-width: 0; gap: .5rem; overflow-x: auto; margin-top: .75rem; padding-bottom: .4rem; }
-.weather-week-hour { display: flex; flex: 1 0 5rem; flex-direction: column; align-items: center; gap: .35rem; border: 1px solid var(--forecast-line); border-radius: .7rem; padding: .75rem .5rem; background: var(--forecast-surface); text-align: center; }
-.weather-week-hour > span { font-size: .75rem; color: var(--forecast-muted); }
-.weather-week-hour > svg { width: 1.5rem; height: 1.5rem; color: var(--forecast-sun); stroke-width: 1.5; }
-.weather-week-hour > strong { font-size: 1rem; font-variant-numeric: tabular-nums; }
-.weather-week-hour-rain { display: flex; align-items: center; gap: .2rem; }
-.weather-week-hour-rain svg { width: .7rem; height: .7rem; }
-@container weather-forecast (max-width: 820px) {
-  .weather-week-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .weather-week-day { gap: .55rem; padding: 1rem; }
-  .weather-week-day-heading { min-height: 2.8rem; }
-  .weather-week-day-temperatures { flex-direction: row; justify-content: center; align-items: center; gap: 1rem; }
-  .weather-week-day-high dd { font-size: 2.3rem; }
-  .weather-week-day-low dd { font-size: 1.6rem; }
-  .weather-week-day-condition p { min-height: 1.3em; }
+@container weather-forecast (max-width:699px) {
+  .weather-week-panel { padding:10px; gap:8px; }
+  .weather-week-header h1 { font-size:20px; }
+  .weather-week-source { display:none; }
+  .weather-week-current { flex-wrap:wrap; gap:8px; padding-block:8px; }
+  .weather-week-current-reading { gap:8px; }
+  .weather-week-current-temp { font-size:32px; }
+  .weather-week-current-icon { width:32px; height:32px; }
+  .weather-week-current-metrics { gap:16px; }
+  .weather-week-current-metrics dd { font-size:14px; }
+  .weather-week-grid { grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(5,minmax(0,1fr)); gap:6px; }
+  .weather-week-day { display:grid; grid-template-columns:64px minmax(0,1fr) 80px; align-items:center; gap:6px; padding:6px 8px; text-align:left; }
+  .weather-week-day-heading h3 { font-size:12px; }
+  .weather-week-day-heading time { font-size:11px; }
+  .weather-week-day-condition { display:grid; grid-template-columns:28px minmax(0,1fr); gap:5px; }
+  .weather-week-day-icon { width:28px; height:28px; }
+  .weather-week-day-condition p { font-size:12px; }
+  .weather-week-day-temperatures { gap:6px; text-align:center; }
+  .weather-week-day-high dd,.weather-week-day-low dd { font-size:18px; line-height:1.2; }
+  .weather-week-day-temperatures dd > span { font-size:10px; }
+  .weather-week-day-temperatures dt { font-size:10px; }
+  .weather-week-day-rain { display:none; }
 }
-@container weather-forecast (max-width: 560px) {
-  .weather-week-current { align-items: flex-start; flex-direction: column; }
-  .weather-week-current-metrics { width: 100%; justify-content: space-between; padding-top: .3rem; }
-  .weather-week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .weather-week-source { display: none; }
-  .weather-week-day-heading h3 { font-size: .875rem; }
-  .weather-week-day-condition p { min-height: 2.6em; }
-  .weather-week-day-high dd { font-size: 2rem; }
-  .weather-week-day-low dd { font-size: 1.4rem; }
+@container weather-forecast (max-width:360px) {
+  .weather-week-header h1 { font-size:18px; }
+  .weather-week-current-metrics { display:none; }
+  .weather-week-current-copy { font-size:12px; }
+  .weather-week-location { font-size:12px; }
+  .weather-week-day { grid-template-columns:56px minmax(0,1fr) 70px; padding:5px; gap:4px; }
+  .weather-week-day-condition { grid-template-columns:22px minmax(0,1fr); gap:4px; }
+  .weather-week-day-icon { width:22px; height:22px; }
+  .weather-week-day-condition p { font-size:11px; }
+  .weather-week-day-temperatures { gap:4px; }
+  .weather-week-day-high dd,.weather-week-day-low dd { font-size:16px; }
 }
-@container weather-forecast (max-width: 320px) {
-  .weather-week-grid { grid-template-columns: minmax(0, 1fr); }
-  .weather-week-current-reading { flex-wrap: wrap; gap: .65rem; }
-  .weather-week-day-condition p { min-height: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .weather-details-panel * { scroll-behavior: auto; }
+@container weather-forecast (min-width:700px) and (max-height:470px) {
+  .weather-week-panel { padding:10px; gap:6px; }
+  .weather-week-header h1 { font-size:20px; }
+  .weather-week-current { padding-block:6px; }
+  .weather-week-day { padding:8px; gap:4px; }
+  .weather-week-day-icon { width:36px; height:36px; }
+  .weather-week-day-high dd { font-size:24px; }
+  .weather-week-day-low dd { font-size:20px; }
 }
 
 .map-tiles-dark {

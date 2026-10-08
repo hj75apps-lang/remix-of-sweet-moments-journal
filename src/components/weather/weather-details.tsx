@@ -68,7 +68,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
         <div>
           <p className="weather-week-location"><MapPin aria-hidden="true" />{weather.city}</p>
           <h1>Previsão da semana</h1>
-          <p className="weather-week-subtitle">Hoje e os próximos cinco dias</p>
+           <p className="weather-week-subtitle">Previsão para cinco dias</p>
         </div>
         <span className="weather-week-source">{weather.source}</span>
       </header>
@@ -90,9 +90,9 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
       </section>
 
       <section aria-labelledby="five-day-title" className="weather-week-forecast">
-        <h2 id="five-day-title" className="weather-week-section-title">Próximos 5 dias <span>com o resumo de hoje</span></h2>
-        <ul className="weather-week-grid" aria-label="Hoje e próximos cinco dias">
-          {days.slice(0, 6).map((day, index) => {
+         <h2 id="five-day-title" className="weather-week-section-title">Próximos 5 dias</h2>
+         <ul className="weather-week-grid" aria-label="Previsão de cinco dias">
+           {days.slice(0, 5).map((day, index) => {
             const DayIcon = weatherIcon(day.code, day.text);
             const cloudy = DayIcon === Cloud || DayIcon === CloudFog;
             const wet = DayIcon === CloudRain || DayIcon === CloudSnow || DayIcon === CloudLightning;
