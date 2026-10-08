@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Ajustar o ícone do clima à segunda referência e manter a condição escrita nos cartões compactos; verificar apresentação e abertura sem alterar dados.
+
 - [x] Priorizar rádios pelo tempo ouvido nos últimos 30 dias, salvar histórico local e verificar ordenação após reabrir; 26 testes aprovados e reprodução confirmada com transmissão de teste.
 
 - [x] Verificar o widget: exibe mapa próprio e abre o navegador externamente; APK comum Android 7+ não incorpora a janela de terceiros por APIs públicas.

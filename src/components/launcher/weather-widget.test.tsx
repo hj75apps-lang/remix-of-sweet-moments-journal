@@ -49,6 +49,12 @@ function renderHome() {
 }
 
 describe("weather expansion in launcher workspace", () => {
+  it("shows the actual condition and Celsius unit on the home card", () => {
+    renderHome();
+    expect(screen.getByLabelText("Condição do tempo")).toHaveTextContent("Ensolarado");
+    expect(screen.getByText("°C")).toBeInTheDocument();
+  });
+
   it("opens within the home content area without covering or disabling the Dock", () => {
     renderHome();
     fireEvent.click(screen.getByRole("button", { name: "Abrir previsão do tempo para Cuiabá" }));
