@@ -21,7 +21,8 @@
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
 - Expanded weather uses a dedicated workspace overlay and a bounded forecast size container shared with /clima; daily layout adapts by available width and height without scroll or changes to weather fetching.
-- Home weather uses one integrated WeatherSymbol outline and retains condition text in compact cards, hiding optional details first to prevent overlap; visual restyles preserve fetching, state and full forecast access.
+- Home weather uses an integrated WeatherSymbol outline and compact condition text; restyles preserve fetching, state and forecast access.
+- Cards reuse global glass surface/border tokens and the existing transparency setting so all widgets match across themes.
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
 - Now-playing selection uses external Android MediaSessions plus the in-app radio store; all external sessions are observed and permission is refreshed on resume so source changes and late grants are detected.
 - Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
