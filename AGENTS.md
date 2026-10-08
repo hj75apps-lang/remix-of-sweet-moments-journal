@@ -24,6 +24,7 @@
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
 - Now-playing selection uses external Android MediaSessions plus the in-app radio store; all external sessions are observed and permission is refreshed on resume so source changes and late grants are detected.
 - Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
+- StatusBar reserves only the shell's matching top inset; the global microphone action lives in Dock so touch targets do not enlarge margins or overlap page content.
 - The launcher dock keeps Home, Online Radio, Apps, and Settings fixed; the former Phone slot reads the last successfully launched app from LauncherApps native preferences without UsageStats permission, while remaining recent slots use UsageStats and omit duplicates.
 - The default 1280×720 launcher grid reserves four columns for navigation and stacks clock, weather, and media in the two-column side rail.
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Home, LayoutGrid, Radio, Settings, History, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { VoiceControlButton } from "@/components/launcher/status-bar";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import {
   hasUsageAccess,
@@ -163,6 +164,7 @@ export function Dock() {
           <span className="w-full truncate text-center">Recentes</span>
         </Button>
       )}
+      <VoiceControlButton />
     </nav>
   );
 }
