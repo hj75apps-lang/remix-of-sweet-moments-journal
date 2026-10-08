@@ -86,12 +86,14 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
 
 interface Ctx {
   settings: LauncherSettings;
+  loaded: boolean;
   update: (patch: Partial<Omit<LauncherSettings, "version">>) => void;
 }
 const SettingsContext = createContext<Ctx | null>(null);
 
 export function LauncherSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [loaded, setLoaded] = useState(false);
   const { apps: navigationApps, ready: navigationAppsReady } = useNavigationApps();
 
   useEffect(() => {
@@ -100,6 +102,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
       validate: isLauncherSettings,
       migrateLegacy: normalize,
     }));
+    setLoaded(true);
   }, []);
 
   // Older builds defaulted to immersive + keep-screen-on and could therefore
@@ -171,7 +174,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   }, []);
 
   return (
-    <SettingsContext.Provider value={{ settings, update }}>{children}</SettingsContext.Provider>
+    <SettingsContext.Provider value={{ settings, loaded, update }}>{children}</SettingsContext.Provider>
   );
 }
 
