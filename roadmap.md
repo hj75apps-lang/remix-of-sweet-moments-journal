@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Verificar exibição do app de navegação escolhido dentro do widget e definir alternativa suportada pelo Android.
+- [x] Verificar o widget: exibe mapa próprio e abre o navegador externamente; APK comum Android 7+ não incorpora a janela de terceiros por APIs públicas.
+- [ ] Exibir a tela real do navegador dentro do widget (depende de integração privilegiada do fabricante e identificação da central).
 
 - [x] Igualar a margem superior à inferior nas seis páginas do launcher: 16px em 1280×800 e 8px em 390×844, preservando o comando de voz na barra de navegação.
 
