@@ -87,11 +87,21 @@ async function getServerEntry(): Promise<ServerEntry> {
 async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/navigation/trips")) return null;
-  const allowedOrigin =
+  const configuredOrigins =
     typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
       ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
       : (typeof process !== "undefined" ? process.env?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] : undefined);
+  // The variable accepts a comma-separated allowlist. These are the confirmed Lovable
+  // preview and production origins; keep them as safe defaults if no environment value exists.
+  const allowedOrigins = new Set(
+    (configuredOrigins
+      ? configuredOrigins.split(",")
+      : ["https://preview--hjcarlauncher.lovable.app", "https://hjcarlauncher.lovable.app"])
+      .map((origin) => origin.trim().replace(/\\/$/, ""))
+      .filter(Boolean),
+  );
   const requestOrigin = request.headers.get("origin");
+  const originAllowed = !!requestOrigin && allowedOrigins.has(requestOrigin);
   const cors: Record<string, string> = {
     "cache-control": "no-store",
     "content-type": "application/json; charset=utf-8",
@@ -100,8 +110,8 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     "access-control-expose-headers": "x-navigation-connect-access-key",
     "vary": "Origin",
   };
-  if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
-  if (allowedOrigin && (request.method === "POST" || request.method === "OPTIONS") && requestOrigin !== allowedOrigin) {
+  if (originAllowed && requestOrigin) cors["access-control-allow-origin"] = requestOrigin;
+  if ((request.method === "POST" || request.method === "OPTIONS") && !originAllowed) {
     return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: cors });
   }
   try {
