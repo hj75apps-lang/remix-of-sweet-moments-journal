@@ -32,7 +32,7 @@ function SettingsPage() {
       <StatusBar />
       <main className="flex min-h-0 flex-1 flex-col-reverse gap-3 px-2 pb-2 sm:px-4 sm:pb-4 md:flex-row md:gap-4">
         <Dock />
-        <section className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto md:gap-4">
           <h1 className="px-2 text-2xl font-semibold">Ajustes</h1>
           <div className="rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between gap-4">

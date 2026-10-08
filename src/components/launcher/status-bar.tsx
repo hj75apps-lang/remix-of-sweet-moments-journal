@@ -10,7 +10,7 @@ export function StatusBar() {
 
   return (
     <header
-      className="flex h-auto shrink-0 items-center justify-end gap-2 px-3 py-1 text-xs sm:px-6 sm:text-sm"
+      className="flex h-12 shrink-0 items-center justify-end gap-2 px-2 text-xs sm:h-14 sm:px-4 sm:text-sm"
       role="banner"
     >
       <div className="flex min-w-0 items-center justify-end gap-2">

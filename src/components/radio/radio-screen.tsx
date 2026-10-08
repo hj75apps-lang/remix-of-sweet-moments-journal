@@ -162,7 +162,7 @@ export function RadioScreen() {
   const isLoading = tab === "all" && catalog.isLoading;
 
   return (
-    <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-4">
+    <div className="grid min-h-0 min-w-0 flex-1 gap-3 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-4">
       {/* Now playing */}
       <section
         aria-label="Tocando agora"
