@@ -48,4 +48,4 @@ jobs:
           profile: pixel_6
           disable-linux-hw-accel: false
           emulator-boot-timeout: 300
-          script: cd android && chmod +x gradlew && ./gradlew connectedDebugAndroidTest --no-daemon
+          script: cd android && chmod +x gradlew && ./gradlew :app:connectedDebugAndroidTest --no-daemon
