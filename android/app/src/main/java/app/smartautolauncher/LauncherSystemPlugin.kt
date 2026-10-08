@@ -14,6 +14,8 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.Build
 import android.app.role.RoleManager
+import android.app.ActivityOptions
+import android.graphics.Rect
 import android.provider.CallLog
 import android.provider.ContactsContract
 import android.provider.Settings
@@ -257,6 +259,51 @@ class LauncherSystemPlugin : Plugin() {
         val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
         launch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         start(launch, call)
+    }
+
+    /** Public freeform request only. Never substitute split screen or a normal launch. */
+    @PluginMethod
+    fun openNavigationWindow(call: PluginCall) {
+        val act = activity ?: return call.reject("window_unavailable")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N ||
+            !context.packageManager.hasSystemFeature(PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT) ||
+            act.isInMultiWindowMode) return call.reject("window_unsupported")
+        val app = call.getString("app") ?: return call.reject("not_installed")
+        val pkg = when (app) {
+            "maps" -> MAPS
+            "waze" -> WAZE
+            else -> if (app.startsWith("package:")) app.removePrefix("package:") else return call.reject("window_choose_app")
+        }
+        if (pkg == context.packageName) return call.reject("not_installed")
+        val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
+        val bounds = call.getObject("bounds") ?: return call.reject("window_invalid_bounds")
+        val left = bounds.optDouble("left", Double.NaN)
+        val top = bounds.optDouble("top", Double.NaN)
+        val right = bounds.optDouble("right", Double.NaN)
+        val bottom = bounds.optDouble("bottom", Double.NaN)
+        if (!listOf(left, top, right, bottom).all { it.isFinite() } || left < 0 || top < 0 || right <= left || bottom <= top) {
+            return call.reject("window_invalid_bounds")
+        }
+        act.runOnUiThread {
+            val web = bridge.webView
+            val scale = web.resources.displayMetrics.density * web.scale
+            val origin = IntArray(2)
+            web.getLocationOnScreen(origin)
+            val rect = Rect(origin[0] + (left * scale).toInt(), origin[1] + (top * scale).toInt(),
+                origin[0] + (right * scale).toInt(), origin[1] + (bottom * scale).toInt())
+            if (rect.width() <= 0 || rect.height() <= 0 || right * scale > web.width + 1 || bottom * scale > web.height + 1) {
+                call.reject("window_invalid_bounds")
+                return@runOnUiThread
+            }
+            try {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val options = ActivityOptions.makeBasic().setLaunchBounds(rect)
+                act.startActivity(launch, options.toBundle())
+                // Android may ignore launchBounds. Do not claim verified embedding.
+                call.resolve(JSObject().put("requested", true))
+            } catch (_: ActivityNotFoundException) { call.reject("not_installed")
+            } catch (_: SecurityException) { call.reject("window_unsupported") }
+        }
     }
 
     @PluginMethod

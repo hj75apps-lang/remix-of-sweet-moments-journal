@@ -1,12 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { ClientOnly } from "@tanstack/react-router";
-import { Maximize2, Navigation, Search, WifiOff, MapPin, BellRing, Route as RouteIcon } from "lucide-react";
+import { Maximize2, PanelsTopLeft, Navigation, Search, WifiOff, MapPin, BellRing, Route as RouteIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { useTheme } from "@/hooks/use-theme";
-import { errorMessage, resumeNavigation, startNavigation } from "@/services/launcher-system";
+import { errorMessage, isLauncherNative, resumeNavigation, startNavigation } from "@/services/launcher-system";
+import { navigationWindowBounds, openNavigationWindow } from "@/services/navigation-window";
 import { requestGuidanceAccess } from "@/services/navigation-guidance";
 import { navigationId, useNavigationApps } from "@/services/navigation-apps";
 import { useNavigationState } from "@/contexts/navigation-context";
@@ -24,8 +25,12 @@ export function NavigationWidget() {
   const [searching, setSearching] = useState(false);
   const [visible, setVisible] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
+  const [native, setNative] = useState(false);
+  const [openingWindow, setOpeningWindow] = useState(false);
   const section = useRef<HTMLElement | null>(null);
   const missing = ready && settings.navApp !== "system" && !apps.some((a) => a.id === settings.navApp);
+
+  useEffect(() => setNative(isLauncherNative()), []);
 
   useEffect(() => {
     if (!visible) return;
@@ -62,10 +67,20 @@ export function NavigationWidget() {
     }
   };
 
-  // The widget click is always an in-launcher preview action. Opening or
-  // resuming the external navigation app remains available from fullscreen.
-  const openMap = () => {
-    setFullscreen(true);
+  const openMap = async () => {
+    if (!native) { setFullscreen(true); return; }
+    if (openingWindow) return;
+    const bounds = section.current ? navigationWindowBounds(section.current.getBoundingClientRect()) : null;
+    if (!bounds) return;
+    setOpeningWindow(true);
+    try {
+      const app = state.active && state.sourcePackage ? navigationId(state.sourcePackage) : settings.navApp;
+      await openNavigationWindow(app, bounds);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(message === "window_choose_app" ? "Escolha um navegador nos ajustes." :
+        message === "not_installed" ? errorMessage(error) : "Esta central não disponibilizou a janela de navegação.");
+    } finally { setOpeningWindow(false); }
   };
 
   const appLabel = apps.find((a) => a.id === settings.navApp)?.label ?? "Navegador";
@@ -91,8 +106,9 @@ export function NavigationWidget() {
         <Button
           type="button"
           variant="ghost"
-          onClick={openMap}
-          aria-label={state.active ? "Abrir navegação ativa" : "Abrir mapa em tela cheia"}
+          onClick={() => void openMap()}
+          disabled={openingWindow}
+          aria-label={native ? "Abrir navegador neste espaço" : state.active ? "Abrir navegação ativa" : "Abrir mapa em tela cheia"}
           className="navigation-map-target absolute inset-0 z-[400] h-full w-full rounded-none p-0"
         />
 
@@ -119,7 +135,7 @@ export function NavigationWidget() {
               </div>
             )}
             <span className="navigation-expand grid size-10 shrink-0 place-items-center rounded-full bg-popover/95 text-popover-foreground">
-              <Maximize2 className="size-4" />
+              {native ? <PanelsTopLeft className="size-4" /> : <Maximize2 className="size-4" />}
             </span>
           </div>
 
