@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Priorizar as rádios mais ouvidas recentemente, salvar histórico local e verificar ordenação após reabrir.
+- [x] Priorizar rádios pelo tempo ouvido nos últimos 30 dias, salvar histórico local e verificar ordenação após reabrir; 26 testes aprovados e reprodução confirmada com transmissão de teste.
 
 - [x] Verificar o widget: exibe mapa próprio e abre o navegador externamente; APK comum Android 7+ não incorpora a janela de terceiros por APIs públicas.
 - [x] Identificar a central: Torque Hammer VPL - 1167/464, Android 14.
