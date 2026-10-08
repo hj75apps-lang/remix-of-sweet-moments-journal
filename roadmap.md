@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Igualar a margem superior à inferior em todas as páginas do launcher, preservando o comando de voz.
+
 - [x] Uniformizar margens da tela inicial com as demais páginas; posições da barra e do conteúdo idênticas em Início, Rádio, Apps, Ajustes, Clima e Telefone, verificadas em 1280×800, 1280×720 e 390×844.
 
 - [x] Retirar cabeçalhos, localização duplicada e selo da previsão expandida; Hoje + cinco dias, botão voltar e /clima validados em 1280, 390 e 320px sem rolagem; cinco testes aprovados.
