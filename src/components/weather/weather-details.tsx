@@ -10,7 +10,6 @@ import {
   Sunrise,
   Sunset,
   Sun,
-  Thermometer,
   Umbrella,
   Wind,
   type LucideIcon,
@@ -37,9 +36,13 @@ export function shortWeekday(date: string, index = 1) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
 }
 
-function fullDay(date: string, index: number) {
+function fullWeekday(date: string) {
+  return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long" });
+}
+
+function calendarDay(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", {
-    weekday: "long", day: "2-digit", month: "short",
+    day: "2-digit", month: "short",
   }).replace(".", "");
 }
 
@@ -54,70 +57,86 @@ function clockLabel(value?: string) {
 }
 
 export function WeatherDetails({ weather }: { weather: WeatherReport }) {
+  const CurrentIcon = weatherIcon(weather.code, weather.text);
+  const today = weather.days[0];
+
   return (
-    <div className="weather-details-panel mx-auto grid min-h-full w-full max-w-7xl grid-rows-[auto_auto_auto_minmax(0,1fr)] p-3 sm:p-5 lg:p-7">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 pb-3">
-        <div className="min-w-0">
-          <h1 className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl">
-            <MapPin className="size-5 shrink-0 text-primary" aria-hidden="true" />
-            <span className="truncate">{weather.city}</span>
-          </h1>
-          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">Condições atuais e previsão meteorológica</p>
+    <div className="weather-details-panel weather-week-panel">
+      <header className="weather-week-header">
+        <div>
+          <p className="weather-week-location"><MapPin aria-hidden="true" />{weather.city}</p>
+          <h1>Previsão da semana</h1>
+          <p className="weather-week-subtitle">Hoje e os próximos cinco dias</p>
         </div>
-        <CloudSun className="size-6 shrink-0 text-primary" aria-hidden="true" />
+        <span className="weather-week-source">{weather.source}</span>
       </header>
 
-      <section aria-label="Condição atual" className="weather-details-current grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-y py-3 sm:gap-5 sm:py-4">
-        <div className="min-w-0">
-          <p className="font-display text-5xl font-light leading-none tabular-nums sm:text-6xl">{weather.temp}°</p>
-          <p className="mt-2 text-sm font-medium sm:text-base">{weather.text}</p>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">Sensação de {weather.feels}°</p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs font-medium sm:text-sm">
-            <span>↑ {weather.days[0]?.max}°</span><span>↓ {weather.days[0]?.min}°</span>
+      <section aria-label="Condição atual" className="weather-week-current">
+        <div className="weather-week-current-reading">
+          <CurrentIcon className="weather-week-current-icon" aria-label={weather.text} />
+          <p className="weather-week-current-temp">{weather.temp}<span>°C</span></p>
+          <div className="weather-week-current-copy">
+            <p>{weather.text}</p>
+            <span>Sensação de {weather.feels}°</span>
+            {today && <span>Máx. {today.max}° · Mín. {today.min}°</span>}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-1.5 text-xs sm:gap-2">
-          <div className="rounded-xl bg-secondary/70 px-2.5 py-2"><span className="flex items-center gap-1.5 text-muted-foreground"><Droplets className="size-3.5 text-primary" />Umidade</span><strong>{weather.humidity}%</strong></div>
-          <div className="rounded-xl bg-secondary/70 px-2.5 py-2"><span className="flex items-center gap-1.5 text-muted-foreground"><Wind className="size-3.5 text-primary" />Vento</span><strong>{weather.wind} km/h</strong></div>
-        </div>
+        <dl className="weather-week-current-metrics">
+          <div><dt><Droplets aria-hidden="true" />Umidade</dt><dd>{weather.humidity}%</dd></div>
+          <div><dt><Wind aria-hidden="true" />Vento atual</dt><dd>{weather.wind}<span> km/h</span></dd></div>
+        </dl>
       </section>
 
-      <section aria-labelledby="hourly-title" className="weather-hourly pt-3 sm:pt-4">
-        <div className="flex items-center justify-between">
-          <h2 id="hourly-title" className="text-sm font-semibold sm:text-base">Próximas horas</h2>
-          <div className="flex gap-3 text-[11px] text-muted-foreground"><span className="flex items-center gap-1"><Sunrise className="size-3.5" />{clockLabel(weather.sunrise)}</span><span className="flex items-center gap-1"><Sunset className="size-3.5" />{clockLabel(weather.sunset)}</span></div>
+      <section aria-labelledby="five-day-title" className="weather-week-forecast">
+        <h2 id="five-day-title" className="weather-week-section-title">Próximos 5 dias <span>com o resumo de hoje</span></h2>
+        <ul className="weather-week-grid" aria-label="Hoje e próximos cinco dias">
+          {weather.days.slice(0, 6).map((day, index) => {
+            const DayIcon = weatherIcon(day.code, day.text);
+            const cloudy = DayIcon === Cloud || DayIcon === CloudFog;
+            const wet = DayIcon === CloudRain || DayIcon === CloudSnow || DayIcon === CloudLightning;
+            return (
+              <li key={day.date} className={`weather-day-detail weather-week-day${index === 0 ? " weather-week-today" : ""}`}>
+                <div className="weather-week-day-heading">
+                  <h3>{index === 0 ? "Hoje" : fullWeekday(day.date)}</h3>
+                  <time dateTime={day.date}>{calendarDay(day.date)}</time>
+                </div>
+                <div className="weather-week-day-condition">
+                  <DayIcon className={`weather-week-day-icon${cloudy ? " weather-week-cloud" : wet ? " weather-week-rain" : ""}`} aria-label={day.text} />
+                  <p>{day.text}</p>
+                </div>
+                <dl className="weather-week-day-temperatures">
+                  <div className="weather-week-day-high"><dt>Máxima</dt><dd>{day.max}<span>°C</span></dd></div>
+                  <div className="weather-week-day-low"><dt>Mínima</dt><dd>{day.min}<span>°C</span></dd></div>
+                </dl>
+                <dl className="weather-week-day-rain">
+                  <div><dt>Chance de chuva</dt><dd><Umbrella aria-hidden="true" />{day.rain}<span>%</span></dd></div>
+                </dl>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section aria-labelledby="hourly-title" className="weather-week-hourly">
+        <div className="weather-week-hourly-heading">
+          <h2 id="hourly-title" className="weather-week-section-title">Próximas horas</h2>
+          <div className="weather-week-sun-times">
+            <span><Sunrise aria-hidden="true" /><span className="sr-only">Nascer do sol: </span>{clockLabel(weather.sunrise)}</span>
+            <span><Sunset aria-hidden="true" /><span className="sr-only">Pôr do sol: </span>{clockLabel(weather.sunset)}</span>
+          </div>
         </div>
-        <div className="weather-hourly-strip mt-2 flex min-w-0 gap-1.5 overflow-x-auto pb-1">
+        <div className="weather-hourly-strip weather-week-hourly-strip">
           {weather.hours.slice(0, 8).map((hour, index) => (
-            <div key={hour.time} className="weather-hour-card min-w-[4.25rem] rounded-xl bg-secondary/55 px-2 py-2 text-center">
-              <span className="block text-[10px] font-semibold uppercase text-muted-foreground">{hourLabel(hour.time, index)}</span>
-              {(() => { const HourIcon = weatherIcon(hour.code, hour.text); return <HourIcon className="mx-auto my-1 size-5 text-primary" aria-label={hour.text} />; })()}
-              <strong className="block text-sm">{hour.temp}°</strong>
-              {hour.rain > 0 && <span className="mt-0.5 block text-[10px] text-muted-foreground">💧 {hour.rain}%</span>}
+            <div key={hour.time} className="weather-hour-card weather-week-hour">
+              <span>{hourLabel(hour.time, index)}</span>
+              {(() => { const HourIcon = weatherIcon(hour.code, hour.text); return <HourIcon aria-label={hour.text} />; })()}
+              <strong>{hour.temp}°</strong>
+              <span className="weather-week-hour-rain"><Droplets aria-hidden="true" />{hour.rain}%</span>
             </div>
           ))}
         </div>
       </section>
-
-      <section aria-labelledby="five-day-title" className="flex min-h-0 flex-col pt-3 sm:pt-4">
-        <h2 id="five-day-title" className="text-sm font-semibold sm:text-base">Próximos 5 dias</h2>
-        <ul className="mt-2 grid min-h-0 flex-1 grid-rows-6 gap-1.5 sm:grid-cols-6 sm:grid-rows-1 sm:gap-2">
-          {weather.days.slice(0, 6).map((day, index) => (
-            <li key={day.date} className="weather-day-detail grid min-h-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-xl border bg-secondary/35 px-2.5 py-1.5 sm:flex sm:flex-col sm:items-stretch sm:p-2.5">
-              <div className="min-w-0 sm:text-center">
-                <p className="truncate text-xs font-semibold capitalize sm:whitespace-normal sm:text-sm">{fullDay(day.date, index)}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">{day.text}</p>
-              </div>
-              {(() => { const DayIcon = weatherIcon(day.code, day.text); return <DayIcon className="size-7 shrink-0 text-primary sm:mx-auto sm:size-9" aria-label={day.text} />; })()}
-              <div className="grid grid-cols-3 gap-1 text-center text-xs sm:mt-auto sm:border-t sm:pt-2">
-                <div><Thermometer className="mx-auto hidden size-3.5 text-primary sm:block" /><span className="font-semibold">{day.max}°</span><span className="block text-[10px] text-muted-foreground">máx.</span></div>
-                <div><Thermometer className="mx-auto hidden size-3.5 text-muted-foreground sm:block" /><span className="font-semibold">{day.min}°</span><span className="block text-[10px] text-muted-foreground">mín.</span></div>
-                <div><Umbrella className="mx-auto hidden size-3.5 text-primary sm:block" /><span className="font-semibold">{day.rain}%</span><span className="block text-[10px] text-muted-foreground">chuva</span></div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
     </div>
   );
 }
+
