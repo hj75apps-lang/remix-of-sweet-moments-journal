@@ -14,6 +14,38 @@ const navigationRateLimits = new Map<string, { windowStart: number; count: numbe
 const NAVIGATION_RATE_WINDOW_MS = 60_000;
 const NAVIGATION_RATE_MAX = 5;
 
+async function readJsonBodyLimited<T>(request: Request, maxBytes: number): Promise<T> {
+  if (!request.body) throw new Error("invalid_json");
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        throw new Error("request_too_large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder().decode(bytes)) as T;
+  } catch {
+    throw new Error("invalid_json");
+  }
+}
+
 function navigationClientKey(request: Request): string {
   return request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -87,7 +119,17 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
       if (Number.isFinite(contentLength) && contentLength > 4096) {
         return new Response(JSON.stringify({ error: "request_too_large" }), { status: 413, headers: cors });
       }
-      const body = await request.json() as { app?: string; destination?: string };
+      let body: { app?: string; destination?: string };
+      try {
+        body = await readJsonBodyLimited<{ app?: string; destination?: string }>(request, 4096);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        const status = message === "request_too_large" ? 413 : 400;
+        return new Response(JSON.stringify({ error: status === 413 ? "request_too_large" : "invalid_json" }), {
+          status,
+          headers: cors,
+        });
+      }
       if (body.app !== "maps" && body.app !== "waze") {
         return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
       }
