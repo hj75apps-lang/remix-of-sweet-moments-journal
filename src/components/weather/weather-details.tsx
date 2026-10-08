@@ -79,7 +79,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
           <CurrentIcon className="weather-week-current-icon" aria-label={weather.text} />
           <p className="weather-week-current-temp">{weather.temp}<span>°C</span></p>
           <div className="weather-week-current-copy">
-            <p>{weather.text}</p>
+            <p>Hoje · {weather.text}</p>
             <span>Sensação de {weather.feels}°</span>
             {today && <span>Máx. {today.max}° · Mín. {today.min}°</span>}
           </div>

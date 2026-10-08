@@ -18,6 +18,7 @@ describe("weather forecast calendar", () => {
   it("highlights today and reserves all five forecast items for tomorrow onward", () => {
     render(<WeatherDetails weather={weather} />);
     expect(screen.getByText("Hoje · 08 de out")).toBeInTheDocument();
+    expect(screen.getByText("Hoje · Céu limpo")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Condição atual" })).getByText("Máx. 34° · Mín. 22°")).toBeInTheDocument();
     const forecast = screen.getByRole("list", { name: "Previsão de cinco dias" });
     expect(within(forecast).getAllByRole("listitem")).toHaveLength(5);
