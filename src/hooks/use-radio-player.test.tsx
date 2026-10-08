@@ -70,4 +70,25 @@ describe("radio playback cancellation", () => {
     expect(FakeAudio.elements[0]?.src).toContain("/new");
     expect(FakeAudio.elements[0]?.crossOrigin).toBeNull();
   });
+  it("retains audible plain playback when a processing graph cannot resume", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 200 }));
+    class Filter {
+      frequency = { value: 0 }; Q = { value: 0 }; gain = { value: 0 };
+      connect(next: Filter) { return next; }
+    }
+    vi.stubGlobal("AudioContext", class {
+      state = "suspended"; destination = new Filter();
+      createMediaElementSource() { return new Filter(); }
+      createBiquadFilter() { return new Filter(); }
+      resume() { return Promise.reject(new Error("autoplay_blocked")); }
+      close() { return Promise.resolve(); }
+    });
+    const { result } = renderHook(() => useRadioPlayer());
+    act(() => result.current.setEq(true));
+    await act(async () => { result.current.play(station("new")); await flush(); });
+    expect(result.current.status).toBe("playing");
+    expect(result.current.eqStatus).toBe("unsupported");
+    expect(FakeAudio.elements[0]?.src).toContain("/new");
+    expect(FakeAudio.elements[1]?.src).toBe("");
+  });
 });

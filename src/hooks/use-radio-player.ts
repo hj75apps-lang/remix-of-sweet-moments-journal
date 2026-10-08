@@ -178,12 +178,19 @@ export function useRadioPlayer(options: Options = {}) {
           setSourceIndex(i);
           let el = plainRef.current!;
           if (eqEnabledRef.current && (await allowsCors(url)) && token === tokenRef.current) {
-            let graph: Graph | null = null;
-            try { graph = ensureGraph(); } catch { /* unavailable Web Audio: retain plain playback */ }
-            if (graph) {
-              void graph.ctx.resume().catch(() => undefined);
-              el = eqElRef.current!;
-            }
+            let resumeTimer: ReturnType<typeof setTimeout> | undefined;
+            try {
+              const graph = ensureGraph();
+              if (graph) {
+                // A suspended/rejected Web Audio graph can advance time while remaining silent.
+                const ready = await Promise.race([
+                  graph.ctx.resume().then(() => graph.ctx.state === "running"),
+                  new Promise<boolean>((resolve) => { resumeTimer = setTimeout(() => resolve(false), 500); }),
+                ]);
+                if (ready) el = eqElRef.current!;
+              }
+            } catch { /* unavailable Web Audio: retain plain playback */ }
+            finally { clearTimeout(resumeTimer); }
           }
           if (token !== tokenRef.current || !wantPlayRef.current) return;
           let ok = await attach(el, url, token);
