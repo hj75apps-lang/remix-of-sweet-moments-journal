@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Aplicar à previsão dos próximos cinco dias a transparência e paleta dos widgets, preservando dados e layout; verificar página e abertura pelo widget.
+- [x] Aplicar à previsão dos próximos cinco dias a transparência e paleta dos widgets; seis testes aprovados, dados reais e superfícies verificadas em ambos os temas, abertura pelo widget e retorno confirmados.
 
 - [x] Adaptar o widget clima à nova referência: ícone à esquerda, temperatura em negrito e Hoje/condição, sensação térmica e máxima/mínima ao lado; nove testes aprovados e dados reais, apresentação e abertura/retorno verificados em 1280×800, 1280×720 e 390×844.
 
