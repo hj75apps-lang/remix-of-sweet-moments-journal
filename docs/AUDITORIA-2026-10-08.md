@@ -41,6 +41,7 @@ P0 indica aviso crítico de dependência. P1 indica falha funcional importante o
 | A15 | P1 | Chamadas só apareciam na página de telefone; intents DIAL não chegavam ao formulário; um único Call perdia a chamada anterior; viva-voz informava sucesso sem conferir rota | Integração global, intents preenchem número sem ligar automaticamente, notificação privada de chamada com permissão sob demanda, lista de chamadas e rota Telecom real. Testes de navegação, intent e cleanup; telefonia física permanece pendente |
 | A16 | P0/P1 | Lockfile continha 12 avisos altos/críticos em cinco famílias de pacotes, inclusive `shell-quote` via devtools | Auditoria acrescentada ao CI e lockfile atualizado a partir da proposta compatível, com manifesto preservado e instalação congelada, testes e builds como gates |
 | A17 | P1 | Primeiro teste de instrumentação não chegava ao aplicativo: runner sem permissão de KVM iniciava emulação x86 sem aceleração e travava no boot | Permissão KVM do runner efêmero configurada conforme o mantenedor da action; aceleração exigida e boot limitado a cinco minutos |
+| A18 | P2 | Teste de exemplo do Capacitor esperava `com.getcapacitor.app`, fazendo a suíte falhar apesar de a Launcher iniciar com o identificador correto | Expectativa corrigida para `app.smartautolauncher`; preservados os testes de identidade, HOME e carregamento do bridge/plugins |
 
 ## Reprodução contra a base
 
@@ -76,6 +77,8 @@ A primeira rodada detectou um erro de lint e uma asserção que contava timers d
 O teste Android de inicialização valida carregamento do bridge/plugins. Ele não testa chamadas reais, Bluetooth, boot por ROM do fabricante, iluminação veicular nem seleção efetiva do papel HOME pelo usuário. O APK é de debug, não um release assinado.
 
 Na primeira execução de instrumentação, o log registrou falta de permissão em `/dev/kvm`, `-accel off` e dispositivo offline durante o boot. Foi corrigida a configuração do runner conforme [android-emulator-runner](https://github.com/ReactiveCircus/android-emulator-runner#running-hardware-accelerated-emulators-on-linux-runners); essa falha de infraestrutura não foi tratada como evidência contra o aplicativo.
+
+Após corrigir KVM, o Android 36 concluiu o boot em cerca de 61 segundos e executou três testes. Os dois testes da Launcher passaram; o teste de exemplo falhou somente por esperar o antigo nome de pacote. Sua expectativa foi corrigida e a suíte completa foi submetida novamente ao CI.
 
 ## Riscos residuais de implantação e campo
 
