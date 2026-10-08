@@ -35,3 +35,8 @@ export function isWeatherCache(value: unknown): value is WeatherReport {
     Array.isArray(value["days"]) && value["hours"].length === normalized.hours.length &&
     value["days"].length === normalized.days.length;
 }
+
+/** Incomplete or undated saved forecasts must refresh immediately when online. */
+export function weatherCacheUpdatedAt(weather: WeatherReport): number {
+  return weather.days.length >= 6 && finite(weather.updatedAt) ? weather.updatedAt : 0;
+}
