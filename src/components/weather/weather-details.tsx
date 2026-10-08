@@ -61,6 +61,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
   const days = Array.isArray(weather.days) ? weather.days : [];
   const hours = Array.isArray(weather.hours) ? weather.hours : [];
   const today = days[0];
+  const upcomingDays = days.slice(1, 6);
 
   return (
     <div className="weather-details-panel weather-week-panel">
@@ -68,7 +69,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
         <div>
           <p className="weather-week-location"><MapPin aria-hidden="true" />{weather.city}</p>
           <h1>Previsão da semana</h1>
-           <p className="weather-week-subtitle">Previsão para cinco dias</p>
+           <p className="weather-week-subtitle">Hoje{today ? ` · ${calendarDay(today.date)}` : ""}</p>
         </div>
         <span className="weather-week-source">{weather.source}</span>
       </header>
@@ -92,14 +93,14 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
       <section aria-labelledby="five-day-title" className="weather-week-forecast">
          <h2 id="five-day-title" className="weather-week-section-title">Próximos 5 dias</h2>
          <ul className="weather-week-grid" aria-label="Previsão de cinco dias">
-           {days.slice(0, 5).map((day, index) => {
+           {upcomingDays.map((day) => {
             const DayIcon = weatherIcon(day.code, day.text);
             const cloudy = DayIcon === Cloud || DayIcon === CloudFog;
             const wet = DayIcon === CloudRain || DayIcon === CloudSnow || DayIcon === CloudLightning;
             return (
-              <li key={day.date} className={`weather-day-detail weather-week-day${index === 0 ? " weather-week-today" : ""}`}>
+              <li key={day.date} className="weather-day-detail weather-week-day">
                 <div className="weather-week-day-heading">
-                  <h3>{index === 0 ? "Hoje" : fullWeekday(day.date)}</h3>
+                  <h3>{fullWeekday(day.date)}</h3>
                   <time dateTime={day.date}>{calendarDay(day.date)}</time>
                 </div>
                 <div className="weather-week-day-condition">
