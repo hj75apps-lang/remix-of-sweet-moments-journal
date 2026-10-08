@@ -6,6 +6,8 @@ import { useNavigationApps } from "@/services/navigation-apps";
 export interface LauncherSettings {
   version: 1;
   navApp: NavApp;
+  /** Explicit opt-in: open the selected navigator once on native launcher startup. */
+  openNavigatorOnStartup: boolean;
   immersive: boolean;
   keepScreenOn: boolean;
   autostart: boolean;
@@ -22,6 +24,7 @@ const KEY = "sal.launcher-settings";
 export const DEFAULT_SETTINGS: LauncherSettings = {
   version: 1,
   navApp: "maps",
+  openNavigatorOnStartup: false,
   // System-neutral defaults: Android controls bars, screen timeout and rotation
   // unless the user explicitly enables a launcher-specific override.
   immersive: false,
@@ -44,6 +47,7 @@ function normalize(value: unknown): LauncherSettings {
     return {
       version: 1,
       navApp: v.navApp === "waze" || v.navApp === "system" || (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)) ? v.navApp as NavApp : "maps",
+      openNavigatorOnStartup: bool(v.openNavigatorOnStartup, false),
       immersive: bool(v.immersive, false),
       keepScreenOn: bool(v.keepScreenOn, false),
       autostart: bool(v.autostart, false),
@@ -66,6 +70,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
   if (!value || typeof value !== "object") return false;
   const v = value as Partial<LauncherSettings>;
   return v.version === 1 &&
+    typeof v.openNavigatorOnStartup === "boolean" &&
     typeof v.immersive === "boolean" &&
     typeof v.keepScreenOn === "boolean" &&
     typeof v.autostart === "boolean" &&
@@ -81,12 +86,14 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
 
 interface Ctx {
   settings: LauncherSettings;
+  loaded: boolean;
   update: (patch: Partial<Omit<LauncherSettings, "version">>) => void;
 }
 const SettingsContext = createContext<Ctx | null>(null);
 
 export function LauncherSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [loaded, setLoaded] = useState(false);
   const { apps: navigationApps, ready: navigationAppsReady } = useNavigationApps();
 
   useEffect(() => {
@@ -95,6 +102,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
       validate: isLauncherSettings,
       migrateLegacy: normalize,
     }));
+    setLoaded(true);
   }, []);
 
   // Older builds defaulted to immersive + keep-screen-on and could therefore
@@ -166,7 +174,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   }, []);
 
   return (
-    <SettingsContext.Provider value={{ settings, update }}>{children}</SettingsContext.Provider>
+    <SettingsContext.Provider value={{ settings, loaded, update }}>{children}</SettingsContext.Provider>
   );
 }
 

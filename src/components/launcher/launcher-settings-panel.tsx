@@ -212,6 +212,18 @@ export function LauncherSettingsPanel() {
             );
           })}
         </div>
+        <div className="mt-4 flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-secondary/40 p-3">
+          <label htmlFor="open-navigator-startup" className="min-w-0">
+            <span className="block font-medium">Abrir navegador ao iniciar a Launcher</span>
+            <span className="block text-sm text-muted-foreground">No Android, abre o aplicativo selecionado uma vez por sessão. O navegador pode assumir a tela; o widget continua exibindo o mapa próprio ao voltar para a Launcher.</span>
+          </label>
+          <Switch
+            id="open-navigator-startup"
+            checked={settings.openNavigatorOnStartup}
+            disabled={settings.navApp === "system"}
+            onCheckedChange={(enabled) => update({ openNavigatorOnStartup: enabled })}
+          />
+        </div>
         {navigationReady && settings.navApp !== "system" && !navigationApps.some(a => a.id === settings.navApp) && <p role="status" className="mt-3 text-sm text-muted-foreground">Escolha outro navegador: o anterior não está instalado.</p>}
       </div>
     </>
