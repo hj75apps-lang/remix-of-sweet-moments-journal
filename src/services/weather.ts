@@ -186,6 +186,32 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
     throw new Error("Previsão incompleta: serviço retornou dados atuais ausentes ou inválidos");
   }
 
+  const dailyArrays = [
+    daily.temperature_2m_min,
+    daily.temperature_2m_max,
+    daily.precipitation_probability_max,
+    daily.weather_code,
+  ];
+  if (dailyArrays.some((values) =>
+    !values || values.length < daily.time!.length ||
+    values.slice(0, daily.time!.length).some((value) =>
+      typeof value !== "number" || !Number.isFinite(value),
+    ),
+  )) {
+    throw new Error("Previsão incompleta: dados diários ausentes ou inválidos");
+  }
+  if (hourly?.time?.length) {
+    const hourlyArrays = [hourly.temperature_2m, hourly.weather_code, hourly.precipitation_probability];
+    if (hourlyArrays.some((values) =>
+      !values || values.length < hourly.time!.length ||
+      values.slice(0, hourly.time!.length).some((value) =>
+        typeof value !== "number" || !Number.isFinite(value),
+      ),
+    )) {
+      throw new Error("Previsão incompleta: dados por hora ausentes ou inválidos");
+    }
+  }
+
   return {
     city,
     temp: rounded(current.temperature_2m),
