@@ -116,8 +116,8 @@ export function WeatherWidget() {
 
           <div className="weather-hero">
             <div className="weather-reading">
-              <p className="weather-temperature">{w.temp}<span>°</span></p>
-              <p className="weather-condition">{w.text}</p>
+              <p className="weather-temperature">{w.temp}<span>°C</span></p>
+              <p className="weather-condition" aria-label="Condição do tempo">{w.text}</p>
               <div className="weather-extremes" aria-label={`Máxima ${w.days[0]?.max} graus, mínima ${w.days[0]?.min} graus`}>
                 <span className="weather-extreme weather-extreme-high"><span>Máx</span><b>{w.days[0]?.max}°</b></span>
                 <span className="weather-extreme weather-extreme-low"><span>Mín</span><b>{w.days[0]?.min}°</b></span>

@@ -1,4 +1,4 @@
-import { Cloud, CloudLightning, CloudRain, CloudSnow, CloudSun, Moon, Sun } from "lucide-react";
+import { Moon } from "lucide-react";
 import { weatherIcon } from "./weather-details";
 
 function isNight() {
@@ -18,7 +18,6 @@ export function WeatherSymbol({
   night?: boolean;
 }) {
   const Icon = weatherIcon(code, text);
-  const partlyCloudy = code === 1 || code === 2;
   const storm = code !== undefined && code >= 95;
   const snow = code !== undefined && code >= 71 && code <= 86;
   const rain = (code !== undefined && code >= 51 && code <= 67) ||
@@ -31,20 +30,11 @@ export function WeatherSymbol({
       role="img"
       aria-label={text}
     >
-      <span className="weather-symbol-glow" aria-hidden="true" />
       {isNightMode ? (
         <Moon className="weather-symbol-moon" aria-hidden="true" />
-      ) : partlyCloudy ? (
-        <>
-          <Sun className="weather-symbol-sun weather-sun" aria-hidden="true" />
-          <Cloud className="weather-symbol-cloud weather-cloud" aria-hidden="true" />
-        </>
       ) : (
-        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" />
+        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow || code === 3 || code === 45 || code === 48 ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" />
       )}
-      {rain && <span className="weather-rain-drops" aria-hidden="true"><i /><i /><i /></span>}
-      {snow && <span className="weather-snowflakes" aria-hidden="true"><i>·</i><i>·</i><i>·</i></span>}
-      {storm && <span className="weather-lightning" aria-hidden="true" />}
     </span>
   );
 }
