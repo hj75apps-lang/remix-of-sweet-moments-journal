@@ -6,7 +6,6 @@ import {
   CloudSnow,
   CloudSun,
   Droplets,
-  MapPin,
   Sunrise,
   Sunset,
   Sun,
@@ -65,14 +64,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
 
   return (
     <div className="weather-details-panel weather-week-panel">
-      <header className="weather-week-header">
-        <div>
-          <p className="weather-week-location"><MapPin aria-hidden="true" />{weather.city}</p>
-          <h1>Previsão da semana</h1>
-           <p className="weather-week-subtitle">Hoje{today ? ` · ${calendarDay(today.date)}` : ""}</p>
-        </div>
-        <span className="weather-week-source">{weather.source}</span>
-      </header>
+      <h1 className="sr-only">Previsão do tempo para {weather.city}</h1>
 
       <section aria-label="Condição atual" className="weather-week-current">
         <div className="weather-week-current-reading">
