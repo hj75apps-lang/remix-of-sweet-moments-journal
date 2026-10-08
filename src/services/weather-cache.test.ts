@@ -33,6 +33,6 @@ describe("weather cache compatibility", () => {
     const cached = { ...legacy, source: "Open-Meteo" as const, hours: [], updatedAt: Date.now(), days: Array.from({ length: 5 }, () => day) };
     expect(weatherCacheUpdatedAt(cached)).toBe(0);
     expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, day] })).toBe(cached.updatedAt);
-    expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, day], updatedAt: undefined })).toBe(0);
+    expect(weatherCacheUpdatedAt({ ...legacy, source: "Open-Meteo", hours: [], days: [...cached.days, day] })).toBe(0);
   });
 });
