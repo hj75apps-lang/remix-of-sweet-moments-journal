@@ -32,6 +32,7 @@ import {
   type StationFilters,
 } from "@/services/radio-search";
 import { useRadio } from "@/contexts/radio-player-context";
+import { rankRadioStations } from "@/services/radio-listening";
 import { RadioEqualizer } from "./radio-equalizer";
 import { CustomStationForm } from "./custom-station-form";
 import { useCustomStations } from "@/hooks/use-custom-stations";
@@ -146,14 +147,16 @@ export function RadioScreen() {
 
   const player = useRadio();
   const setQueue = player.setQueue;
-  const list =
+  const filteredList = useMemo(() =>
     tab === "fav"
       ? searchStations(player.favorites, deferred, filters)
       : tab === "mine"
         ? searchStations(custom.stations, deferred, filters)
-        : results;
+        : results, [tab, player.favorites, custom.stations, deferred, filters, results]);
+  const list = useMemo(() => rankRadioStations(filteredList, player.listeningHistory), [filteredList, player.listeningHistory]);
   const current = player.station;
-  useEffect(() => setQueue(list), [list, setQueue]);
+  // Listening updates reorder the display, not the next/previous traversal.
+  useEffect(() => setQueue(filteredList), [filteredList, setQueue]);
   const step = player.step;
   const isFav = (s: RadioStation) => player.favorites.some((f) => f.id === s.id);
   const playing = player.status === "playing";
