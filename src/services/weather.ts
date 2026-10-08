@@ -145,6 +145,16 @@ export function weatherPositionKey(position: WeatherPosition): string {
 }
 
 export async function fetchWeather(position: WeatherPosition): Promise<WeatherReport> {
+  if (
+    !Number.isFinite(position.lat) ||
+    !Number.isFinite(position.lng) ||
+    position.lat < -90 ||
+    position.lat > 90 ||
+    position.lng < -180 ||
+    position.lng > 180
+  ) {
+    throw new Error("Localização inválida para consultar a previsão");
+  }
   const lat = Math.round(position.lat * 100) / 100;
   const lng = Math.round(position.lng * 100) / 100;
   const params = new URLSearchParams({
@@ -165,7 +175,42 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
   const current = forecast.current;
   const hourly = forecast.hourly;
   const daily = forecast.daily;
-  if (!current || !daily?.time?.length) throw new Error("Previsão incompleta");
+  if (
+    !current ||
+    !daily?.time?.length ||
+    !Number.isFinite(current.temperature_2m) ||
+    !Number.isFinite(current.apparent_temperature) ||
+    !Number.isFinite(current.relative_humidity_2m) ||
+    !Number.isFinite(current.wind_speed_10m)
+  ) {
+    throw new Error("Previsão incompleta: serviço retornou dados atuais ausentes ou inválidos");
+  }
+
+  const dailyArrays = [
+    daily.temperature_2m_min,
+    daily.temperature_2m_max,
+    daily.precipitation_probability_max,
+    daily.weather_code,
+  ];
+  if (dailyArrays.some((values) =>
+    !values || values.length < daily.time!.length ||
+    values.slice(0, daily.time!.length).some((value) =>
+      typeof value !== "number" || !Number.isFinite(value),
+    ),
+  )) {
+    throw new Error("Previsão incompleta: dados diários ausentes ou inválidos");
+  }
+  if (hourly?.time?.length) {
+    const hourlyArrays = [hourly.temperature_2m, hourly.weather_code, hourly.precipitation_probability];
+    if (hourlyArrays.some((values) =>
+      !values || values.length < hourly.time!.length ||
+      values.slice(0, hourly.time!.length).some((value) =>
+        typeof value !== "number" || !Number.isFinite(value),
+      ),
+    )) {
+      throw new Error("Previsão incompleta: dados por hora ausentes ou inválidos");
+    }
+  }
 
   return {
     city,

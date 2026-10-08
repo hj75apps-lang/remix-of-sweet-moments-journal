@@ -14,6 +14,38 @@ const navigationRateLimits = new Map<string, { windowStart: number; count: numbe
 const NAVIGATION_RATE_WINDOW_MS = 60_000;
 const NAVIGATION_RATE_MAX = 5;
 
+async function readJsonBodyLimited<T>(request: Request, maxBytes: number): Promise<T> {
+  if (!request.body) throw new Error("invalid_json");
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        throw new Error("request_too_large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder().decode(bytes)) as T;
+  } catch {
+    throw new Error("invalid_json");
+  }
+}
+
 function navigationClientKey(request: Request): string {
   return request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -55,11 +87,21 @@ async function getServerEntry(): Promise<ServerEntry> {
 async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/navigation/trips")) return null;
-  const allowedOrigin =
+  const configuredOrigins =
     typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
       ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
       : (typeof process !== "undefined" ? process.env?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] : undefined);
+  // The variable accepts a comma-separated allowlist. These are the confirmed Lovable
+  // preview and production origins; keep them as safe defaults if no environment value exists.
+  const allowedOrigins = new Set(
+    (configuredOrigins
+      ? configuredOrigins.split(",")
+      : ["https://preview--hjcarlauncher.lovable.app", "https://hjcarlauncher.lovable.app"])
+      .map((origin) => origin.trim().replace(/\/$/, ""))
+      .filter(Boolean),
+  );
   const requestOrigin = request.headers.get("origin");
+  const originAllowed = !!requestOrigin && allowedOrigins.has(requestOrigin);
   const cors: Record<string, string> = {
     "cache-control": "no-store",
     "content-type": "application/json; charset=utf-8",
@@ -68,8 +110,8 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     "access-control-expose-headers": "x-navigation-connect-access-key",
     "vary": "Origin",
   };
-  if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
-  if (allowedOrigin && (request.method === "POST" || request.method === "OPTIONS") && requestOrigin !== allowedOrigin) {
+  if (originAllowed && requestOrigin) cors["access-control-allow-origin"] = requestOrigin;
+  if ((request.method === "POST" || request.method === "OPTIONS") && !originAllowed) {
     return new Response(JSON.stringify({ error: "origin_not_allowed" }), { status: 403, headers: cors });
   }
   try {
@@ -87,13 +129,32 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
       if (Number.isFinite(contentLength) && contentLength > 4096) {
         return new Response(JSON.stringify({ error: "request_too_large" }), { status: 413, headers: cors });
       }
-      const body = await request.json() as { app?: string; destination?: string };
+      let body: { app?: string; destination?: string };
+      try {
+        body = await readJsonBodyLimited<{ app?: string; destination?: string }>(request, 4096);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        const status = message === "request_too_large" ? 413 : 400;
+        return new Response(JSON.stringify({ error: status === 413 ? "request_too_large" : "invalid_json" }), {
+          status,
+          headers: cors,
+        });
+      }
+      if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return new Response(JSON.stringify({ error: "invalid_request_body" }), { status: 400, headers: cors });
+      }
       if (body.app !== "maps" && body.app !== "waze") {
         return new Response(JSON.stringify({ error: "app must be maps or waze" }), { status: 400, headers: cors });
       }
+      if (typeof body.destination !== "string" || !body.destination.trim() || body.destination.trim().length > 200) {
+        return new Response(JSON.stringify({ error: "destination must be a non-empty string of at most 200 characters" }), {
+          status: 400,
+          headers: cors,
+        });
+      }
       const trip = await createTrackedTrip(env as Record<string, unknown>, {
         app: body.app,
-        destination: String(body.destination ?? "").slice(0, 200),
+        destination: body.destination.trim(),
       });
       const accessKey = await createNavigationConnectAccessKey(env as Record<string, unknown>, trip.tripId, trip.expiresAt);
       return new Response(JSON.stringify(trip), {
