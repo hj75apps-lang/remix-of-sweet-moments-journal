@@ -5,7 +5,10 @@ export class BodyLimitError extends Error {
 /** Enforce the actual byte limit, including chunked and compressed responses. */
 export async function readBoundedText(body: Pick<Request, "body" | "headers">, limit: number, timeoutMs = 10_000): Promise<string> {
   const announced = Number(body.headers.get("content-length"));
-  if (Number.isFinite(announced) && announced > limit) throw new BodyLimitError();
+  if (Number.isFinite(announced) && announced > limit) {
+    void body.body?.cancel().catch(() => undefined);
+    throw new BodyLimitError();
+  }
   const reader = body.body?.getReader();
   if (!reader) return "";
   const decoder = new TextDecoder();

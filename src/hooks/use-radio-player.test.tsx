@@ -51,9 +51,23 @@ describe("radio playback cancellation", () => {
     await act(async () => { result.current.play(station("new")); await flush(); });
     await act(async () => { finishOld([]); await flush(); });
     expect(result.current.status).toBe("playing");
-    expect(vi.getTimerCount()).toBe(0);
+    // React may schedule its own timers. Verify that no obsolete source is retried.
+    await act(async () => { await vi.advanceTimersByTimeAsync(12000); await flush(); });
+    expect(resolveSource).toHaveBeenCalledTimes(2);
+    expect(result.current.station?.id).toBe("new");
+    expect(result.current.status).toBe("playing");
     unmount();
     expect(FakeAudio.elements.every((audio) => audio.src === "")).toBe(true);
-    expect(vi.getTimerCount()).toBe(0);
+  });
+  it("retains plain playback if Web Audio initialization is unavailable", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 200 }));
+    vi.stubGlobal("AudioContext", class { constructor() { throw new Error("unavailable"); } });
+    const { result } = renderHook(() => useRadioPlayer());
+    act(() => result.current.setEq(true));
+    await act(async () => { result.current.play(station("new")); await flush(); });
+    expect(result.current.status).toBe("playing");
+    expect(result.current.eqStatus).toBe("unsupported");
+    expect(FakeAudio.elements[0]?.src).toContain("/new");
+    expect(FakeAudio.elements[0]?.crossOrigin).toBeNull();
   });
 });

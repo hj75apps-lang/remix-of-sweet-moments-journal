@@ -11,6 +11,8 @@ import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.TelecomManager;
 import android.os.Bundle;
+import android.content.pm.PackageManager;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -24,14 +26,18 @@ import com.getcapacitor.annotation.PermissionCallback;
 
 @CapacitorPlugin(name = "CarPhone", permissions = {
     @Permission(alias = "call", strings = { Manifest.permission.CALL_PHONE }),
-    @Permission(alias = "phone", strings = { Manifest.permission.READ_PHONE_STATE })
+    @Permission(alias = "phone", strings = { Manifest.permission.READ_PHONE_STATE }),
+    @Permission(alias = "notifications", strings = { Manifest.permission.POST_NOTIFICATIONS })
 })
 public final class CarPhonePlugin extends Plugin {
     private AudioManager audioManager;
+    private boolean pendingPhoneScreen;
+    private String pendingNumber = "";
 
     @Override public void load() {
         audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
         CarInCallService.setStateListener(() -> notifyListeners("callStateChanged", createState()));
+        acceptPhoneIntent(getActivity().getIntent());
     }
 
     private boolean isDefaultDialer() {
@@ -60,15 +66,47 @@ public final class CarPhonePlugin extends Plugin {
             number = activeCall.getDetails().getHandle().getSchemeSpecificPart();
         }
         JSObject state = new JSObject();
-        state.put("available", true);
+        state.put("available", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
+        state.put("callAlertsEnabled", NotificationManagerCompat.from(getContext()).areNotificationsEnabled());
         state.put("isDefaultDialer", isDefaultDialer());
         state.put("status", callStatus(activeCall));
         state.put("number", number);
-        state.put("speakerOn", audioManager != null && audioManager.isSpeakerphoneOn());
+        CarInCallService service = CarInCallService.getInstance();
+        CallAudioState route = service == null ? null : service.getCallAudioState();
+        state.put("speakerOn", route != null ? route.getRoute() == CallAudioState.ROUTE_SPEAKER : audioManager != null && audioManager.isSpeakerphoneOn());
         return state;
     }
 
     @PluginMethod public void getState(PluginCall call) { call.resolve(createState()); }
+
+    @PluginMethod public synchronized void getPendingPhoneScreen(PluginCall call) {
+        call.resolve(new JSObject().put("requested", pendingPhoneScreen).put("number", pendingNumber));
+        pendingPhoneScreen = false;
+        pendingNumber = "";
+    }
+
+    private synchronized void acceptPhoneIntent(Intent intent) {
+        if (intent == null) return;
+        Uri data = intent.getData();
+        boolean tel = data != null && "tel".equals(data.getScheme());
+        if (!Intent.ACTION_DIAL.equals(intent.getAction()) && !(Intent.ACTION_VIEW.equals(intent.getAction()) && tel)) return;
+        pendingPhoneScreen = true;
+        pendingNumber = tel ? sanitize(data.getSchemeSpecificPart()) : "";
+        notifyListeners("phoneScreenRequested", new JSObject());
+    }
+
+    @Override protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        acceptPhoneIntent(intent);
+    }
+
+    @PluginMethod public void requestCallAlerts(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && getPermissionState("notifications") != PermissionState.GRANTED) {
+            requestPermissionForAlias("notifications", call, "notificationsPermission");
+        } else call.resolve();
+    }
+
+    @PermissionCallback private void notificationsPermission(PluginCall call) { call.resolve(); }
 
     @PluginMethod public void requestDefaultDialer(PluginCall call) {
         Intent intent;
@@ -125,7 +163,10 @@ public final class CarPhonePlugin extends Plugin {
         } else {
             Intent intent = new Intent(Intent.ACTION_CALL, uri);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(intent);
+            try { getContext().startActivity(intent); } catch (RuntimeException error) {
+                call.reject("Não foi possível iniciar a chamada", error);
+                return;
+            }
         }
         call.resolve();
     }
@@ -158,14 +199,13 @@ public final class CarPhonePlugin extends Plugin {
         if (service != null) {
             CallAudioState audioState = service.getCallAudioState();
             int supported = audioState == null ? 0 : audioState.getSupportedRouteMask();
-            int preferred = enabled ? CallAudioState.ROUTE_SPEAKER : CallAudioState.ROUTE_BLUETOOTH;
-            int route = (supported & preferred) != 0 ? preferred : CallAudioState.ROUTE_EARPIECE;
+            int route = enabled ? CallAudioState.ROUTE_SPEAKER :
+                (supported & CallAudioState.ROUTE_BLUETOOTH) != 0 ? CallAudioState.ROUTE_BLUETOOTH :
+                (supported & CallAudioState.ROUTE_WIRED_HEADSET) != 0 ? CallAudioState.ROUTE_WIRED_HEADSET : CallAudioState.ROUTE_EARPIECE;
+            if ((supported & route) == 0) { call.reject("Rota de áudio indisponível"); return; }
             service.setAudioRoute(route);
-        } else if (audioManager != null) {
-            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            audioManager.setSpeakerphoneOn(enabled);
-        }
-        call.resolve(new JSObject().put("speakerOn", enabled));
+        } else { call.reject("Nenhuma chamada"); return; }
+        call.resolve(new JSObject().put("speakerOn", createState().optBoolean("speakerOn")));
         notifyListeners("callStateChanged", createState());
     }
 

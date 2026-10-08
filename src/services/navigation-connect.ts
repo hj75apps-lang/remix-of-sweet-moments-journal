@@ -38,6 +38,7 @@ interface ActiveTripRecord {
 
 const tripListeners = new Set<() => void>();
 let volatileTrip: ActiveTripRecord | null = null;
+let volatileOnly = false;
 export function onNavigationConnectTripChanged(listener: () => void): () => void {
   tripListeners.add(listener);
   return () => { tripListeners.delete(listener); };
@@ -57,15 +58,19 @@ export function rememberNavigationConnectTrip(trip: Pick<NavigationConnectTrip, 
   const record = { tripId: trip.tripId, app: trip.app, expiresAt: trip.expiresAt, accessKey: trip.accessKey };
   if (!validTrip(record)) return;
   volatileTrip = record;
+  volatileOnly = true;
   try {
     // Google Navigation Connect authToken is never persisted client-side.
-    if (typeof sessionStorage !== "undefined") sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(record));
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(record));
+      volatileOnly = false;
+    }
   } catch { /* optional cache */ }
   tripListeners.forEach((listener) => listener());
 }
 
 export function readNavigationConnectTrip(): ActiveTripRecord | null {
-  if (typeof sessionStorage === "undefined") return validTrip(volatileTrip) ? volatileTrip : null;
+  if (volatileOnly || typeof sessionStorage === "undefined") return validTrip(volatileTrip) ? volatileTrip : null;
   try {
     const value: unknown = JSON.parse(sessionStorage.getItem(ACTIVE_TRIP_KEY) ?? "null");
     if (!validTrip(value)) {
@@ -84,6 +89,7 @@ export function readNavigationConnectTrip(): ActiveTripRecord | null {
 
 export function clearNavigationConnectTrip(): void {
   volatileTrip = null;
+  volatileOnly = false;
   try { if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(ACTIVE_TRIP_KEY); } catch { /* optional cache */ }
   tripListeners.forEach((listener) => listener());
 }

@@ -29,4 +29,12 @@ describe("Navigation Connect client", () => {
     vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => { throw new Error("blocked"); });
     expect(() => clearNavigationConnectTrip()).not.toThrow();
   });
+  it("keeps the newest capability in memory when storage writes fail", () => {
+    const trip = { tripId: "new-trip", app: "maps" as const, expiresAt: new Date(Date.now() + 60000).toISOString(), accessKey: "key" };
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
+    rememberNavigationConnectTrip(trip);
+    expect(readNavigationConnectTrip()).toEqual(trip);
+    clearNavigationConnectTrip();
+    expect(readNavigationConnectTrip()).toBeNull();
+  });
 });

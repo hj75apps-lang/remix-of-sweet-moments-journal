@@ -53,12 +53,12 @@ function normalize(value: unknown): LauncherSettings {
       autostart: bool(v.autostart, false),
       clock24h: bool(v.clock24h, true),
       brightness:
-        typeof v.brightness === "number" && v.brightness >= -1 && v.brightness <= 1
+        typeof v.brightness === "number" && (v.brightness === -1 || (v.brightness >= 0.05 && v.brightness <= 1))
           ? v.brightness
           : -1,
       animations: bool(v.animations, true),
       lastDestination: typeof v.lastDestination === "string" ? v.lastDestination.slice(0, 200) : "",
-      buttonColor: typeof v.buttonColor === "string" ? v.buttonColor : "",
+      buttonColor: typeof v.buttonColor === "string" && /^#[\da-f]{6}$/i.test(v.buttonColor) ? v.buttonColor : "",
       buttonOpacity: typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 ? v.buttonOpacity : 100,
     };
   } catch {
@@ -76,10 +76,10 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.autostart === "boolean" &&
     typeof v.clock24h === "boolean" &&
     typeof v.animations === "boolean" &&
-    typeof v.brightness === "number" && v.brightness >= -1 && v.brightness <= 1 &&
-    typeof v.lastDestination === "string" &&
-    typeof v.buttonColor === "string" &&
-    typeof v.buttonOpacity === "number" &&
+    typeof v.brightness === "number" && (v.brightness === -1 || (v.brightness >= 0.05 && v.brightness <= 1)) &&
+    typeof v.lastDestination === "string" && v.lastDestination.length <= 200 &&
+    typeof v.buttonColor === "string" && (v.buttonColor === "" || /^#[\da-f]{6}$/i.test(v.buttonColor)) &&
+    typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 &&
     (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
       (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
@@ -163,7 +163,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
 
   const update = useCallback<Ctx["update"]>((patch) => {
     setSettings((prev) => {
-      const next = { ...prev, ...patch };
+      const next = normalize({ ...prev, ...patch });
       try {
         writeStored(KEY, next, 1);
       } catch {

@@ -10,6 +10,18 @@ permissions:
   contents: read
 
 jobs:
+  dependencies:
+    name: Audit dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Check high and critical dependency advisories
+        run: bun audit --audit-level=high
+
   web:
     name: Typecheck, tests and web build
     runs-on: ubuntu-latest

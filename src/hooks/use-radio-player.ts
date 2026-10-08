@@ -178,7 +178,8 @@ export function useRadioPlayer(options: Options = {}) {
           setSourceIndex(i);
           let el = plainRef.current!;
           if (eqEnabledRef.current && (await allowsCors(url)) && token === tokenRef.current) {
-            const graph = ensureGraph();
+            let graph: Graph | null = null;
+            try { graph = ensureGraph(); } catch { /* unavailable Web Audio: retain plain playback */ }
             if (graph) {
               void graph.ctx.resume().catch(() => undefined);
               el = eqElRef.current!;
@@ -312,7 +313,7 @@ export function useRadioPlayer(options: Options = {}) {
       plainRef.current = null;
       eqElRef.current = null;
     };
-  }, []);
+  }, [stopAll]);
   const reconnectRef = useRef(reconnect);
   reconnectRef.current = reconnect;
 

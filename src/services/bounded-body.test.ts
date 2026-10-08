@@ -18,4 +18,10 @@ describe("bounded body reader", () => {
     await expect(readBoundedText(response, 10, 20)).rejects.toThrow("body_timeout");
     expect(cancel).toHaveBeenCalledOnce();
   });
+  it("cancels before reading when the declared body already exceeds the limit", async () => {
+    const cancel = vi.fn();
+    const response = new Response(new ReadableStream({ cancel }), { headers: { "content-length": "20" } });
+    await expect(readBoundedText(response, 10)).rejects.toBeInstanceOf(BodyLimitError);
+    expect(cancel).toHaveBeenCalledOnce();
+  });
 });

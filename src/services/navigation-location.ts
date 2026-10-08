@@ -17,11 +17,15 @@ export function watchVehicle(onPosition: (p: VehiclePosition) => void, onUnavail
       if (stopped) return;
       if (data.position) onPosition(data.position); else onUnavailable();
     })).then(async h => {
-      if (stopped) { void h.remove(); return; }
+      if (stopped) { void Promise.resolve(h.remove()).catch(() => undefined); return; }
       handle = h;
       try { await p.startLocation(); } catch { if (!stopped) onUnavailable(); }
-    }).catch(onUnavailable);
-    return () => { stopped = true; void handle?.remove(); void p.stopLocation(); };
+    }).catch(() => { if (!stopped) onUnavailable(); });
+    return () => {
+      stopped = true;
+      if (handle) void Promise.resolve(handle.remove()).catch(() => undefined);
+      void p.stopLocation().catch(() => undefined);
+    };
   }
   let id: number | undefined;
   let retry: ReturnType<typeof setTimeout> | undefined;

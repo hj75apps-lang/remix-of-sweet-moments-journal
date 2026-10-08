@@ -56,18 +56,18 @@ export function clearLastLocation(): void {
 export function getLocationOnce(timeoutMs = 15_000): Promise<VehiclePosition> {
   if (lastPosition && freshFix(lastPosition)) return Promise.resolve(lastPosition);
   return new Promise((resolve, reject) => {
-    let unsubscribe: (() => void) | undefined;
+    let unsubscribe = () => {};
     let settled = false;
     const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
       settled = true;
-      unsubscribe?.();
+      unsubscribe();
       reject(new Error("location_timeout"));
     }, timeoutMs);
     unsubscribe = subscribeLocation((position) => {
       if (settled || !freshFix(position)) return;
       settled = true;
       clearTimeout(timer);
-      unsubscribe?.();
+      unsubscribe();
       resolve(position);
     }, false);
     // Some adapters can publish a fix synchronously during subscription.

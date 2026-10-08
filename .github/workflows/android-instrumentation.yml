@@ -2,9 +2,20 @@ name: Android Instrumentation
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "src/components/phone/**"
+      - "src/services/phone.ts"
+      - ".github/workflows/android-instrumentation.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: android-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:

@@ -15,11 +15,13 @@ import {
   placeCall,
   rejectCall,
   requestDefaultDialer,
+  requestCallAlerts,
   setSpeaker,
   type PhoneState,
 } from "@/services/phone";
 
 export const Route = createFileRoute("/telefone")({
+  validateSearch: (search: Record<string, unknown>): { number?: string } => ({ number: typeof search["number"] === "string" ? search["number"].replace(/[^0-9+*#]/g, "").slice(0, 40) : "" }),
   head: () => ({
     meta: [
       { title: "Telefone — Smart Auto Launcher" },
@@ -51,11 +53,15 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
 function PhonePage() {
   const [phone, setPhone] = useState(INITIAL_STATE);
   const [number, setNumber] = useState("");
+  const { number: requestedNumber } = Route.useSearch();
+  useEffect(() => { if (requestedNumber) setNumber(requestedNumber); }, [requestedNumber]);
 
   useEffect(() => {
     if (!isPhoneAvailable()) return;
-    void getPhoneState().then(setPhone);
-    return onPhoneStateChanged(setPhone);
+    let gone = false;
+    void getPhoneState().then((state) => { if (!gone) setPhone(state); }).catch(() => undefined);
+    const stop = onPhoneStateChanged(setPhone);
+    return () => { gone = true; stop(); };
   }, []);
 
   const run = async (action: () => Promise<unknown>, failure: string) => {
@@ -111,6 +117,9 @@ function PhonePage() {
               </Button>
             )}
           </header>
+          {phone.available && phone.isDefaultDialer && phone.callAlertsEnabled === false && (
+            <Button className="mt-3 min-h-11 self-start" variant="secondary" onClick={() => void run(requestCallAlerts, "Não foi possível ativar os alertas de chamada.")}>Permitir alertas de chamada</Button>
+          )}
 
           {!phone.available ? (
             <div className="m-auto flex max-w-md flex-col items-center gap-3 text-center">

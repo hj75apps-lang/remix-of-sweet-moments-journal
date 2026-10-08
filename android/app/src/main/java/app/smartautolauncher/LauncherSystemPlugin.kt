@@ -89,19 +89,21 @@ class LauncherSystemPlugin : Plugin() {
 
     @PluginMethod
     fun startLocation(call: PluginCall) {
+        wantsLocation = true
         if (getPermissionState("location") != PermissionState.GRANTED) {
             return requestPermissionForAlias("location", call, "locationCallback")
         }
-        wantsLocation = true
         subscribeLocation()
         call.resolve()
     }
 
     @PermissionCallback
     private fun locationCallback(call: PluginCall) {
+        // A permission dialog may finish after the last GPS consumer has left.
+        if (!wantsLocation) { call.resolve(); return }
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            wantsLocation = true; subscribeLocation(); call.resolve()
+            subscribeLocation(); call.resolve()
         } else call.reject("permission_denied")
     }
 
@@ -114,6 +116,7 @@ class LauncherSystemPlugin : Plugin() {
 
     @Suppress("MissingPermission")
     private fun subscribeLocation() {
+        if (!wantsLocation) return
         try {
             locationManager.removeUpdates(locationListener)
             val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).filter { locationManager.allProviders.contains(it) }

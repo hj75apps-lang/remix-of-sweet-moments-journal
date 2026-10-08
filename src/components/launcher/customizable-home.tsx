@@ -15,6 +15,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { X, Maximize2, Plus, Undo2, RotateCcw, Check } from "lucide-react";
 import type { HomeItem, AppId, WidgetKind } from "@/types/home";
 import { useHomeLayout } from "@/hooks/use-home-layout";
+import { homeGridRows } from "@/services/home-grid";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
 import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
@@ -237,12 +238,9 @@ export function CustomizableHome() {
   const cols = box.width < 520 ? 2 : box.width < 900 ? 4 : GRID_COLS;
   const gap = box.width < 640 ? 8 : 16;
   // Fit every card into the visible area: no scrolling, like a head-unit launcher.
-  const cells =
-    home.items.reduce(
-      (sum, i) => sum + Math.min(i.size.w, cols) * (cols === 2 ? Math.min(i.size.h, 2) : i.size.h),
-      0,
-    ) + (editing ? 1 : 0);
-  const rows = Math.max(cols === GRID_COLS ? GRID_ROWS : 1, Math.ceil(cells / cols));
+  const sizes = home.items.map((item) => item.size);
+  if (editing) sizes.push({ w: 1, h: 1 });
+  const rows = Math.max(cols === GRID_COLS ? GRID_ROWS : 1, homeGridRows(sizes, cols));
   const rowHeight = Math.max(32, (box.height - (rows - 1) * gap) / rows);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
