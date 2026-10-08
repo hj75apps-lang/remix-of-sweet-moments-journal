@@ -286,7 +286,9 @@ class LauncherSystemPlugin : Plugin() {
         }
         act.runOnUiThread {
             val web = bridge.webView
-            val scale = web.resources.displayMetrics.density * web.scale
+            // WebView scale already includes the CSS-to-device density factor.
+            @Suppress("DEPRECATION")
+            val scale = web.scale
             val origin = IntArray(2)
             web.getLocationOnScreen(origin)
             val rect = Rect(origin[0] + (left * scale).toInt(), origin[1] + (top * scale).toInt(),
