@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLocationOnce } from "@/services/location-store";
 import { readStored, writeStored } from "@/services/storage";
+import { isWeatherCache, normalizeWeatherCache } from "@/services/weather-cache";
 import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
 
 const POSITION_KEY = "sal.weather-pos";
@@ -21,17 +22,11 @@ function readStoredPosition(): WeatherPosition | null {
   });
 }
 
-function isWeather(value: unknown): value is WeatherReport {
-  return !!value && typeof value === "object" &&
-    (value as { source?: unknown }).source === "Open-Meteo" &&
-    Array.isArray((value as { days?: unknown }).days);
-}
-
 function readStoredWeather(): WeatherReport | undefined {
   return readStored<WeatherReport | undefined>(WEATHER_KEY, undefined, {
     schema: 1,
-    validate: isWeather,
-    migrateLegacy: (value) => (isWeather(value) ? value : null),
+    validate: isWeatherCache,
+    migrateLegacy: normalizeWeatherCache,
   });
 }
 
