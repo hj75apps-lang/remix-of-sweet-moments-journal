@@ -97,7 +97,7 @@ async function handleNavigationConnect(request: Request, env: unknown): Promise<
     (configuredOrigins
       ? configuredOrigins.split(",")
       : ["https://preview--hjcarlauncher.lovable.app", "https://hjcarlauncher.lovable.app"])
-      .map((origin) => origin.trim().replace(/\\/$/, ""))
+      .map((origin) => origin.trim().replace(/\/$/, ""))
       .filter(Boolean),
   );
   const requestOrigin = request.headers.get("origin");
