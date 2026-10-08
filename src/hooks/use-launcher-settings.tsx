@@ -70,7 +70,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
   if (!value || typeof value !== "object") return false;
   const v = value as Partial<LauncherSettings>;
   return v.version === 1 &&
-    (v.openNavigatorOnStartup === undefined || typeof v.openNavigatorOnStartup === "boolean") &&
+    typeof v.openNavigatorOnStartup === "boolean" &&
     typeof v.immersive === "boolean" &&
     typeof v.keepScreenOn === "boolean" &&
     typeof v.autostart === "boolean" &&
