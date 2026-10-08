@@ -21,6 +21,19 @@ jobs:
           bun-version: latest
       - name: Check high and critical dependency advisories
         run: bun audit --audit-level=high
+      - name: Generate a patch-only remediation proposal
+        if: failure()
+        run: bun audit fix --ignore-scripts
+      - name: Preserve the remediation proposal for review
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-remediation-proposal
+          path: |
+            package.json
+            bun.lock
+          retention-days: 3
+          if-no-files-found: error
 
   web:
     name: Typecheck, tests and web build
