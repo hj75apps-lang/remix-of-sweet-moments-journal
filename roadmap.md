@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Separar Hoje em destaque dos próximos cinco dias, começando amanhã; previsão expandida e /clima validadas em 1280 e 390px, sem rolagem, com dados reais e 11 testes aprovados.
+
 - [x] Adaptar a previsão expandida à área inteira do launcher, com cinco dias visíveis e sem rolagem; abertura e retorno validados em 320, 390, 768 e 1280px.
 
 - [x] Aprimorar navegação: mapa GPS fluido, estado compartilhado, apps instalados/perguntar sempre, informações reais e adaptação ao tamanho do card; fluxo web de destino, preferência, retorno e offline validado.
