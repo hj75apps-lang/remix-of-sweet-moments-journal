@@ -39,4 +39,30 @@ describe("weather service", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 503 }));
     await expect(fetchWeather({ lat: 0, lng: 0 })).rejects.toThrow("Serviço indisponível (503)");
   });
+  it("rejects invalid coordinates without making network requests", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    await expect(fetchWeather({ lat: 91, lng: 0 })).rejects.toThrow("Localização inválida");
+    await expect(fetchWeather({ lat: 0, lng: Number.NaN })).rejects.toThrow("Localização inválida");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects incomplete daily values instead of silently converting them to zero", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(JSON.stringify({
+      current: {
+        temperature_2m: 28,
+        apparent_temperature: 29,
+        relative_humidity_2m: 70,
+        wind_speed_10m: 10,
+        weather_code: 1,
+      },
+      daily: {
+        time: ["2026-10-07"],
+        weather_code: [1],
+        temperature_2m_max: [30],
+        temperature_2m_min: [20],
+      },
+    }))).mockResolvedValueOnce(new Response(JSON.stringify({ city: "Cidade" })));
+    await expect(fetchWeather({ lat: -15, lng: -52 })).rejects.toThrow("dados diários ausentes ou inválidos");
+  });
+
 });
