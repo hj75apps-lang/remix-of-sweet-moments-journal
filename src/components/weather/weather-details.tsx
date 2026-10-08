@@ -58,7 +58,9 @@ function clockLabel(value?: string) {
 
 export function WeatherDetails({ weather }: { weather: WeatherReport }) {
   const CurrentIcon = weatherIcon(weather.code, weather.text);
-  const today = weather.days[0];
+  const days = Array.isArray(weather.days) ? weather.days : [];
+  const hours = Array.isArray(weather.hours) ? weather.hours : [];
+  const today = days[0];
 
   return (
     <div className="weather-details-panel weather-week-panel">
@@ -90,7 +92,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
       <section aria-labelledby="five-day-title" className="weather-week-forecast">
         <h2 id="five-day-title" className="weather-week-section-title">Próximos 5 dias <span>com o resumo de hoje</span></h2>
         <ul className="weather-week-grid" aria-label="Hoje e próximos cinco dias">
-          {weather.days.slice(0, 6).map((day, index) => {
+          {days.slice(0, 6).map((day, index) => {
             const DayIcon = weatherIcon(day.code, day.text);
             const cloudy = DayIcon === Cloud || DayIcon === CloudFog;
             const wet = DayIcon === CloudRain || DayIcon === CloudSnow || DayIcon === CloudLightning;
@@ -126,7 +128,8 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
           </div>
         </div>
         <div className="weather-hourly-strip weather-week-hourly-strip">
-          {weather.hours.slice(0, 8).map((hour, index) => (
+          {hours.length === 0 && <p className="text-sm text-muted-foreground" role="status">Previsão por hora indisponível no momento.</p>}
+          {hours.slice(0, 8).map((hour, index) => (
             <div key={hour.time} className="weather-hour-card weather-week-hour">
               <span>{hourLabel(hour.time, index)}</span>
               {(() => { const HourIcon = weatherIcon(hour.code, hour.text); return <HourIcon aria-label={hour.text} />; })()}
