@@ -40,7 +40,9 @@ function WeatherPage() {
           aria-label="Previsão do tempo"
         >
           {weather ? (
-            <WeatherDetails weather={weather} />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <WeatherDetails weather={weather} />
+            </div>
           ) : (
             <div className="m-auto flex max-w-sm flex-col items-center gap-3 px-6 text-center">
               <CloudSun className="size-14 text-primary" aria-hidden="true" />
@@ -75,3 +77,4 @@ function WeatherPage() {
     </div>
   );
 }
+
