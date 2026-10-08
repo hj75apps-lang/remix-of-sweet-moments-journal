@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { RadioStation } from "@/services/radio-browser";
+import { normalizeRadioStations } from "@/services/radio-preferences";
 
 const KEY = "sal.radio-custom";
-
-function isStation(value: unknown): value is RadioStation {
-  if (!value || typeof value !== "object") return false;
-  const station = value as Partial<RadioStation>;
-  return typeof station.id === "string" &&
-    typeof station.name === "string" &&
-    Array.isArray(station.sources) &&
-    station.sources.every((source) => typeof source === "string" && source.startsWith("https://"));
-}
 
 /** User-added stations, persisted locally. */
 export function useCustomStations() {
@@ -21,7 +13,7 @@ export function useCustomStations() {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) setStations(parsed.filter(isStation).slice(0, 100));
+        setStations(normalizeRadioStations(parsed, 100));
       }
     } catch {
       /* ignore corrupt storage */
@@ -38,7 +30,7 @@ export function useCustomStations() {
   }, []);
 
   const add = useCallback(
-    (s: RadioStation) => save([s, ...stations.filter((x) => x.id !== s.id)]),
+    (s: RadioStation) => save([s, ...stations.filter((x) => x.id !== s.id)].slice(0, 100)),
     [save, stations],
   );
   const remove = useCallback(

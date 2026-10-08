@@ -19,6 +19,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { LauncherSettingsProvider } from "@/hooks/use-launcher-settings";
 import { VoiceControlProvider } from "@/contexts/voice-control-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
+import { PhoneIntegration } from "@/components/phone/phone-integration";
 
 function NotFoundComponent() {
   return (
@@ -147,6 +148,7 @@ function RootComponent() {
           <RadioPlayerProvider>
             <VoiceControlProvider>
               <NavigationProvider>
+              <PhoneIntegration />
               <Outlet />
               </NavigationProvider>
             </VoiceControlProvider>

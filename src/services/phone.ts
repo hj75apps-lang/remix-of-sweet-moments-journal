@@ -8,6 +8,7 @@ export interface PhoneState {
   status: PhoneCallStatus;
   number: string;
   speakerOn: boolean;
+  callAlertsEnabled?: boolean;
 }
 
 interface PluginListener {
@@ -22,10 +23,13 @@ interface PhonePlugin {
   reject(): Promise<void>;
   hangUp(): Promise<void>;
   setSpeaker(options: { enabled: boolean }): Promise<{ speakerOn: boolean }>;
+  getPendingPhoneScreen(): Promise<{ requested: boolean; number: string }>;
+  requestCallAlerts(): Promise<void>;
   addListener(
     event: "callStateChanged",
     callback: (state: PhoneState) => void,
   ): Promise<PluginListener> | PluginListener;
+  addListener(event: "phoneScreenRequested", callback: () => void): Promise<PluginListener> | PluginListener;
 }
 
 const CarPhone = registerPlugin<PhonePlugin>("CarPhone");
@@ -36,6 +40,14 @@ function plugin(): PhonePlugin | null {
 }
 
 export const isPhoneAvailable = () => plugin() !== null;
+export const getPendingPhoneScreen = async () => plugin()?.getPendingPhoneScreen() ?? { requested: false, number: "" };
+export const requestCallAlerts = async () => { await plugin()?.requestCallAlerts(); };
+export function onPhoneScreenRequested(callback: () => void): () => void {
+  const native = plugin();
+  if (!native) return () => {};
+  const handle = Promise.resolve(native.addListener("phoneScreenRequested", callback));
+  return () => { void handle.then((listener) => listener.remove()).catch(() => undefined); };
+}
 
 export async function getPhoneState(): Promise<PhoneState> {
   const native = plugin();
@@ -78,6 +90,6 @@ export function onPhoneStateChanged(callback: (state: PhoneState) => void): () =
   if (!native) return () => {};
   const handle = Promise.resolve(native.addListener("callStateChanged", callback));
   return () => {
-    void handle.then((listener) => listener.remove());
+    void handle.then((listener) => listener.remove()).catch(() => undefined);
   };
 }

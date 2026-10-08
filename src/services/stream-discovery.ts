@@ -23,8 +23,9 @@ export function isPublicHttps(value: string): boolean {
   if (parsed.protocol !== "https:" || parsed.username || parsed.password) return false;
   const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (!host.includes(".") || host === "localhost" || host.endsWith(".local")) return false;
-  if (host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:"))
-    return false;
+  // IPv6 literals are not accepted by the discovery bridge. DNS names beginning
+  // with fc/fd are ordinary public names, not IPv6 private-address prefixes.
+  if (host.includes(":")) return false;
   const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!ipv4) return !/^\d+$/.test(host);
   const octets = ipv4.slice(1).map(Number);

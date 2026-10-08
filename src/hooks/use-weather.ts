@@ -3,22 +3,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getLocationOnce } from "@/services/location-store";
 import { readStored, writeStored } from "@/services/storage";
 import { isWeatherCache, normalizeWeatherCache, weatherCacheUpdatedAt } from "@/services/weather-cache";
-import { fetchWeather, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
+import { fetchWeather, isWeatherPosition, weatherPositionKey, type WeatherPosition, type WeatherReport } from "@/services/weather";
 
 const POSITION_KEY = "sal.weather-pos";
 const WEATHER_KEY = "sal.weather-report";
 
-function isPosition(value: unknown): value is WeatherPosition {
-  return !!value && typeof value === "object" &&
-    typeof (value as { lat?: unknown }).lat === "number" &&
-    typeof (value as { lng?: unknown }).lng === "number";
-}
-
 function readStoredPosition(): WeatherPosition | null {
   return readStored<WeatherPosition | null>(POSITION_KEY, null, {
     schema: 1,
-    validate: isPosition,
-    migrateLegacy: (value) => (isPosition(value) ? value : null),
+    validate: isWeatherPosition,
+    migrateLegacy: (value) => (isWeatherPosition(value) ? value : null),
   });
 }
 

@@ -12,9 +12,9 @@ import { requestGuidanceAccess } from "@/services/navigation-guidance";
 import { navigationId, useNavigationApps } from "@/services/navigation-apps";
 import { useNavigationState } from "@/contexts/navigation-context";
 import { formatDistance, formatDuration, formatEta } from "@/services/navigation-state";
-import { FullscreenNavigation } from "./fullscreen-navigation";
 
 const LiveMap = lazy(() => import("./live-map"));
+const FullscreenNavigation = lazy(() => import("./fullscreen-navigation").then((module) => ({ default: module.FullscreenNavigation })));
 
 export function NavigationWidget() {
   const { settings, update } = useLauncherSettings();
@@ -86,7 +86,7 @@ export function NavigationWidget() {
   const appLabel = apps.find((a) => a.id === settings.navApp)?.label ?? "Navegador";
   const g = state.guidance;
   const route = state.route;
-  const distance = route?.remainingDistanceMeters ?? g?.remainingDistanceMeters;
+  const distance = route?.remainingDistanceMeters ?? g?.remainingDistanceMeters ?? g?.distanceMeters;
   const duration = route?.remainingDurationSeconds ?? g?.remainingDurationSeconds;
   const eta = route?.etaEpochMs ?? g?.etaEpochMs;
 
@@ -208,6 +208,7 @@ export function NavigationWidget() {
       </section>
 
       {fullscreen && (
+        <Suspense fallback={<div role="status" className="fixed inset-0 z-[1000] grid place-items-center bg-background">Carregando mapa…</div>}>
         <FullscreenNavigation
           state={state}
           animated={settings.animations}
@@ -216,6 +217,7 @@ export function NavigationWidget() {
           onOpenExternal={() => void open()}
           onSearch={() => { setFullscreen(false); setSearching(true); }}
         />
+        </Suspense>
       )}
     </>
   );

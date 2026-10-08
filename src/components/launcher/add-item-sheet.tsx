@@ -20,7 +20,7 @@ interface AddItemSheetProps {
 export function AddItemSheet({ open, onOpenChange, onAdd }: AddItemSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[420px] overflow-y-auto">
+      <SheetContent side="right" className="w-[420px] max-w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Adicionar à tela inicial</SheetTitle>
           <SheetDescription>Escolha um widget ou atalho de app.</SheetDescription>

@@ -1,7 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { webcrypto } from "node:crypto";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   createNavigationConnectAccessKey,
   verifyNavigationConnectAccessKey,
+  getTrackedTrip,
+  createTrackedTrip,
 } from "./navigation-connect-server";
 
 describe("Navigation Connect access capability", () => {
@@ -20,5 +23,28 @@ describe("Navigation Connect access capability", () => {
     const key = await createNavigationConnectAccessKey(env, "trip-123", expiresAt);
 
     await expect(verifyNavigationConnectAccessKey(env, "trip-123", key)).resolves.toBe(false);
+  });
+});
+
+describe("Navigation Connect telemetry", () => {
+  let env: Record<string, string>;
+  beforeAll(async () => {
+    const keys = await webcrypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
+    const pem = Buffer.from(await webcrypto.subtle.exportKey("pkcs8", keys.privateKey)).toString("base64");
+    env = { GOOGLE_NAVIGATION_CONNECT_SERVICE_ACCOUNT_JSON: JSON.stringify({ client_email: "audit@example.invalid", project_id: "audit", private_key: `-----BEGIN PRIVATE KEY-----\n${pem}\n-----END PRIVATE KEY-----` }) };
+  });
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it.each(["12.5s", "120s", "0s"])("maps the provider's %s duration and ETA", async (duration) => {
+    vi.stubGlobal("crypto", webcrypto);
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => new Response(JSON.stringify(String(url).includes("oauth2") ? { access_token: "test-token" } : { state: "ENROUTE", execution: { remainingDuration: duration, remainingDistanceMeters: 300 } })));
+    const telemetry = await getTrackedTrip(env, "test-trip") as { remainingDurationSeconds: number; etaEpochMs: number; route: { points: unknown[]; remainingDistanceMeters: number } };
+    expect(telemetry.remainingDurationSeconds).toBe(Number(duration.slice(0, -1)));
+    expect(telemetry.etaEpochMs).toBeGreaterThanOrEqual(Date.now() - 100);
+    expect(telemetry.route).toMatchObject({ points: [], remainingDistanceMeters: 300 });
+  });
+  it("fails before contacting Google when the capability secret is missing", async () => {
+    const requests = vi.spyOn(globalThis, "fetch");
+    await expect(createTrackedTrip(env, { app: "maps", destination: "Casa" })).rejects.toThrow("NAVIGATION_CONNECT_SESSION_SECRET");
+    expect(requests).not.toHaveBeenCalled();
   });
 });

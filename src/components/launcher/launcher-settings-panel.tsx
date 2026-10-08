@@ -28,8 +28,10 @@ const FONT_SCALES = new Set(["24px", "26px", "28px"]);
 
 function readFontScale(): string {
   if (typeof window === "undefined") return "24px";
-  const stored = localStorage.getItem("smart_auto_font_scale") ?? localStorage.getItem("font_size");
-  return stored && FONT_SCALES.has(stored) ? stored : "24px";
+  try {
+    const stored = localStorage.getItem("smart_auto_font_scale") ?? localStorage.getItem("font_size");
+    return stored && FONT_SCALES.has(stored) ? stored : "24px";
+  } catch { return "24px"; }
 }
 
 export function LauncherSettingsPanel() {
@@ -41,8 +43,10 @@ export function LauncherSettingsPanel() {
     // rescale every rem-based dimension in the launcher when this page mounts.
     document.documentElement.style.setProperty("--font-scale", fontScale);
     document.documentElement.style.removeProperty("font-size");
-    localStorage.setItem("smart_auto_font_scale", fontScale);
-    localStorage.setItem("font_size", fontScale);
+    try {
+      localStorage.setItem("smart_auto_font_scale", fontScale);
+      localStorage.setItem("font_size", fontScale);
+    } catch { /* keep the current choice in memory */ }
   }, [fontScale]);
 
   const { settings, update } = useLauncherSettings();

@@ -4,16 +4,18 @@ import {
   DndContext,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, Maximize2, Plus, Undo2, RotateCcw, Check } from "lucide-react";
 import type { HomeItem, AppId, WidgetKind } from "@/types/home";
 import { useHomeLayout } from "@/hooks/use-home-layout";
+import { homeGridRows } from "@/services/home-grid";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
 import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
@@ -236,16 +238,14 @@ export function CustomizableHome() {
   const cols = box.width < 520 ? 2 : box.width < 900 ? 4 : GRID_COLS;
   const gap = box.width < 640 ? 8 : 16;
   // Fit every card into the visible area: no scrolling, like a head-unit launcher.
-  const cells =
-    home.items.reduce(
-      (sum, i) => sum + Math.min(i.size.w, cols) * (cols === 2 ? Math.min(i.size.h, 2) : i.size.h),
-      0,
-    ) + (editing ? 1 : 0);
-  const rows = Math.max(cols === GRID_COLS ? GRID_ROWS : 1, Math.ceil(cells / cols));
+  const sizes = home.items.map((item) => item.size);
+  if (editing) sizes.push({ w: 1, h: 1 });
+  const rows = Math.max(cols === GRID_COLS ? GRID_ROWS : 1, homeGridRows(sizes, cols));
   const rowHeight = Math.max(32, (box.height - (rows - 1) * gap) / rows);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -264,6 +264,7 @@ export function CustomizableHome() {
 
   return (
     <div id="launcher-home-grid" className="flex min-h-0 flex-1 flex-col gap-3">
+      {!editing && <Button type="button" onClick={() => setEditing(true)} className="sr-only focus:not-sr-only">Personalizar tela inicial</Button>}
       {editing && (
         <div
           className="flex flex-col gap-2 rounded-3xl bg-card p-2 lg:flex-row lg:items-center"
@@ -274,7 +275,7 @@ export function CustomizableHome() {
             Arraste para mover. Use os botões para redimensionar ou remover.
           </p>
           <div className="grid grid-cols-4 gap-2 lg:ml-auto lg:flex">
-            <ToolbarButton onClick={() => setAdding(true)} icon={<Plus className="size-5" />}>
+            <ToolbarButton onClick={() => setAdding(true)} disabled={!home.canAdd} icon={<Plus className="size-5" />}>
               Adicionar
             </ToolbarButton>
             <ToolbarButton
@@ -319,7 +320,7 @@ export function CustomizableHome() {
                 onResizeTo={(size) => home.resize(item.id, size)}
                 canResize={sizesFor(item.type, item.ref).length > 1}
                 cols={cols}
-                maxRows={cols === 2 ? 2 : Math.max(GRID_ROWS, rows)}
+                maxRows={cols === 2 ? 2 : GRID_ROWS}
                 cellW={(box.width - (cols - 1) * gap) / cols}
                 cellH={rowHeight}
                 gap={gap}
@@ -330,6 +331,7 @@ export function CustomizableHome() {
                 type="button"
                 variant="outline"
                 onClick={() => setAdding(true)}
+                disabled={!home.canAdd}
                 aria-label="Adicionar item"
                 className="grid place-items-center rounded-3xl border-2 border-dashed text-muted-foreground transition hover:text-primary"
               >

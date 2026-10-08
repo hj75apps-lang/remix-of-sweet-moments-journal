@@ -4,6 +4,8 @@ import { isPublicHttps } from "./stream-discovery";
 describe("stream discovery URL policy", () => {
   it("accepts public HTTPS hosts", () => {
     expect(isPublicHttps("https://radio.example/live")).toBe(true);
+    expect(isPublicHttps("https://fdradio.example/live")).toBe(true);
+    expect(isPublicHttps("https://fcradio.example/live")).toBe(true);
   });
 
   it("rejects HTTP, credentials and local names", () => {

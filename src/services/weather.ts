@@ -94,8 +94,28 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   }
 }
 
-function rounded(value: number | undefined): number {
-  return Math.round(value ?? 0);
+function rounded(value: unknown, min = -Infinity, max = Infinity): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) {
+    throw new Error("Previsão incompleta");
+  }
+  return Math.round(value);
+}
+
+export function isWeatherPosition(value: unknown): value is WeatherPosition {
+  if (!value || typeof value !== "object") return false;
+  const position = value as Partial<WeatherPosition>;
+  return typeof position.lat === "number" && Number.isFinite(position.lat) && Math.abs(position.lat) <= 90 &&
+    typeof position.lng === "number" && Number.isFinite(position.lng) && Math.abs(position.lng) <= 180;
+}
+
+export function isWeatherDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function conditionCode(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) ? value : undefined;
 }
 
 function weatherDescription(code: number | undefined): string {
@@ -145,6 +165,7 @@ export function weatherPositionKey(position: WeatherPosition): string {
 }
 
 export async function fetchWeather(position: WeatherPosition): Promise<WeatherReport> {
+  if (!isWeatherPosition(position)) throw new Error("Localização inválida");
   const lat = Math.round(position.lat * 100) / 100;
   const lng = Math.round(position.lng * 100) / 100;
   const params = new URLSearchParams({
@@ -165,34 +186,42 @@ export async function fetchWeather(position: WeatherPosition): Promise<WeatherRe
   const current = forecast.current;
   const hourly = forecast.hourly;
   const daily = forecast.daily;
-  if (!current || !daily?.time?.length) throw new Error("Previsão incompleta");
+  if (!current || !Array.isArray(daily?.time) || daily.time.length < 6) throw new Error("Previsão incompleta");
+
+  const days = daily.time.slice(0, 6).map((date, index) => {
+    if (!isWeatherDate(date) || (index > 0 &&
+        Date.parse(date) - Date.parse(daily.time![index - 1]!) !== 86_400_000)) throw new Error("Previsão incompleta");
+    const min = rounded(daily.temperature_2m_min?.[index]);
+    const max = rounded(daily.temperature_2m_max?.[index]);
+    if (min > max) throw new Error("Previsão incompleta");
+    const code = conditionCode(daily.weather_code?.[index]);
+    return { date, min, max, rain: rounded(daily.precipitation_probability_max?.[index], 0, 100), code, text: weatherDescription(code) };
+  });
+  const hours = (Array.isArray(hourly?.time) ? hourly.time : []).slice(0, 8).flatMap((time, index) => {
+    if (typeof time !== "string" || !Number.isFinite(Date.parse(time))) return [];
+    try {
+      const code = conditionCode(hourly?.weather_code?.[index]);
+      return [{ time, temp: rounded(hourly?.temperature_2m?.[index]),
+        rain: rounded(hourly?.precipitation_probability?.[index], 0, 100), code, text: weatherDescription(code) }];
+    } catch { return []; }
+  });
+  const code = conditionCode(current.weather_code);
+  const sunrise = daily.sunrise?.[0];
+  const sunset = daily.sunset?.[0];
 
   return {
     city,
     temp: rounded(current.temperature_2m),
     feels: rounded(current.apparent_temperature),
-    humidity: rounded(current.relative_humidity_2m),
-    wind: rounded(current.wind_speed_10m),
-    text: weatherDescription(current.weather_code),
-    code: current.weather_code ?? -1,
+    humidity: rounded(current.relative_humidity_2m, 0, 100),
+    wind: rounded(current.wind_speed_10m, 0),
+    text: weatherDescription(code),
+    code,
     source: "Open-Meteo",
     updatedAt: Date.now(),
-    ...(daily.sunrise?.[0] !== undefined ? { sunrise: daily.sunrise[0] } : {}),
-    ...(daily.sunset?.[0] !== undefined ? { sunset: daily.sunset[0] } : {}),
-    hours: (hourly?.time ?? []).slice(0, 8).map((time, index) => ({
-      time,
-      temp: rounded(hourly?.temperature_2m?.[index]),
-      rain: rounded(hourly?.precipitation_probability?.[index]),
-      text: weatherDescription(hourly?.weather_code?.[index]),
-      code: hourly?.weather_code?.[index],
-    })),
-    days: daily.time.slice(0, 6).map((date, index) => ({
-      date,
-      min: rounded(daily.temperature_2m_min?.[index]),
-      max: rounded(daily.temperature_2m_max?.[index]),
-      rain: rounded(daily.precipitation_probability_max?.[index]),
-      text: weatherDescription(daily.weather_code?.[index]),
-      code: daily.weather_code?.[index],
-    })),
+    ...(typeof sunrise === "string" && Number.isFinite(Date.parse(sunrise)) ? { sunrise } : {}),
+    ...(typeof sunset === "string" && Number.isFinite(Date.parse(sunset)) ? { sunset } : {}),
+    hours,
+    days,
   };
 }

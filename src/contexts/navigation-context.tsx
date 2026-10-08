@@ -8,6 +8,7 @@ import {
   clearNavigationConnectTrip,
   getNavigationConnectTelemetry,
   readNavigationConnectTrip,
+  onNavigationConnectTripChanged,
   type NavigationConnectTelemetry,
 } from "@/services/navigation-connect";
 import type { NavigationState } from "@/services/navigation-state";
@@ -28,7 +29,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(true);
   const [users, setUsers] = useState(0);
   const [connectTelemetry, setConnectTelemetry] = useState<NavigationConnectTelemetry | null>(null);
+  const [tripVersion, setTripVersion] = useState(0);
   const lastFix = useRef(0);
+  useEffect(() => onNavigationConnectTripChanged(() => setTripVersion((version) => version + 1)), []);
 
   const acquireLocation = useCallback(() => {
     setUsers((n) => n + 1);
@@ -90,7 +93,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       }
       try {
         const telemetry = await getNavigationConnectTelemetry(trip.tripId, trip.accessKey);
-        if (cancelled) return;
+        if (cancelled || readNavigationConnectTrip()?.tripId !== trip.tripId) return;
         setConnectTelemetry(telemetry);
         if (!telemetry.active) {
           clearNavigationConnectTrip();
@@ -98,6 +101,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
           return;
         }
       } catch (error) {
+        if (cancelled || readNavigationConnectTrip()?.tripId !== trip.tripId) return;
         if (error instanceof Error && error.name === "NavigationConnectUnauthorizedError") {
           clearNavigationConnectTrip();
           setConnectTelemetry(null);
@@ -112,7 +116,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [visible, online]);
+  }, [visible, online, tripVersion]);
 
   useEffect(() => {
     const latitude = connectTelemetry?.latitude;

@@ -47,7 +47,7 @@ function plugin(): Plugin | null {
 function parseDistance(value: string): number | undefined {
   const match = value.match(/(\d+(?:[.,]\d+)?)\s*(km|m)\b/i);
   if (!match) return undefined;
-  const number = Number(match[1] ?? "");
+  const number = Number((match[1] ?? "").replace(",", "."));
   if (!Number.isFinite(number)) return undefined;
   return (match[2] ?? "").toLowerCase() === "km" ? number * 1000 : number;
 }
@@ -62,12 +62,13 @@ function parseDuration(value: string): number | undefined {
 export function normalizeGuidance(value: NavGuidance | null): NavGuidance | null {
   if (!value) return null;
   const combined = [value.title, value.text, value.subText].filter(Boolean).join(" · ");
-  const distance = value.remainingDistanceMeters ?? value.distanceMeters ?? parseDistance(combined);
+  // A maneuver distance is not the remaining trip distance. Only infer the
+  // distance to the next turn from notification text; preserve trip totals verbatim.
+  const distance = value.distanceMeters ?? parseDistance(combined);
   const duration = value.remainingDurationSeconds ?? parseDuration(combined);
   const normalized = { ...value, maneuver: value.maneuver ?? value.title };
   if (distance !== undefined) {
     normalized.distanceMeters = value.distanceMeters ?? distance;
-    normalized.remainingDistanceMeters = value.remainingDistanceMeters ?? distance;
   }
   if (duration !== undefined) normalized.remainingDurationSeconds = value.remainingDurationSeconds ?? duration;
   return normalized;

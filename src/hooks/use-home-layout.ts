@@ -28,9 +28,9 @@ function isValid(value: unknown): value is HomeLayout {
     if (typeof entry.ref !== "string") return false;
     const validRef =
       entry.type === "WIDGET"
-        ? entry.ref in widgetRefs
+        ? Object.hasOwn(widgetRefs, entry.ref)
         : entry.type === "APP"
-          ? entry.ref in appRefs
+          ? Object.hasOwn(appRefs, entry.ref)
           : false;
     const w = entry.size?.w;
     const h = entry.size?.h;
@@ -72,6 +72,7 @@ export function useHomeLayout() {
   const commit = useCallback((next: (items: HomeItem[]) => HomeItem[]) => {
     const previous = layoutRef.current;
     const updated = { ...previous, items: next(previous.items) };
+    if (!isValid(updated)) return;
     layoutRef.current = updated;
     setHistory((entries) => [...entries.slice(-MAX_HISTORY + 1), previous]);
     setLayout(updated);
@@ -87,6 +88,7 @@ export function useHomeLayout() {
 
   return {
     items: layout.items,
+    canAdd: layout.items.length < 24,
     canUndo: history.length > 0,
     reorder: (from: number, to: number) =>
       commit((items) => {
