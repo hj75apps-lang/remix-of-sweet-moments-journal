@@ -1,4 +1,4 @@
-import { ArrowLeft, CloudSun, LocateFixed, MapPin, RefreshCw } from "lucide-react";
+import { ArrowLeft, CloudSun, LocateFixed, RefreshCw } from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
@@ -12,34 +12,6 @@ function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
   const sunrise = weather.sunrise ? Date.parse(weather.sunrise) : NaN;
   const sunset = weather.sunset ? Date.parse(weather.sunset) : NaN;
   return Number.isFinite(sunrise) && Number.isFinite(sunset) ? now < sunrise || now >= sunset : new Date().getHours() < 6 || new Date().getHours() >= 18;
-}
-
-function relativeUpdatedAt(timestamp?: number) {
-  if (!timestamp) return "";
-  const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
-  return minutes < 1 ? "Atualizado agora" : `Atualizado há ${minutes} min`;
-}
-
-function WeatherForecastStrip({ days }: { days: { date: string; max: number; min: number; code: number | undefined; text: string }[] }) {
-  const labels = days.slice(0, 5).map((day, index) =>
-    index === 0 ? "Hoje" : new Date(`${day.date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
-  );
-
-  return (
-    <div className="weather-days glass-strip" aria-label="Previsão resumida">
-      {days.slice(0, 5).map((day, index) => (
-        <div className="weather-day" key={day.date}>
-          <span className="weather-day-label">{labels[index]}</span>
-          <span className="weather-day-icon" aria-label={day.text}>
-            <WeatherSymbol code={day.code} text={day.text} />
-          </span>
-          <span className="weather-day-temps">
-            <b>{day.max}°</b><small>{day.min}°</small>
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 export function WeatherWidget() {
@@ -106,34 +78,21 @@ export function WeatherWidget() {
         <p className="m-auto text-sm text-muted-foreground" aria-live="polite">Carregando previsão…</p>
       ) : (
         <div className={`weather-summary flex min-h-0 flex-1 flex-col${query.isFetching ? " weather-updating" : ""}`}>
-          <div className="weather-topline">
-            <div className="weather-location">
-              <MapPin className="weather-location-icon" aria-hidden="true" />
-              <span className="truncate">{w.city}</span>
-            </div>
-            <span className="weather-updated">{relativeUpdatedAt(w.updatedAt)}</span>
-          </div>
-
-          <div className="weather-hero">
-            <div className="weather-reading">
-              <p className="weather-temperature">{w.temp}<span>°C</span></p>
-              <p className="weather-condition" aria-label="Condição do tempo">{w.text}</p>
-              <div className="weather-extremes" aria-label={`Máxima ${w.days[0]?.max} graus, mínima ${w.days[0]?.min} graus`}>
-                <span className="weather-extreme weather-extreme-high"><span>Máx</span><b>{w.days[0]?.max}°</b></span>
-                <span className="weather-extreme weather-extreme-low"><span>Mín</span><b>{w.days[0]?.min}°</b></span>
-              </div>
-            </div>
+          <div className="weather-reference-row">
             <WeatherSymbol code={w.code} text={w.text} large night={isNightBySun(w)} />
-          </div>
-
-          <div className="weather-forecast-medium">
-            <WeatherForecastStrip days={w.days} />
+            <p className="weather-reference-temperature">{w.temp}<span>°C</span></p>
+            <div className="weather-reading">
+              <p className="weather-reference-condition" aria-label="Condição do tempo">Hoje · {w.text}</p>
+              <p className="weather-reference-detail">Sensação de {Number.isFinite(w.feels) ? `${w.feels}°` : "—"}</p>
+              <p className="weather-reference-detail" aria-label="Temperaturas de hoje">
+                Máx. {w.days[0] ? `${w.days[0].max}°` : "—"} · Mín. {w.days[0] ? `${w.days[0].min}°` : "—"}
+              </p>
+            </div>
           </div>
 
           {query.isError && (
             <span className="weather-offline" role="status">Sem conexão · mostrando última previsão</span>
           )}
-          <div className="weather-forecast-link"><span>Ver previsão completa</span></div>
         </div>
       )}
     </WidgetCard>

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Adaptar o widget clima à nova referência: ícone à esquerda, temperatura em negrito e Hoje/condição, sensação térmica e máxima/mínima ao lado; nove testes aprovados e dados reais, apresentação e abertura/retorno verificados em 1280×800, 1280×720 e 390×844.
+
 - [x] Ajustar o ícone do clima à segunda referência e manter a condição escrita nos cartões compactos; 11 testes aprovados, previsão real e abertura/retorno verificados em 1280×800, 1280×720 e 390×844.
 
 - [x] Priorizar rádios pelo tempo ouvido nos últimos 30 dias, salvar histórico local e verificar ordenação após reabrir; 26 testes aprovados e reprodução confirmada com transmissão de teste.
