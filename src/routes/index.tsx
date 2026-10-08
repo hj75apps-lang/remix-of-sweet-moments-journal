@@ -57,7 +57,7 @@ function Home() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <StatusBar />
-      <main className="flex min-h-0 flex-1 flex-col-reverse gap-3 p-2 sm:p-4 md:flex-row md:gap-4">
+      <main className="flex min-h-0 flex-1 flex-col-reverse gap-3 px-2 pb-2 sm:px-4 sm:pb-4 md:flex-row md:gap-4">
         <Dock />
         <div id="launcher-home-workspace" className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col gap-3 md:gap-4">
           <CustomizableHome />

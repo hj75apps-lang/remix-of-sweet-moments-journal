@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Uniformizar margens da tela inicial com as demais páginas e verificar a barra lateral e área de conteúdo ao navegar.
+
 - [x] Retirar cabeçalhos, localização duplicada e selo da previsão expandida; Hoje + cinco dias, botão voltar e /clima validados em 1280, 390 e 320px sem rolagem; cinco testes aprovados.
 
 - [x] Garantir seis previsões (Hoje + cinco dias seguintes), atualizando imediatamente caches incompletos quando online; validado com previsão antiga de cinco dias e dados reais em 1280 e 390px, sem rolagem.
