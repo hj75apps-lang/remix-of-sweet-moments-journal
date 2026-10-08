@@ -22,6 +22,15 @@ export function readStored<T>(key: string, fallback: T, options: StorageOptions<
   if (value && typeof value === "object" && "schema" in value && "data" in value) {
     const envelope = value as Partial<Envelope<unknown>>;
     if (envelope.schema === options.schema && options.validate(envelope.data)) return envelope.data;
+    // New optional fields can invalidate an older envelope. Migrate its data
+    // rather than silently resetting every saved preference to defaults.
+    if (envelope.schema === options.schema && options.migrateLegacy) {
+      const migrated = options.migrateLegacy(envelope.data);
+      if (migrated !== null && migrated !== undefined && options.validate(migrated)) {
+        writeStored(key, migrated, options.schema);
+        return migrated;
+      }
+    }
     return fallback;
   }
   const migrated = options.migrateLegacy?.(value);
