@@ -62,11 +62,9 @@ export function NavigationWidget() {
     }
   };
 
+  // The widget click is always an in-launcher preview action. Opening or
+  // resuming the external navigation app remains available from fullscreen.
   const openMap = () => {
-    if (state.active) {
-      void open();
-      return;
-    }
     setFullscreen(true);
   };
 
