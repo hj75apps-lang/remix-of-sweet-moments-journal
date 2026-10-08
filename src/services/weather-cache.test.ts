@@ -29,9 +29,10 @@ describe("weather cache compatibility", () => {
     expect(normalizeWeatherCache(null)).toBeNull();
   });
   it("marks five-day caches stale even if they were recently saved", () => {
-    const cached = { ...legacy, hours: [], updatedAt: Date.now(), days: Array.from({ length: 5 }, () => legacy.days[0]) };
+    const day = { date: "2026-10-08", min: 24, max: 33, rain: 0, text: "Céu limpo", code: 0 };
+    const cached = { ...legacy, source: "Open-Meteo" as const, hours: [], updatedAt: Date.now(), days: Array.from({ length: 5 }, () => day) };
     expect(weatherCacheUpdatedAt(cached)).toBe(0);
-    expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, legacy.days[0]] })).toBe(cached.updatedAt);
-    expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, legacy.days[0]], updatedAt: undefined })).toBe(0);
+    expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, day] })).toBe(cached.updatedAt);
+    expect(weatherCacheUpdatedAt({ ...cached, days: [...cached.days, day], updatedAt: undefined })).toBe(0);
   });
 });
