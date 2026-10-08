@@ -13,10 +13,6 @@ package app.smartautolauncher
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
-import android.car.Car
-import android.car.VehiclePropertyIds
-import android.car.hardware.CarPropertyValue
-import android.car.hardware.property.CarPropertyManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -41,25 +37,8 @@ import com.getcapacitor.annotation.CapacitorPlugin
 )
 class SystemControlsPlugin : Plugin() {
     private var receiver: BroadcastReceiver? = null
-    private var car: Car? = null
-    private var carPropertyManager: CarPropertyManager? = null
+    private var lightMonitor: AutoCloseable? = null
     @Volatile private var vehicleHeadlightsOn: Boolean? = null
-
-    private val carPropertyCallback = object : CarPropertyManager.CarPropertyEventCallback {
-        override fun onChangeEvent(value: CarPropertyValue<*>) {
-            if (value.propertyId == VehiclePropertyIds.HEADLIGHTS_STATE && value.areaId == 0) {
-                val on = (value.value as? Int) == 1
-                vehicleHeadlightsOn = on
-                notifyListeners("stateChanged", state())
-            }
-        }
-
-        override fun onErrorEvent(propertyId: Int, areaId: Int) {
-            if (propertyId == VehiclePropertyIds.HEADLIGHTS_STATE && areaId == 0) {
-                notifyListeners("stateChanged", state())
-            }
-        }
-    }
 
     override fun load() {
         receiver = object : BroadcastReceiver() {
@@ -84,41 +63,22 @@ class SystemControlsPlugin : Plugin() {
 
     override fun handleOnDestroy() {
         receiver?.let { runCatching { context.unregisterReceiver(it) } }
-        runCatching { carPropertyManager?.unregisterCallback(carPropertyCallback) }
-        runCatching { car?.disconnect() }
-        carPropertyManager = null
-        car = null
+        runCatching { lightMonitor?.close() }
+        lightMonitor = null
         super.handleOnDestroy()
     }
 
     private fun startVehicleLightMonitor() {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) return
-        Thread {
-            try {
-                val connectedCar = Car.createCar(context)
-                val manager = connectedCar?.getCarManager(Car.PROPERTY_SERVICE) as? CarPropertyManager
-                    ?: return@Thread
-                car = connectedCar
-                carPropertyManager = manager
-
-                // HEADLIGHTS_STATE is the authoritative exterior-light signal.
-                // VehicleLightState.STATE_ON is 1; daytime-running lights do not trigger night mode.
-                val registered = manager.registerCallback(
-                    carPropertyCallback,
-                    VehiclePropertyIds.HEADLIGHTS_STATE,
-                    CarPropertyManager.SENSOR_RATE_ONCHANGE,
-                )
-                if (!registered) {
-                    vehicleHeadlightsOn = null
-                }
-            } catch (_: SecurityException) {
-                // The property is signature/privileged on AAOS. If this APK is not
-                // installed with the OEM/system privilege, retain the Android night-mode fallback.
-                vehicleHeadlightsOn = null
-            } catch (_: Exception) {
-                vehicleHeadlightsOn = null
+        try {
+            // Do not load any android.car callback classes on ordinary Android.
+            Class.forName("android.car.Car", false, javaClass.classLoader)
+            lightMonitor = VehicleLightMonitor(context) { value ->
+                vehicleHeadlightsOn = value
+                notifyListeners("stateChanged", state())
             }
-        }.start()
+        } catch (_: Exception) { vehicleHeadlightsOn = null
+        } catch (_: LinkageError) { vehicleHeadlightsOn = null }
     }
 
     private fun adapter(): BluetoothAdapter? =

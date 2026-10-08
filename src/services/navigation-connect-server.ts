@@ -146,6 +146,8 @@ export async function createTrackedTrip(
   env: Env,
   input: { app: "maps" | "waze"; destination: string },
 ): Promise<{ tripId: string; authToken: string; expiresAt: string; launchUrl: string }> {
+  // Fail before creating a billable trip if its capability cannot be signed.
+  navigationSecret(env);
   const account = readServiceAccount(env);
   const project = projectId(env, account);
   if (!project) throw new Error("GOOGLE_NAVIGATION_CONNECT_PROJECT_ID não configurado");
@@ -177,10 +179,10 @@ export async function createTrackedTrip(
 
 function durationSeconds(value?: string): number | undefined {
   if (!value) return undefined;
-  const match = value.match(/^(-?\\d+(?:\\.\\d+)?)s$/);
+  const match = value.match(/^(\d+(?:\.\d+)?)s$/);
   if (!match) return undefined;
   const seconds = Number(match[1]);
-  return Number.isFinite(seconds) ? seconds : undefined;
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
 }
 
 export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown> {
@@ -206,9 +208,13 @@ export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown>
   const execution = payload.execution;
   const location = execution?.location?.point;
   const remainingDurationSeconds = durationSeconds(execution?.remainingDuration);
+  const remainingDistanceMeters = typeof execution?.remainingDistanceMeters === "number" &&
+    Number.isFinite(execution.remainingDistanceMeters) && execution.remainingDistanceMeters >= 0
+      ? execution.remainingDistanceMeters : undefined;
   const etaEpochMs = remainingDurationSeconds !== undefined ? Date.now() + remainingDurationSeconds * 1000 : undefined;
   const points = execution?.remainingRoute?.simplePolyline?.points
-    ?.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude))
+    ?.filter((point) => Number.isFinite(point.latitude) && Math.abs(Number(point.latitude)) <= 90 &&
+      Number.isFinite(point.longitude) && Math.abs(Number(point.longitude)) <= 180)
     .map((point) => ({ latitude: Number(point.latitude), longitude: Number(point.longitude) })) ?? [];
   const terminalStates = new Set(["ARRIVED", "FAILED", "CLIENT_ERROR", "CANCELED"]);
   return {
@@ -216,14 +222,14 @@ export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown>
     state: payload.state ?? "STATE_UNSPECIFIED",
     active: !terminalStates.has(payload.state ?? "STATE_UNSPECIFIED"),
     sourcePackage: null,
-    latitude: location?.latitude,
-    longitude: location?.longitude,
+    latitude: Number.isFinite(location?.latitude) && Math.abs(Number(location?.latitude)) <= 90 ? location?.latitude : undefined,
+    longitude: Number.isFinite(location?.longitude) && Math.abs(Number(location?.longitude)) <= 180 ? location?.longitude : undefined,
     etaEpochMs,
-    remainingDistanceMeters: execution?.remainingDistanceMeters,
+    remainingDistanceMeters,
     remainingDurationSeconds,
-    route: points.length ? {
+    route: points.length || remainingDistanceMeters !== undefined || remainingDurationSeconds !== undefined ? {
       points,
-      remainingDistanceMeters: execution?.remainingDistanceMeters,
+      remainingDistanceMeters,
       remainingDurationSeconds,
       etaEpochMs,
     } : undefined,

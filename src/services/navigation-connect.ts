@@ -36,31 +36,56 @@ interface ActiveTripRecord {
   accessKey: string;
 }
 
+const tripListeners = new Set<() => void>();
+let volatileTrip: ActiveTripRecord | null = null;
+export function onNavigationConnectTripChanged(listener: () => void): () => void {
+  tripListeners.add(listener);
+  return () => { tripListeners.delete(listener); };
+}
+
+function validTrip(value: unknown): value is ActiveTripRecord {
+  if (!value || typeof value !== "object") return false;
+  const trip = value as Partial<ActiveTripRecord>;
+  return typeof trip.tripId === "string" && trip.tripId.length > 0 && trip.tripId.length <= 128 &&
+    typeof trip.accessKey === "string" && trip.accessKey.length > 0 && trip.accessKey.length <= 512 &&
+    (trip.app === "maps" || trip.app === "waze") && typeof trip.expiresAt === "string" &&
+    Number.isFinite(Date.parse(trip.expiresAt)) && Date.parse(trip.expiresAt) > Date.now();
+}
+
 export function rememberNavigationConnectTrip(trip: Pick<NavigationConnectTrip, "tripId" | "expiresAt"> & { app: "maps" | "waze"; accessKey: string }): void {
-  if (typeof sessionStorage === "undefined") return;
+  // Explicit allowlist: callers may pass a wider object containing authToken.
+  const record = { tripId: trip.tripId, app: trip.app, expiresAt: trip.expiresAt, accessKey: trip.accessKey };
+  if (!validTrip(record)) return;
+  volatileTrip = record;
   try {
     // Google Navigation Connect authToken is never persisted client-side.
-    sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(record));
   } catch { /* optional cache */ }
+  tripListeners.forEach((listener) => listener());
 }
 
 export function readNavigationConnectTrip(): ActiveTripRecord | null {
-  if (typeof sessionStorage === "undefined") return null;
+  if (typeof sessionStorage === "undefined") return validTrip(volatileTrip) ? volatileTrip : null;
   try {
-    const value = JSON.parse(sessionStorage.getItem(ACTIVE_TRIP_KEY) ?? "null") as Partial<ActiveTripRecord> | null;
-    if (!value?.tripId || !value.accessKey || (value.app !== "maps" && value.app !== "waze")) return null;
-    if (value.expiresAt && Date.parse(value.expiresAt) <= Date.now()) {
+    const value: unknown = JSON.parse(sessionStorage.getItem(ACTIVE_TRIP_KEY) ?? "null");
+    if (!validTrip(value)) {
       sessionStorage.removeItem(ACTIVE_TRIP_KEY);
       return null;
     }
-    return { tripId: value.tripId, app: value.app, expiresAt: value.expiresAt ?? "", accessKey: value.accessKey };
+    const record = { tripId: value.tripId, app: value.app, expiresAt: value.expiresAt, accessKey: value.accessKey };
+    // Remove credentials accidentally persisted by older clients.
+    if ("authToken" in value) sessionStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(record));
+    volatileTrip = record;
+    return record;
   } catch {
-    return null;
+    return validTrip(volatileTrip) ? volatileTrip : null;
   }
 }
 
 export function clearNavigationConnectTrip(): void {
-  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(ACTIVE_TRIP_KEY);
+  volatileTrip = null;
+  try { if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(ACTIVE_TRIP_KEY); } catch { /* optional cache */ }
+  tripListeners.forEach((listener) => listener());
 }
 
 function apiUrl(path: string): string {

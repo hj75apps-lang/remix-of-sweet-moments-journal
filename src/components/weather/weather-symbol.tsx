@@ -22,7 +22,7 @@ export function WeatherSymbol({
   const snow = code !== undefined && code >= 71 && code <= 86;
   const rain = (code !== undefined && code >= 51 && code <= 67) ||
     (code !== undefined && code >= 80 && code <= 82);
-  const isNightMode = night ?? (isNight() && (code === 0 || code === 1 || code === 2));
+  const isNightMode = (night ?? isNight()) && (code === 0 || code === 1 || code === 2);
 
   return (
     <span

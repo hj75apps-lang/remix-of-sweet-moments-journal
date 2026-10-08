@@ -12,8 +12,14 @@ const guidance: NavGuidance = {
 describe("normalizeGuidance", () => {
   it("extracts distance and duration when structured telemetry is unavailable", () => {
     const normalized = normalizeGuidance(guidance);
-    expect(normalized?.remainingDistanceMeters).toBe(300);
+    expect(normalized?.distanceMeters).toBe(300);
+    expect(normalized?.remainingDistanceMeters).toBeUndefined();
     expect(normalized?.remainingDurationSeconds).toBe(12 * 60);
+  });
+  it("parses Portuguese decimal distances without presenting a turn distance as a trip total", () => {
+    const normalized = normalizeGuidance({ ...guidance, subText: "1,2 km · 12 min" });
+    expect(normalized?.distanceMeters).toBe(1200);
+    expect(normalized?.remainingDistanceMeters).toBeUndefined();
   });
 
   it("keeps authoritative structured telemetry", () => {

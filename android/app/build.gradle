@@ -6,7 +6,7 @@ def appVersionCode = (System.getenv("APP_VERSION_CODE") ?: "1").toInteger()
 def appVersionName = System.getenv("APP_VERSION_NAME") ?: "1.0"
 
 android {
-    useLibrary('android.car')
+    useLibrary('android.car', false)
     namespace = "app.smartautolauncher"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {

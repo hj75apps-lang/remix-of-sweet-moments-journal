@@ -4,12 +4,13 @@ import {
   DndContext,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, Maximize2, Plus, Undo2, RotateCcw, Check } from "lucide-react";
 import type { HomeItem, AppId, WidgetKind } from "@/types/home";
@@ -246,6 +247,7 @@ export function CustomizableHome() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -264,6 +266,7 @@ export function CustomizableHome() {
 
   return (
     <div id="launcher-home-grid" className="flex min-h-0 flex-1 flex-col gap-3">
+      {!editing && <Button type="button" onClick={() => setEditing(true)} className="sr-only focus:not-sr-only">Personalizar tela inicial</Button>}
       {editing && (
         <div
           className="flex flex-col gap-2 rounded-3xl bg-card p-2 lg:flex-row lg:items-center"
@@ -274,7 +277,7 @@ export function CustomizableHome() {
             Arraste para mover. Use os botões para redimensionar ou remover.
           </p>
           <div className="grid grid-cols-4 gap-2 lg:ml-auto lg:flex">
-            <ToolbarButton onClick={() => setAdding(true)} icon={<Plus className="size-5" />}>
+            <ToolbarButton onClick={() => setAdding(true)} disabled={!home.canAdd} icon={<Plus className="size-5" />}>
               Adicionar
             </ToolbarButton>
             <ToolbarButton
@@ -319,7 +322,7 @@ export function CustomizableHome() {
                 onResizeTo={(size) => home.resize(item.id, size)}
                 canResize={sizesFor(item.type, item.ref).length > 1}
                 cols={cols}
-                maxRows={cols === 2 ? 2 : Math.max(GRID_ROWS, rows)}
+                maxRows={cols === 2 ? 2 : GRID_ROWS}
                 cellW={(box.width - (cols - 1) * gap) / cols}
                 cellH={rowHeight}
                 gap={gap}
@@ -330,6 +333,7 @@ export function CustomizableHome() {
                 type="button"
                 variant="outline"
                 onClick={() => setAdding(true)}
+                disabled={!home.canAdd}
                 aria-label="Adicionar item"
                 className="grid place-items-center rounded-3xl border-2 border-dashed text-muted-foreground transition hover:text-primary"
               >

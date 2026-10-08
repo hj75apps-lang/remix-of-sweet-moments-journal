@@ -94,8 +94,7 @@ export function RadioScreen() {
   const [remoteQuery, setRemoteQuery] = useState("");
 
   useEffect(() => {
-    const normalized = normalizeText(deferred);
-    const timer = window.setTimeout(() => setRemoteQuery(normalized), 300);
+    const timer = window.setTimeout(() => setRemoteQuery(deferred.trim().slice(0, 300)), 300);
     return () => window.clearTimeout(timer);
   }, [deferred]);
 
@@ -344,7 +343,7 @@ export function RadioScreen() {
         aria-label="Estações"
         className="flex min-h-0 flex-col gap-2 overflow-hidden rounded-3xl border bg-card p-3 lg:p-4"
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <label className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-2xl bg-secondary px-3">
             <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             <span className="sr-only">Buscar rádio</span>

@@ -31,11 +31,14 @@ const VoiceControlContext = createContext<VoiceControlValue | null>(null);
 export function VoiceControlProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const radio = useRadio();
+  const radioRef = useRef(radio);
+  radioRef.current = radio;
   const [available, setAvailable] = useState(false);
   const [listening, setListening] = useState(false);
 
   useEffect(() => {
-    void isNativeVoiceAvailable().then(setAvailable);
+    let gone = false;
+    void isNativeVoiceAvailable().then((value) => { if (!gone) setAvailable(value); });
     const stopState = onVoiceState((state) => {
       setListening(state.listening);
       if (state.error) toast.error(state.error);
@@ -45,6 +48,7 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
       void startVoiceRecognition()?.catch(() => setListening(false));
     });
     const stopResult = onVoiceResult(({ transcript }) => {
+      const radio = radioRef.current;
       const command = parseVoiceCommand(transcript);
       if (command.kind === "navigate") {
         void navigate({ to: command.route });
@@ -61,11 +65,12 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
       }
     });
     return () => {
+      gone = true;
       stopState();
       stopResult();
       stopActivation();
     };
-  }, [navigate, radio]);
+  }, [navigate]);
 
   const activate = useCallback(() => {
     setListening(true);

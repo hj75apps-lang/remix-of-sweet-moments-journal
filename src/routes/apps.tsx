@@ -56,7 +56,7 @@ function AppsPage() {
       const raw = localStorage.getItem(CUSTOM_APPS_ORDER_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setCustomOrder(parsed);
+        if (Array.isArray(parsed)) setCustomOrder([...new Set(parsed.filter((value): value is string => typeof value === "string"))].slice(0, 1000));
       }
     } catch {
       // ignore
@@ -174,13 +174,13 @@ function AppsPage() {
       if (moved) copy.splice(toIndex, 0, moved);
       const newPkgs = copy.map((a) => a.packageName);
       setCustomOrder(newPkgs);
-      localStorage.setItem(CUSTOM_APPS_ORDER_KEY, JSON.stringify(newPkgs));
+      try { localStorage.setItem(CUSTOM_APPS_ORDER_KEY, JSON.stringify(newPkgs)); } catch { /* optional preference */ }
     }
   };
 
   const resetOrder = () => {
     setCustomOrder([]);
-    localStorage.removeItem(CUSTOM_APPS_ORDER_KEY);
+    try { localStorage.removeItem(CUSTOM_APPS_ORDER_KEY); } catch { /* optional preference */ }
   };
 
   return (

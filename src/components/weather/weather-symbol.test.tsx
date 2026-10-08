@@ -5,6 +5,10 @@ import { WeatherSymbol } from "./weather-symbol";
 afterEach(cleanup);
 
 describe("outlined weather symbols", () => {
+  it.each([{ code: 61, text: "Chuva", icon: "lucide-cloud-rain" }, { code: 95, text: "Tempestade", icon: "lucide-cloud-lightning" }])("keeps the $text condition visible at night", ({ code, text, icon }) => {
+    render(<WeatherSymbol code={code} text={text} night />);
+    expect(screen.getByRole("img", { name: text }).querySelector("svg")).toHaveClass(icon);
+  });
   it.each([1, 2])("uses one integrated partly cloudy icon for code %s", (code) => {
     render(<WeatherSymbol code={code} text="Parcialmente nublado" night={false} />);
     const symbol = screen.getByRole("img", { name: "Parcialmente nublado" });

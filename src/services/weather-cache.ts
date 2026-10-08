@@ -1,4 +1,5 @@
 import type { WeatherReport } from "./weather";
+import { isWeatherDate } from "./weather";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object";
@@ -20,8 +21,9 @@ export function normalizeWeatherCache(value: unknown): WeatherReport | null {
       ![value["temp"], value["feels"], value["humidity"], value["wind"]].every(finite) ||
       !Array.isArray(value["days"])) return null;
   const days = value["days"].filter((day: unknown) => isRecord(day) && isCondition(day) &&
-    typeof day["date"] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day["date"]) &&
-    [day["min"], day["max"], day["rain"]].every(finite));
+    isWeatherDate(day["date"]) &&
+    [day["min"], day["max"], day["rain"]].every(finite) &&
+    Number(day["min"]) <= Number(day["max"]) && Number(day["rain"]) >= 0 && Number(day["rain"]) <= 100);
   if (days.length === 0) return null;
   const hours = Array.isArray(value["hours"]) ? value["hours"].filter((hour: unknown) =>
     isRecord(hour) && isCondition(hour) && typeof hour["time"] === "string" &&
@@ -38,5 +40,5 @@ export function isWeatherCache(value: unknown): value is WeatherReport {
 
 /** Incomplete or undated saved forecasts must refresh immediately when online. */
 export function weatherCacheUpdatedAt(weather: WeatherReport): number {
-  return weather.days.length >= 6 && finite(weather.updatedAt) ? weather.updatedAt : 0;
+  return weather.days.length >= 6 && finite(weather.updatedAt) && weather.updatedAt <= Date.now() ? weather.updatedAt : 0;
 }
