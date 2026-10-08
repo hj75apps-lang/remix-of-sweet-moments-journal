@@ -1,10 +1,11 @@
-import { CloudSun, LocateFixed, MapPin, RefreshCw, X } from "lucide-react";
+import { ArrowLeft, CloudSun, LocateFixed, MapPin, RefreshCw } from "lucide-react";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
 import { WeatherDetails } from "@/components/weather/weather-details";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
   const now = Date.now();
@@ -44,16 +45,32 @@ function WeatherForecastStrip({ days }: { days: { date: string; max: number; min
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
   const [expanded, setExpanded] = useState(false);
+  const backButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!expanded) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const homeGrid = document.getElementById("launcher-home-grid");
+    // Keep the Dock active, but remove the covered widgets from the tab order.
+    homeGrid?.setAttribute("inert", "");
+    backButtonRef.current?.focus();
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setExpanded(false);
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      homeGrid?.removeAttribute("inert");
+      previousFocus?.focus();
+    };
   }, [expanded]);
+
   const w = query.data;
+  // The expanded forecast belongs to the home content pane, never the viewport.
+  const workspace = expanded && typeof document !== "undefined"
+    ? document.getElementById("launcher-home-workspace")
+    : null;
 
   const card = (
     <WidgetCard
@@ -136,42 +153,37 @@ export function WeatherWidget() {
         {card}
       </div>
 
-      {expanded && (
-        <div
-          className="fixed inset-0 z-[100] flex min-h-0 items-stretch bg-background/95 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
+      {workspace && createPortal(
+        <section
+          className="absolute inset-0 z-50 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-[var(--shadow-card)]"
+          role="region"
           aria-label={`Previsão do tempo para ${w.city}`}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setExpanded(false);
-          }}
         >
-          <section
-            onClick={(event) => event.stopPropagation()}
-            className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-card text-card-foreground"
-          >
-            <header className="flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-5">
-              <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center gap-2">
-                <CloudSun className="size-5 shrink-0 text-primary" aria-hidden="true" />
-                <div className="min-w-0">
-                  <h2 className="truncate text-base font-semibold sm:text-lg">Previsão do tempo</h2>
-                  <p className="truncate text-xs text-muted-foreground sm:text-sm">{w.city}</p>
-                </div>
+          <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-2 sm:px-5 sm:py-3">
+            <Button
+              ref={backButtonRef}
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setExpanded(false)}
+              className="size-11 shrink-0 rounded-2xl"
+              aria-label="Voltar à tela inicial"
+            >
+              <ArrowLeft className="size-5" aria-hidden="true" />
+            </Button>
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <CloudSun className="size-6 shrink-0 text-primary" aria-hidden="true" />
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-semibold sm:text-xl">Previsão do tempo</h2>
+                <p className="truncate text-xs text-muted-foreground sm:text-sm">{w.city}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Fechar previsão"
-              >
-                <X className="size-5" />
-              </button>
-            </header>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <WeatherDetails weather={w} />
             </div>
-          </section>
-        </div>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <WeatherDetails weather={w} />
+          </div>
+        </section>,
+        workspace,
       )}
     </>
   );

@@ -59,7 +59,7 @@ function Home() {
       <StatusBar />
       <main className="flex min-h-0 flex-1 flex-col-reverse gap-3 p-2 sm:p-4 md:flex-row md:gap-4">
         <Dock />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 md:gap-4">
+        <div id="launcher-home-workspace" className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col gap-3 md:gap-4">
           <CustomizableHome />
         </div>
       </main>

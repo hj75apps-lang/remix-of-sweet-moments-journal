@@ -32,7 +32,7 @@ export function weatherIcon(code: number | undefined, description: string): Luci
   if (normalized.includes("nublado")) return Cloud;
   return CloudSun;
 }
-export function shortWeekday(date: string) {
+export function shortWeekday(date: string, index = 1) {
   if (index === 0) return "Hoje";
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
 }
@@ -101,7 +101,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
 
       <section aria-labelledby="five-day-title" className="flex min-h-0 flex-col pt-3 sm:pt-4">
         <h2 id="five-day-title" className="text-sm font-semibold sm:text-base">Próximos 5 dias</h2>
-        <ul className="mt-2 grid min-h-0 flex-1 grid-rows-5 gap-1.5 sm:grid-cols-5 sm:grid-rows-1 sm:gap-2">
+        <ul className="mt-2 grid min-h-0 flex-1 grid-rows-6 gap-1.5 sm:grid-cols-6 sm:grid-rows-1 sm:gap-2">
           {weather.days.slice(0, 6).map((day, index) => (
             <li key={day.date} className="weather-day-detail grid min-h-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-xl border bg-secondary/35 px-2.5 py-1.5 sm:flex sm:flex-col sm:items-stretch sm:p-2.5">
               <div className="min-w-0 sm:text-center">

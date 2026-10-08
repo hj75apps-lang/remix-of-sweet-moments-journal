@@ -263,7 +263,7 @@ export function CustomizableHome() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div id="launcher-home-grid" className="flex min-h-0 flex-1 flex-col gap-3">
       {editing && (
         <div
           className="flex flex-col gap-2 rounded-3xl bg-card p-2 lg:flex-row lg:items-center"
