@@ -55,6 +55,7 @@ export function WeatherWidget() {
     homeGrid?.setAttribute("inert", "");
     homeGrid?.setAttribute("aria-hidden", "true");
     homeGrid?.style.setProperty("visibility", "hidden");
+    homeGrid?.style.setProperty("opacity", "0");
     backButtonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -66,6 +67,7 @@ export function WeatherWidget() {
       homeGrid?.removeAttribute("inert");
       homeGrid?.removeAttribute("aria-hidden");
       homeGrid?.style.removeProperty("visibility");
+      homeGrid?.style.removeProperty("opacity");
       previousFocus?.focus();
     };
   }, [expanded]);

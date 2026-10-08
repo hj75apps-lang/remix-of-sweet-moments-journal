@@ -429,7 +429,7 @@ body {
 .weather-details-panel .weather-symbol-glow { opacity: .7; }
 
 /* A portal must establish its own layout outside the home widget grid. */
-.forecast-overlay { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; border-radius:1.5rem; }
+.forecast-overlay { position:absolute; inset:0; z-index:50; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; border-radius:1.5rem; background:var(--card); }
 .forecast-overlay-header { display:grid; grid-template-columns:auto minmax(0,1fr); flex:0 0 52px; min-width:0; }
 .forecast-viewport { container:weather-forecast / size; position:relative; display:flex; flex:1 1 0%; min-width:0; min-height:0; overflow:hidden; }
 .weather-week-panel {
@@ -492,6 +492,7 @@ body {
 .weather-week-sun-times > span { display:flex; align-items:center; gap:4px; }
 .weather-week-sun-times svg { width:16px; height:16px; }
 .weather-week-hourly-strip { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; margin-top:6px; overflow:hidden; }
+.weather-week-hourly-strip > p { grid-column:1 / -1; }
 .weather-week-hour { display:flex; min-width:0; flex-direction:column; align-items:center; gap:3px; border:1px solid var(--forecast-line); border-radius:6px; padding:6px; background:var(--forecast-surface); }
 .weather-week-hour > span { font-size:11px; color:var(--forecast-muted); }
 .weather-week-hour > svg { width:20px; height:20px; color:var(--forecast-sun); }
