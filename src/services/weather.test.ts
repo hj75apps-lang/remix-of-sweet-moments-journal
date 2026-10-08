@@ -14,11 +14,11 @@ describe("weather service", () => {
         weather_code: 63,
       },
       daily: {
-        time: ["2026-10-07"],
-        weather_code: [63],
-        temperature_2m_max: [30.1],
-        temperature_2m_min: [22.2],
-        precipitation_probability_max: [80],
+        time: ["2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-12", "2026-10-13"],
+        weather_code: [63, 3, 2, 0, 51, 61],
+        temperature_2m_max: [30.1, 31, 32, 33, 34, 35],
+        temperature_2m_min: [22.2, 23, 24, 25, 26, 27],
+        precipitation_probability_max: [80, 10, 20, 0, 40, 60],
       },
     }))).mockResolvedValueOnce(new Response(JSON.stringify({
       city: "Cidade",
@@ -32,6 +32,9 @@ describe("weather service", () => {
     expect(report.wind).toBe(15);
     expect(report.text).toBe("Chuva");
     expect(report.days[0]).toMatchObject({ min: 22, max: 30, rain: 80 });
+    expect(report.days).toHaveLength(6);
+    expect(report.days[5]).toMatchObject({ date: "2026-10-13", max: 35, min: 27 });
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("forecast_days=6");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
