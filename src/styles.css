@@ -356,8 +356,8 @@ body {
 .weather-updated { flex:none; font-size:min(3.1cqw,.68rem); color:var(--weather-text-muted); white-space:nowrap; }
 .weather-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(5.5rem,42%); align-items:center; gap:.25rem; min-height:0; flex:1; }
 .weather-reading { min-width:0; }
-.weather-temperature { margin:0; font-family:var(--font-display); font-size:min(25cqw,52cqh); line-height:.82; font-weight:350; letter-spacing:-.055em; font-variant-numeric:tabular-nums; }
-.weather-temperature span { font-size:.45em; vertical-align:top; margin-left:.05em; font-weight:400; }
+.weather-temperature { margin:0; font-family:var(--font-display); font-size:min(40cqw,83.2cqh); line-height:.82; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.weather-temperature span { font-size:.28125em; vertical-align:top; margin-left:.05em; font-weight:400; }
 .weather-condition { margin-top:.5rem; font-size:.875rem; line-height:1.2; font-weight:550; color:var(--weather-text-soft); overflow-wrap:anywhere; }
 .weather-extremes { display:flex; align-items:center; gap:.45rem; margin-top:.5rem; font-size:clamp(.78rem,3.8cqw,.95rem); color:var(--weather-text-soft); }
 .weather-extreme { display:inline-flex; align-items:center; gap:.35rem; min-width:4.15rem; padding:.2rem .5rem; border:1px solid var(--weather-border); border-radius:999px; background:oklch(1 0 0 / 7%); line-height:1; }
@@ -404,7 +404,7 @@ body {
   .weather-updated,.weather-forecast-medium,.weather-forecast-link { display:none; }
   .weather-hero { grid-template-columns:minmax(0,1fr) 5.25rem; gap:.35rem; flex:1; }
   .weather-reading { display:flex; min-width:0; flex-direction:column; justify-content:center; }
-  .weather-temperature { font-size:min(25cqw,34cqh); line-height:.9; letter-spacing:0; }
+  .weather-temperature { font-size:min(40cqw,54.4cqh); line-height:.9; letter-spacing:0; }
   .weather-condition { margin-top:.3rem; font-size:.8125rem; }
   .weather-extremes { margin-top:.32rem; gap:.35rem; font-size:.78rem; }
   .weather-extreme { min-width:3.65rem; padding:.18rem .4rem; gap:.25rem; }
@@ -416,7 +416,7 @@ body {
 @container widget (max-height:170px) {
   .weather-forecast-medium,.weather-updated,.weather-forecast-link,.weather-extremes{display:none}
   .weather-summary{padding:.25rem .35rem}.weather-hero{grid-template-columns:minmax(0,1fr) minmax(4rem,35%)}
-  .weather-temperature{font-size:min(25cqw,38cqh);letter-spacing:0}
+  .weather-temperature{font-size:min(40cqw,60.8cqh);letter-spacing:0}
 }
 @container widget (max-height:120px) {
   .weather-topline{display:none}.weather-condition{margin-top:.2rem;font-size:.75rem}
