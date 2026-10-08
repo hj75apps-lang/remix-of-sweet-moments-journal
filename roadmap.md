@@ -4,6 +4,8 @@
 - [x] Identificar a central: Torque Hammer VPL - 1167/464, Android 14.
 - [x] Pesquisar integração do navegador instalado em janela: TaskView exige permissões do sistema; launchBounds depende de suporte a janelas livres e não incorpora o app; embedding público exige autorização do navegador; MediaProjection exige consentimento e não entrega controle de toque. Sem contrato público confirmado para esta central. APK pré-instalado pode ser extraído por ADB autorizado, sem root, quando o firmware permite leitura.
 - [ ] Exibir a tela real do navegador dentro do widget (depende de suporte documentado ou integração privilegiada do fabricante para a Torque Hammer VPL - 1167/464).
+- [x] Preparar solicitação nativa de janela posicionada na área da navegação, preservando o layout; sete testes aprovados e fluxo verificado com ponte nativa simulada, sem comprovar comportamento do Android.
+- [ ] Verificar posicionamento e permanência da janela na central; Android pode ignorar launchBounds (depende do aparelho e do suporte do fabricante).
 
 - [x] Igualar a margem superior à inferior nas seis páginas do launcher: 16px em 1280×800 e 8px em 390×844, preservando o comando de voz na barra de navegação.
 
