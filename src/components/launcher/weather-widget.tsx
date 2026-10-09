@@ -3,16 +3,10 @@ import { WidgetCard, UnavailableState } from "./widget-card";
 import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
+import { isNightBySun } from "@/components/weather/weather-presentation";
 import { WeatherDetails } from "@/components/weather/weather-details";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-function isNightBySun(weather: { sunrise?: string; sunset?: string }) {
-  const now = Date.now();
-  const sunrise = weather.sunrise ? Date.parse(weather.sunrise) : NaN;
-  const sunset = weather.sunset ? Date.parse(weather.sunset) : NaN;
-  return Number.isFinite(sunrise) && Number.isFinite(sunset) ? now < sunrise || now >= sunset : new Date().getHours() < 6 || new Date().getHours() >= 18;
-}
 
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
