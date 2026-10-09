@@ -3,11 +3,13 @@ import { applyLauncherPrefs, setScreenBrightness, type NavApp } from "@/services
 import { readStored, writeStored } from "@/services/storage";
 import { useNavigationApps } from "@/services/navigation-apps";
 import { isVehicleIcon, type VehicleIcon } from "@/services/vehicle-icon";
+import { isMapView, type MapView } from "@/services/navigation-view";
 
 export interface LauncherSettings {
   version: 1;
   navApp: NavApp;
   vehicleIcon: VehicleIcon;
+  mapView: MapView;
   /** Legacy preference retained for saved-settings compatibility; home always shows its own map. */
   openNavigatorOnStartup: boolean;
   immersive: boolean;
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   version: 1,
   navApp: "maps",
   vehicleIcon: "arrow",
+  mapView: "2d",
   openNavigatorOnStartup: false,
   // System-neutral defaults: Android controls bars, screen timeout and rotation
   // unless the user explicitly enables a launcher-specific override.
@@ -50,6 +53,7 @@ function normalize(value: unknown): LauncherSettings {
     return {
       version: 1,
       vehicleIcon: isVehicleIcon(v.vehicleIcon) ? v.vehicleIcon : "arrow",
+      mapView: isMapView(v.mapView) ? v.mapView : "2d",
       navApp: v.navApp === "waze" || v.navApp === "system" || (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)) ? v.navApp as NavApp : "maps",
       openNavigatorOnStartup: bool(v.openNavigatorOnStartup, false),
       immersive: bool(v.immersive, false),
@@ -75,6 +79,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
   const v = value as Partial<LauncherSettings>;
   return v.version === 1 &&
     isVehicleIcon(v.vehicleIcon) &&
+    isMapView(v.mapView) &&
     typeof v.openNavigatorOnStartup === "boolean" &&
     typeof v.immersive === "boolean" &&
     typeof v.keepScreenOn === "boolean" &&

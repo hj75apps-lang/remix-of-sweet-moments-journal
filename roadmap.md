@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Oferecer mapa 2D, 3D em perspectiva e Automático, com escolha salva e aproximação maior em 3D; verificar seleção, retorno e mapa.
+
 - [x] Retirar círculos dos carros e orientar o mapa pelo sentido real do veículo, mantendo carro/seta para cima e direção estável ao parar; 28 testes aprovados, curvas e parada verificadas com GPS simulado. Validação em movimento na central depende do aparelho.
 
 - [x] Oferecer seta e carros branco, azul, vermelho e amarelo para a posição GPS, com destaque no mapa e escolha preservada; 19 testes aprovados e cinco opções verificadas no mapa após reabrir.

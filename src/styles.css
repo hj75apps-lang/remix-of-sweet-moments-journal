@@ -566,7 +566,11 @@ body {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
 
-.navigation-live-map.leaflet-container .leaflet-control-attribution {
+.navigation-map-viewport .leaflet-control-attribution {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
   background: var(--card-glass-surface);
   color: var(--muted-foreground);
   font-family: var(--font-body);
@@ -576,7 +580,7 @@ body {
   padding: 1px 4px;
   box-shadow: none;
 }
-.navigation-live-map .leaflet-control-attribution a {
+.navigation-map-viewport .leaflet-control-attribution a {
   color: inherit;
 }
 
@@ -649,3 +653,11 @@ body {
   contain-intrinsic-size: 4rem;
 }
 
+
+/* Tilt only the geographic ground; controls, vehicle and credit remain upright. */
+.navigation-map-viewport { perspective: 900px; }
+.navigation-map-ground { position:absolute; inset:-25%; transform-origin:center; }
+.navigation-map-viewport[data-map-view="3d"] .navigation-map-ground { transform:rotateX(45deg) scale(1.35); }
+.navigation-map-viewport[data-map-view="3d"] .vehicle-marker { visibility:hidden; }
+.navigation-perspective-vehicle { position:absolute; left:50%; top:50%; width:64px; height:64px; transform:translate(-50%,-50%); z-index:4; pointer-events:none; }
+.navigation-perspective-vehicle .vehicle-icon-preview { width:64px; height:64px; }

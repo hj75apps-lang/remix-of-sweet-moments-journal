@@ -66,7 +66,7 @@ export function NavigationWidget() {
     <section ref={frame} aria-label="Navegação" className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-card">
       <ClientOnly fallback={<div className="absolute inset-0 bg-muted" />}>
         <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
-          <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} />
+          <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} navigating={state.active} />
         </Suspense>
       </ClientOnly>
       <div className="navigation-overlay pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col justify-between gap-3 p-3 lg:p-4">
