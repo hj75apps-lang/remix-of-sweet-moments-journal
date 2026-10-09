@@ -599,10 +599,10 @@ body {
 .vehicle-orientation { transform:rotate(var(--vehicle-heading,0deg)); transform-origin:32px 32px; }
 .vehicle-arrow-shape { fill:var(--vehicle-outline); stroke:var(--vehicle-outline); stroke-width:2; }
 .vehicle-body { fill:var(--vehicle-white); stroke:var(--vehicle-ink); stroke-width:1.6; }
+.vehicle-art:not(.vehicle-art-arrow) .vehicle-orientation { filter:drop-shadow(1px 0 0 var(--vehicle-outline)) drop-shadow(-1px 0 0 var(--vehicle-outline)) drop-shadow(0 1px 0 var(--vehicle-outline)) drop-shadow(0 -1px 0 var(--vehicle-outline)); }
 .vehicle-art-blue .vehicle-body { fill:var(--vehicle-blue); }
 .vehicle-art-red .vehicle-body { fill:var(--vehicle-red); }
 .vehicle-art-yellow .vehicle-body { fill:var(--vehicle-yellow); }
-.vehicle-art:not(.vehicle-art-arrow) .vehicle-disc { fill:var(--vehicle-outline); }
 .vehicle-tires { fill:var(--vehicle-ink); }
 .vehicle-glass { fill:var(--vehicle-glass); stroke:var(--vehicle-ink); stroke-width:.6; }
 .vehicle-roof { fill:var(--vehicle-outline); opacity:.45; }
