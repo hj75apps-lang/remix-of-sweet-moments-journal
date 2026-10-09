@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Auditar toda a aplicação antes das alterações e registrar gargalos, impacto e prioridades de desempenho.
+- [ ] Otimizar carregamento, renderizações, timers e navegação sem alterar funcionalidades ou aparência.
+- [ ] Validar regressões e fluxos no navegador em desktop/mobile e documentar limites das medições e do Android físico.
+
 - [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
 - [ ] Integrar trânsito real: conexão Mapbox bloqueada pela permissão da conta; um administrador precisa conectar o serviço antes da integração e validação na central.
 
