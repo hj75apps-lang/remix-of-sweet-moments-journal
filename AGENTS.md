@@ -14,7 +14,7 @@
 - Radio uses plain audio plus separate CORS-enabled EQ audio; actual audio events own playback state, so controls stay accurate without silencing non-CORS stations.
 - Radio listening history is a validated local preference owned by the global player; rank filtered station lists by confirmed listening time over the last thirty days, using normalized names across catalog id changes and leaving next/previous queues stable.
 - Radio directory uses mirror failover and a verified offline catalog so search survives outages.
-- Radio website discovery shares one parser: web uses the existing server function; APK uses the registered RadioNetwork plugin for bounded public HTTPS page/probe reads and playlists, because the static package has no server RPC and stream hosts may omit CORS. Audio and EQ remain on separate WebView audio elements.
+- Radio website discovery shares a parser: web uses its server function; APK uses RadioNetwork for bounded public HTTPS reads/playlists without server RPC or CORS. Keep audio and EQ separate.
 - Weather data loads directly from Open-Meteo in the browser with a cached last-known forecast; location names use reverse geocoding with coordinate fallback.
 - Validate and migrate weather caches through weather-cache before query hydration; legacy daily-only reports receive empty hourly arrays so offline forecasts remain usable after upgrades.
 - Restore weather query freshness from the report timestamp and mark incomplete daily caches stale, so older saved forecasts refresh immediately online without losing offline data.
@@ -32,7 +32,7 @@
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
 - Native Capacitor plugins register in MainActivity; reference files never run.
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
-- Positioned navigation windows use public, freeform-gated LauncherSystem launchBounds requests with WebView-to-screen conversion; never fall back to split/full-screen or report requested bounds as verified embedding, because window placement belongs to the device OS.
+- Positioned navigation uses freeform-gated LauncherSystem launchBounds with screen conversion; no split/fullscreen fallback or claims of verified embedding, since the OS owns placement.
 - Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
@@ -41,3 +41,4 @@
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
+- First-opening artwork uses a native MainActivity overlay and no-backup file marker: offline, retained on update, reset on reinstall. Keep system startup unbranded to prevent repeats; web navigation stays untouched.
