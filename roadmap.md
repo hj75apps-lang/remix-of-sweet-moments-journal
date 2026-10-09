@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Auditar novamente toda a estrutura web/Android, identificar defeitos confirmados, corrigir com testes e registrar cobertura e limitações em docs/AUDITORIA-2026-10-09.md.
+- [x] Auditar novamente a estrutura web/Android, corrigir defeitos confirmados e registrar cobertura e limitações em docs/AUDITORIA-2026-10-09.md; 261 testes aprovados, seis páginas, previsão e áudio verificados. Confirmação física permanece nas pendências abaixo.
 
 - [x] Auditar toda a aplicação antes das alterações e registrar gargalos, impacto e prioridades de desempenho em docs/DESEMPENHO-2026-10-09.md.
 - [x] Otimizar carregamento, renderizações, timers e navegação sem alterar funcionalidades ou aparência.
