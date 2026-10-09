@@ -1,4 +1,32 @@
-# Release Android
+# Guia de Instalação e Release Android
+
+O Smart Auto Launcher possui suporte completo a compilação de APKs de debug e release para instalação em centrais multimídia Android e dispositivos de teste.
+
+## Como obter o instalável (APK)
+
+### 1. Via GitHub Actions (Recomendado)
+O repositório possui automações prontas na aba **Actions**:
+- **Android APK (Debug)**: Compila automaticamente a cada push ou pull request, gerando o artefato `smart-auto-launcher-apk` contendo o APK pronto para instalação.
+- **Android Release**: Disparado por tag (`v*`) ou manualmente informando a versão desejada, assinando o aplicativo com a keystore de produção.
+
+### 2. Compilação Local (Desenvolvedor)
+Caso possua o ambiente Android SDK configurado localmente:
+
+```bash
+# 1. Instalar dependências
+bun install
+
+# 2. Gerar build web e sincronizar com o Capacitor
+bun run build:android
+
+# 3. Compilar APK de debug
+cd android
+./gradlew assembleDebug
+```
+O APK gerado estará em:
+`android/app/build/outputs/apk/debug/app-debug.apk`
+
+## Release Android
 
 ## Secrets obrigatórios
 
