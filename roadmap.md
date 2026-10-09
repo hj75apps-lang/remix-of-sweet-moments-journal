@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Configurar HJCar somente na primeira abertura Android; favicon atualizado, persistência Java e recursos validados. Detalhes em docs/ABERTURA-HJCAR.md.
+- [ ] Confirmar abertura HJCar em instalação/reabertura na central: depende de APK atualizado e aparelho Android disponível; nenhum APK gerado nesta alteração.
+
 - [x] Preservar a última visualização da Home sem internet: posição/tiles salvos, mapa e clima mantidos na queda e no retorno à Home; reconexão com novo GPS verificada, 267 testes aprovados. Limites em docs/HOME-OFFLINE.md; APK atualizado e validação física dependem da central.
 
 - [x] Auditar novamente a estrutura web/Android, corrigir defeitos confirmados e registrar cobertura e limitações em docs/AUDITORIA-2026-10-09.md; 261 testes aprovados, seis páginas, previsão e áudio verificados. Confirmação física permanece nas pendências abaixo.
