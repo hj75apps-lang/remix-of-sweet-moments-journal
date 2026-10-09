@@ -108,4 +108,14 @@ describe("weather expansion in launcher workspace", () => {
     expect(screen.queryByRole("region", { name: "Previsão do tempo para Cuiabá" })).not.toBeInTheDocument();
     expect(document.getElementById("launcher-home-grid")).not.toHaveAttribute("inert");
   });
+
+  it("closes the forecast on the Dock home action even when already on the home route", () => {
+    renderHome();
+    fireEvent.click(screen.getByRole("button", { name: "Abrir previsão do tempo para Cuiabá" }));
+    fireEvent(window, new Event("launcher:home"));
+
+    expect(screen.queryByRole("region", { name: "Previsão do tempo para Cuiabá" })).not.toBeInTheDocument();
+    expect(document.getElementById("launcher-home-grid")).not.toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: "Abrir previsão do tempo para Cuiabá" })).toBeInTheDocument();
+  });
 });

@@ -27,9 +27,12 @@ export function WeatherWidget() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setExpanded(false);
     };
+    const onHome = () => setExpanded(false);
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("launcher:home", onHome);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("launcher:home", onHome);
       homeGrid?.removeAttribute("inert");
       homeGrid?.removeAttribute("aria-hidden");
       homeGrid?.style.removeProperty("visibility");

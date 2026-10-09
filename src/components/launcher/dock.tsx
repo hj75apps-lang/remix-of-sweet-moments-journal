@@ -82,6 +82,7 @@ export function Dock() {
     settings: "/ajustes",
   };
   const setActive = (id: string) => {
+    if (id === "home") window.dispatchEvent(new Event("launcher:home"));
     const to = routes[id];
     if (to) void navigate({ to });
   };
