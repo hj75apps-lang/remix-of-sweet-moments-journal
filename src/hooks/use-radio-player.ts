@@ -20,7 +20,9 @@ export interface EqGains {
 const FAV_KEY = "sal.radio-favorites";
 const VOL_KEY = "sal.radio-volume";
 const EQ_KEY = "sal.radio-eq";
-const START_TIMEOUT_MS = 12000;
+const START_TIMEOUT_MS = 6000;
+
+const corsCache = new Map<string, boolean>();
 
 function safeSetItem(key: string, value: string): void {
   try { localStorage.setItem(key, value); } catch { /* optional local preference */ }
@@ -35,13 +37,18 @@ interface Graph {
 
 /** Checks the stream host allows cross-origin reads (needed for Web Audio processing). */
 async function allowsCors(url: string): Promise<boolean> {
+  const cached = corsCache.get(url);
+  if (cached !== undefined) return cached;
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 5000);
+  const t = setTimeout(() => ctrl.abort(), 2500);
   try {
     const res = await fetch(url, { mode: "cors", signal: ctrl.signal });
     ctrl.abort();
-    return res.ok;
+    const ok = res.ok;
+    corsCache.set(url, ok);
+    return ok;
   } catch {
+    corsCache.set(url, false);
     return false;
   } finally {
     clearTimeout(t);
@@ -97,8 +104,6 @@ export function useRadioPlayer(options: Options = {}) {
     for (const el of [plainRef.current, eqElRef.current]) {
       if (!el) continue;
       el.pause();
-      el.removeAttribute("src");
-      el.load();
     }
   }, []);
 
