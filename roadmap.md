@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Restaurar mapa próprio com GPS no espaço de navegação da Home, visível ao iniciar, com destino e abertura explícita do navegador configurado; preservar layout e validar o retorno.
+- [x] Restaurar mapa próprio com GPS no espaço de navegação da Home, visível ao iniciar, com destino e abertura explícita do navegador configurado; 24 testes únicos aprovados, mapa real/GPS e destino no Waze web verificados em 1280×720 e 390×844; inicialização física e navegadores Android aguardam a central.
 
 - [x] Sincronizar play/pause com eventos reais de áudio e sessões externas, protegendo contra leituras antigas; 13 testes aprovados e áudio WAV real verificado: Rádio → Home, pausa → play, retomada → pause. Players externos testados com ponte simulada; confirmação física continua dependente da central.
 
