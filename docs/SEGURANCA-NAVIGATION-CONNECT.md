@@ -16,6 +16,8 @@ No frontend autenticado, `setNavigationConnectCreatorCredential(credential)` per
 
 O backend precisa receber o service binding `NAVIGATION_CONNECT_QUOTA`. Sem binding, erro, timeout ou resposta inválida, ele retorna 503 antes de acessar o Google. A implementação em `infrastructure/navigation-quota/worker.ts` usa uma única instância Durable Object com storage SQLite e transação para todos os limites:
 
+O handler resolve bindings de `request.runtime.cloudflare.env` no Nitro v3 usado pelo build web. Adapters que fornecem `env` diretamente continuam aceitos. Secrets de texto têm o fallback server-only de `process.env`; o binding não é convertido em variável textual. A regressão de API verifica também a política de origem obtida do runtime, para evitar um backend que compile mas ignore o binding na implantação.
+
 | Operação | Limite | Identidade |
 |---|---|---|
 | Criar viagem | 5 por janela de 60 segundos | Cliente autenticado |
@@ -42,6 +44,8 @@ Uma criação antiga não pode restaurar a viagem depois de logout, troca de cre
 
 O CI executa regressões de autenticação, rotação de headers de IP, concorrência e falhas. Um teste separado em workerd/Miniflare com SQLite persistido admite somente cinco de vinte criações concorrentes, aplica o teto horário entre clientes e reconstrói o runtime para conferir persistência. Ele não faz deploy nem acessa a conta Google.
 
+Após o build web, o CI inicia o worker compilado da Launcher e o serviço de quota em workerd, ligados por um service binding real de teste. Esgota o orçamento antes do POST e exige 429 com Retry-After e CORS correto; origem sem credencial e uma chave desconhecida precisam retornar 401. Essa verificação não usa credenciais Google nem publica URL.
+
 ## Pendências que exigem o ambiente real
 
 A configuração e o provisionamento acima não foram acessíveis nesta revisão; sua presença em produção não foi certificada. Rotação de chaves históricas e orçamento/restrições do projeto Google continuam dependendo da conta do provedor.
@@ -56,3 +60,4 @@ O preview `https://preview--hjcarlauncher.lovable.app/` redirecionou este navega
 - [Configuração Wrangler de workers.dev, preview URLs, bindings e migrations](https://developers.cloudflare.com/workers/wrangler/configuration/).
 - [Rate limiting Workers: limites locais e consistência eventual](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
 - [HTTP no Cloudflare: custom lookup não suportado](https://developers.cloudflare.com/workers/runtime-apis/nodejs/http/).
+- [Nitro v3: bindings em request.runtime.cloudflare.env](https://nitro.build/deploy/providers/cloudflare).

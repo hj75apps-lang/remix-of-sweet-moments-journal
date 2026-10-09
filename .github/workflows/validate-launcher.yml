@@ -63,3 +63,9 @@ jobs:
           node scripts/test-navigation-quota-runtime.mjs
       - name: Build web preview
         run: bun run build
+      - name: Verify compiled Cloudflare backend and private binding
+        env:
+          SAL_QUOTA_RUNTIME_DIR: ${{ runner.temp }}/sal-quota-runtime
+          SAL_QUOTA_WORKER_BUNDLE: ${{ runner.temp }}/sal-quota-worker.mjs
+          SAL_QUOTA_STORAGE_DIR: ${{ runner.temp }}/sal-quota-storage
+        run: node scripts/test-navigation-backend-build.mjs

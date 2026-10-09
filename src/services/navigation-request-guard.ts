@@ -3,6 +3,13 @@ import { readBoundedText } from "./bounded-body";
 type Env = Record<string, unknown>;
 export const NAVIGATION_CREATOR_COOKIE = "__Host-sal-navigation-creator";
 
+/** Nitro v3 attaches Workers bindings to the Request, while direct adapters pass env separately. */
+export function navigationEnvironment(request: Request, supplied: unknown): Env {
+  const runtime = (request as Request & { runtime?: { cloudflare?: { env?: unknown } } }).runtime?.cloudflare?.env;
+  if (runtime && typeof runtime === "object" && !Array.isArray(runtime)) return runtime as Env;
+  return supplied && typeof supplied === "object" && !Array.isArray(supplied) ? supplied as Env : {};
+}
+
 export class NavigationGuardError extends Error {
   constructor(public readonly code: string, public readonly status: number, public readonly retryAfter?: number) {
     super(code);

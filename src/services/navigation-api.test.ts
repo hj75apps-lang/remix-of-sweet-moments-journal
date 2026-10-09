@@ -101,4 +101,15 @@ describe("Navigation Connect request boundary", () => {
   it("does not intercept neighboring API routes", async () => {
     expect(await handleNavigationConnect(new Request("https://launcher.example/api/navigation/trips-other"), {})).toBeNull();
   });
+  it("reads private bindings and the origin policy from Nitro's request runtime", async () => {
+    const env = { ...serverEnv(), NAVIGATION_CONNECT_ALLOWED_ORIGIN: "https://localhost" };
+    const request = post('{"app":"maps","destination":"Casa"}', { origin: "https://localhost" });
+    Object.defineProperty(request, "runtime", { value: { cloudflare: { env } } });
+    createTrip.mockResolvedValue({ tripId: "trip", expiresAt: "2026-12-01T00:00:00Z", authToken: "ephemeral", launchUrl: "https://www.google.com/maps/dir/" });
+    sign.mockResolvedValue("signed-key");
+    const response = await handleNavigationConnect(request, { context: {} });
+    expect(response?.status).toBe(200);
+    expect(response?.headers.get("access-control-allow-origin")).toBe("https://localhost");
+    expect(createTrip).toHaveBeenCalledWith(env, { app: "maps", destination: "Casa" }, request.signal);
+  });
 });

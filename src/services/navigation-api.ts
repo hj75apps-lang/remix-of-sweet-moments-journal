@@ -1,14 +1,14 @@
 import { createTrackedTrip, getTrackedTrip, createNavigationConnectAccessKey, verifyNavigationConnectAccessKey } from "./navigation-connect-server";
 import { BodyLimitError, readBoundedText } from "./bounded-body";
-import { authenticateNavigationCreator, consumeNavigationQuota, NavigationGuardError } from "./navigation-request-guard";
+import { authenticateNavigationCreator, consumeNavigationQuota, navigationEnvironment, NavigationGuardError } from "./navigation-request-guard";
 
 export async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
   const url = new URL(request.url);
   if (url.pathname !== "/api/navigation/trips" && !url.pathname.startsWith("/api/navigation/trips/")) return null;
-  const serverEnv = env && typeof env === "object" ? env as Record<string, unknown> : {};
+  const serverEnv = navigationEnvironment(request, env);
   const allowedOrigin =
-    typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
-      ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
+    typeof serverEnv["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
+      ? String(serverEnv["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
       : (typeof process !== "undefined" ? process.env?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] : undefined);
   const requestOrigin = request.headers.get("origin");
   const cors: Record<string, string> = {
