@@ -26,6 +26,30 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("radio playback cancellation", () => {
+  it("reflects a real audio pause and resumes only after audio is confirmed", async () => {
+    const { result } = renderHook(() => useRadioPlayer());
+    await act(async () => { result.current.play(station("live")); await flush(); });
+    expect(result.current.status).toBe("playing");
+    expect(result.current.audioConfirmed).toBe(true);
+    act(() => FakeAudio.elements[0]?.dispatchEvent(new Event("pause")));
+    expect(result.current.status).toBe("paused");
+    expect(result.current.audioConfirmed).toBe(false);
+    await act(async () => { result.current.toggle(); await flush(); });
+    expect(result.current.status).toBe("playing");
+    expect(result.current.audioConfirmed).toBe(true);
+  });
+  it("ignores an inactive equalizer pause and clears confirmation during buffering", async () => {
+    const { result } = renderHook(() => useRadioPlayer());
+    await act(async () => { result.current.play(station("live")); await flush(); });
+    act(() => FakeAudio.elements[1]?.dispatchEvent(new Event("pause")));
+    expect(result.current.status).toBe("playing");
+    act(() => FakeAudio.elements[0]?.dispatchEvent(new Event("waiting")));
+    expect(result.current.status).toBe("reconnecting");
+    expect(result.current.audioConfirmed).toBe(false);
+    act(() => FakeAudio.elements[0]?.dispatchEvent(new Event("playing")));
+    expect(result.current.status).toBe("playing");
+    expect(result.current.audioConfirmed).toBe(true);
+  });
   it("cannot overwrite a newer station after an older CORS check finishes", async () => {
     let finishOld!: (response: Response) => void;
     vi.spyOn(globalThis, "fetch").mockImplementation((url) => String(url).endsWith("old")
