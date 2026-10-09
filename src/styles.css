@@ -339,7 +339,8 @@ body {
 .weather-location { display:flex; align-items:center; gap:.35rem; min-width:0; font-size:min(5.5cqw,1rem); font-weight:650; letter-spacing:-.01em; }
 .weather-location-icon { width:1em; height:1em; flex:none; opacity:.82; }
 .weather-updated { flex:none; font-size:min(3.1cqw,.68rem); color:var(--weather-text-muted); white-space:nowrap; }
-.weather-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(5.5rem,42%); align-items:center; gap:.25rem; min-height:0; flex:1; }
+.weather-hero { display:flex; align-items:center; justify-content:space-between; gap:1rem; min-height:0; flex:1; }
+.weather-hero .weather-sy, .weather-hero svg { width: clamp(3.2rem, 16cqw, 5.5rem) !important; height: clamp(3.2rem, 16cqw, 5.5rem) !important; font-size: clamp(3.2rem, 16cqw, 5.5rem) !important; flex: none; }
 .weather-reading { min-width:0; }
 .weather-temperature { margin:0; font-family:var(--font-display); font-size:min(40cqw,83.2cqh); line-height:.82; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .weather-temperature span { font-size:.28125em; vertical-align:top; margin-left:.05em; font-weight:400; }
