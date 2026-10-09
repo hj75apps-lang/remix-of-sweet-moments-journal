@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   native: true,
   settings: { navApp: "waze", openNavigatorOnStartup: true },
   launch: vi.fn().mockResolvedValue(undefined),
-  normalLaunch: vi.fn(),
+  normalLaunch: vi.fn().mockResolvedValue(undefined),
   toast: vi.fn(),
 }));
 vi.mock("@/hooks/use-launcher-settings", () => ({
@@ -32,6 +32,7 @@ afterEach(() => {
   vi.clearAllMocks();
   mocks.native = true;
   mocks.settings.openNavigatorOnStartup = true;
+  mocks.settings.navApp = "waze";
   mocks.launch.mockResolvedValue(undefined);
 });
 
@@ -45,12 +46,13 @@ describe("external navigator frame", () => {
     render(<NavigationWidget />);
     await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     expect(mocks.launch).toHaveBeenCalledTimes(2);
+    expect(mocks.normalLaunch).not.toHaveBeenCalled();
   });
   it("never opens a replacement navigator when positioned windows fail", async () => {
-    mocks.settings.openNavigatorOnStartup = false;
+    vi.useFakeTimers();
     mocks.launch.mockRejectedValue(new Error("window_unsupported"));
     render(<NavigationWidget />);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido nesta moldura" })); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
     expect(mocks.launch).toHaveBeenCalledTimes(1);
     expect(mocks.normalLaunch).not.toHaveBeenCalled();
     expect(mocks.toast).toHaveBeenCalled();
@@ -58,7 +60,7 @@ describe("external navigator frame", () => {
   it("does not launch a web map when the frame is tapped in a browser", async () => {
     mocks.native = false;
     render(<NavigationWidget />);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido nesta moldura" })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
     expect(mocks.launch).not.toHaveBeenCalled();
     expect(mocks.normalLaunch).not.toHaveBeenCalled();
     expect(mocks.toast).toHaveBeenCalled();
@@ -69,5 +71,22 @@ describe("external navigator frame", () => {
     render(<NavigationWidget />);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(mocks.launch).not.toHaveBeenCalled();
+    expect(mocks.normalLaunch).not.toHaveBeenCalled();
+  });
+  it("opens only the selected navigator after an explicit tap", async () => {
+    mocks.settings.openNavigatorOnStartup = false;
+    render(<NavigationWidget />);
+    expect(mocks.normalLaunch).not.toHaveBeenCalled();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
+    expect(mocks.normalLaunch).toHaveBeenCalledExactlyOnceWith("waze", "");
+    expect(mocks.launch).not.toHaveBeenCalled();
+  });
+  it("does not substitute a navigator when none is selected", async () => {
+    mocks.settings.navApp = "system";
+    render(<NavigationWidget />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
+    expect(mocks.normalLaunch).not.toHaveBeenCalled();
+    expect(mocks.launch).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalled();
   });
 });

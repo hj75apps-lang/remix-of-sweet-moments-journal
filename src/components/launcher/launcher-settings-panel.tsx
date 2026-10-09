@@ -219,7 +219,7 @@ export function LauncherSettingsPanel() {
         <div className="mt-4 flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-secondary/40 p-3">
           <label htmlFor="open-navigator-startup" className="min-w-0">
             <span className="block font-medium">Abrir navegador ao iniciar a Launcher</span>
-            <span className="block text-sm text-muted-foreground">Solicita o navegador escolhido na moldura da tela inicial, sem mapa próprio ou alternativa em tela cheia. A exibição e a permanência da janela dependem do suporte da central.</span>
+            <span className="block text-sm text-muted-foreground">Ao iniciar, solicita o navegador escolhido na moldura. Tela cheia somente ao tocar na moldura. A exibição e a permanência da janela dependem do suporte da central.</span>
           </label>
           <Switch
             id="open-navigator-startup"
