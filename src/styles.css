@@ -566,7 +566,7 @@ body {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
 
-.navigation-live-map .leaflet-control-attribution {
+.navigation-live-map.leaflet-container .leaflet-control-attribution {
   background: var(--card-glass-surface);
   color: var(--muted-foreground);
   font-family: var(--font-body);
