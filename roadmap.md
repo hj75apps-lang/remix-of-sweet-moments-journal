@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Remover qualquer mapa próprio/fallback da moldura e solicitar apenas o navegador selecionado; preservar opção de abertura automática.
+
 - [x] Aplicar à previsão dos próximos cinco dias a transparência e paleta dos widgets; seis testes aprovados, dados reais e superfícies verificadas em ambos os temas, abertura pelo widget e retorno confirmados.
 
 - [x] Adaptar o widget clima à nova referência: ícone à esquerda, temperatura em negrito e Hoje/condição, sensação térmica e máxima/mínima ao lado; nove testes aprovados e dados reais, apresentação e abertura/retorno verificados em 1280×800, 1280×720 e 390×844.
@@ -11,7 +13,7 @@
 - [x] Verificar o widget: exibe mapa próprio e abre o navegador externamente; APK comum Android 7+ não incorpora a janela de terceiros por APIs públicas.
 - [x] Identificar a central: Torque Hammer VPL - 1167/464, Android 14.
 - [x] Pesquisar integração do navegador instalado em janela: TaskView exige permissões do sistema; launchBounds depende de suporte a janelas livres e não incorpora o app; embedding público exige autorização do navegador; MediaProjection exige consentimento e não entrega controle de toque. Sem contrato público confirmado para esta central. APK pré-instalado pode ser extraído por ADB autorizado, sem root, quando o firmware permite leitura.
-- [x] Exibir a tela real do navegador dentro do widget (depende de suporte documentado ou integração privilegiada do fabricante para a Torque Hammer VPL - 1167/464).
+- [ ] Exibir a tela real do navegador dentro do widget (depende de suporte documentado ou integração privilegiada do fabricante para a Torque Hammer VPL - 1167/464).
 - [x] Preparar solicitação nativa de janela posicionada na área da navegação, preservando o layout; sete testes aprovados e fluxo verificado com ponte nativa simulada, sem comprovar comportamento do Android.
 - [ ] Verificar posicionamento e permanência da janela na central; Android pode ignorar launchBounds (depende do aparelho e do suporte do fabricante).
 
