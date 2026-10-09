@@ -475,12 +475,12 @@ export function RadioScreen() {
         )}
 
         <ul
-          className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-2 overflow-y-auto overscroll-contain pr-1"
+          className="grid min-h-0 flex-1 auto-rows-min grid-cols-1 gap-3 overflow-y-auto overscroll-contain pr-1"
           aria-label="Lista de rádios"
         >
           {isLoading &&
             Array.from({ length: 8 }, (_, i) => (
-              <li key={i} className="h-16 animate-pulse rounded-2xl bg-secondary" />
+              <li key={i} className="h-24 animate-pulse rounded-2xl bg-secondary" />
             ))}
           {!isLoading && list.length === 0 && (
             <li className="col-span-full p-4 text-center text-sm text-muted-foreground">
@@ -508,22 +508,22 @@ export function RadioScreen() {
                   onClick={() => player.play(s)}
                   aria-current={active || undefined}
                   className={cn(
-                    "flex min-h-16 w-full min-w-0 flex-1 items-center gap-3 rounded-2xl p-2 text-left transition active:scale-[0.98]",
+                    "flex min-h-24 w-full min-w-0 flex-1 items-center gap-[1.125rem] rounded-2xl p-3 text-left transition active:scale-[0.98]",
                     active ? "bg-primary/15 ring-1 ring-primary" : "hover:bg-secondary",
                   )}
                 >
-                  <StationLogo station={s} className="size-12" />
+                  <StationLogo station={s} className="size-[4.5rem]" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1">
-                      <span className="truncate text-sm font-semibold">{s.name}</span>
+                      <span className="min-w-0 break-words text-[1.3125rem] font-semibold leading-snug">{s.name}</span>
                       {s.verified && (
                         <BadgeCheck
-                          className="size-3.5 shrink-0 text-primary"
+                          className="size-[1.3125rem] shrink-0 text-primary"
                           aria-label="Transmissão verificada"
                         />
                       )}
                     </span>
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span className="block break-words text-lg leading-snug text-muted-foreground">
                       {[s.frequency, s.city, s.state, ...s.tags.slice(0, 2)]
                         .filter(Boolean)
                         .join(" · ") || "Ao vivo"}
