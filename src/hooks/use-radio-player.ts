@@ -263,6 +263,7 @@ export function useRadioPlayer(options: Options = {}) {
       wantPlayRef.current = false;
       tokenRef.current++;
       stopAll();
+      setAudioConfirmed(false);
       setStatus("paused");
     } else play(s); // reconnect to the live point
   }, [play, status, stopAll]);
@@ -277,6 +278,7 @@ export function useRadioPlayer(options: Options = {}) {
     let stallTimer: ReturnType<typeof setTimeout> | null = null;
     const onDrop = (e: Event) => {
       if (e.target !== activeRef.current || !wantPlayRef.current) return;
+      setAudioConfirmed(false);
       setStatus("reconnecting");
       if (stallTimer) clearTimeout(stallTimer);
       stallTimer = setTimeout(
@@ -287,11 +289,25 @@ export function useRadioPlayer(options: Options = {}) {
     const onResume = (e: Event) => {
       if (e.target !== activeRef.current) return;
       if (stallTimer) clearTimeout(stallTimer);
-      if (wantPlayRef.current) setStatus("playing");
+      if (wantPlayRef.current) {
+        setAudioConfirmed(true);
+        setStatus("playing");
+      }
+    };
+    const onPause = (e: Event) => {
+      // Ignore pauses of inactive EQ elements and intentional source changes.
+      if (e.target !== activeRef.current || !wantPlayRef.current) return;
+      wantPlayRef.current = false;
+      tokenRef.current++;
+      stopAll();
+      if (stallTimer) clearTimeout(stallTimer);
+      setAudioConfirmed(false);
+      setStatus("paused");
     };
     for (const el of [plain, eq]) {
       ["waiting", "stalled", "error", "ended"].forEach((t) => el.addEventListener(t, onDrop));
       el.addEventListener("playing", onResume);
+      el.addEventListener("pause", onPause);
     }
     const onOnline = () => wantPlayRef.current && reconnectRef.current();
     window.addEventListener("online", onOnline);
@@ -319,6 +335,9 @@ export function useRadioPlayer(options: Options = {}) {
       for (const el of [plain, eq]) {
         ["waiting", "stalled", "error", "ended"].forEach((type) => el.removeEventListener(type, onDrop));
         el.removeEventListener("playing", onResume);
+        el.removeEventListener("pause", onPause);
+        el.removeAttribute("src");
+        el.load();
       }
       void graphRef.current?.ctx.close().catch(() => undefined);
       graphRef.current = null;
@@ -367,6 +386,7 @@ export function useRadioPlayer(options: Options = {}) {
       wantPlayRef.current = false;
       tokenRef.current++;
       stopAll();
+      setAudioConfirmed(false);
       setStatus("paused");
     });
     set("nexttrack", () => optsRef.current.onNext?.());

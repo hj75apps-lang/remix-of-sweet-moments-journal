@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Sincronizar play/pause com eventos reais de áudio e sessões externas, protegendo contra leituras antigas; 13 testes aprovados e áudio WAV real verificado: Rádio → Home, pausa → play, retomada → pause. Players externos testados com ponte simulada; confirmação física continua dependente da central.
+
 - [x] Reservar abertura comum para toque explícito na moldura; remover abertura comum automática da Home e manter janela posicionada ao iniciar/retornar. 14 testes aprovados; moldura limpa verificada na web. Tela cheia e permanência reais dependem de validação na central.
 
 - [x] Remover qualquer mapa próprio/fallback da moldura e solicitar apenas o navegador selecionado; opção de abertura automática preservada, 11 testes aprovados e ausência de mapa ao tocar/retornar verificada no navegador. Posicionamento real continua pendente na central.
