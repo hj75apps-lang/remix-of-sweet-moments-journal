@@ -64,7 +64,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
         }).catch((error: unknown) => done(error instanceof Error ? error : new Error("map_tile_unavailable"), tile));
         return tile;
         },
-      });
+      }) as typeof L.TileLayer;
       const layer: L.TileLayer = new ViewedTileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 });
       tilesRef.current = layer.addTo(map);
     }

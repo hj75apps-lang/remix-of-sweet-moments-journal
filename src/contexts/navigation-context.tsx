@@ -84,11 +84,6 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   }, [locationActive]);
 
   useEffect(() => {
-    if (position) return;
-    setLocating(true);
-  }, [position]);
-
-  useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const poll = async () => {
