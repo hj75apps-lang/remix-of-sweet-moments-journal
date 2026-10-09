@@ -418,28 +418,21 @@ body {
   color: var(--card-foreground);
 }
 .weather-widget .weather-summary { padding: 0; justify-content: center; }
-.weather-reference-row { display:flex; align-items:center; justify-content:flex-start; gap:16px; min-width:0; width:100%; padding: 4px 8px; }
-.weather-reference-temperature { margin:0; white-space:nowrap; font-family:var(--font-display); font-size:52px; line-height:1; font-weight:700; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; flex-shrink: 0; }
-.weather-reference-temperature > span { font-size:22px; vertical-align:top; line-height:1.3; margin-left: 2px; }
-.weather-reference-row .weather-symbol { width:56px; min-width:56px; max-width:56px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.weather-reference-row .weather-reading { display:flex; flex-direction:column; gap:3px; min-width:0; flex: 1; }
-.weather-reference-condition { margin:0; font-size:17px; line-height:1.25; font-weight:700; letter-spacing:-0.01em; overflow-wrap:anywhere; }
-.weather-reference-detail { margin:0; font-size:13.5px; line-height:1.35; color:var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.weather-reference-row { --weather-content-scale:2.4; display:grid; grid-template-columns:auto auto minmax(0,1fr); align-items:center; justify-content:center; gap:min(16px,2cqw); min-width:0; max-height:100%; width:100%; }
+.weather-reference-temperature { margin:0; white-space:nowrap; font-family:var(--font-display); font-size:min(calc(52px * var(--weather-content-scale)),23cqw,62cqh); line-height:1; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.weather-reference-temperature > span { font-size:.423em; vertical-align:top; line-height:1.3; margin-left:2px; }
+.weather-reference-row .weather-symbol { width:1em; min-width:0; max-width:100%; max-height:none; font-size:min(calc(56px * var(--weather-content-scale)),15cqw,60cqh)!important; display:flex; align-items:center; justify-content:center; }
+.weather-reference-row .weather-reading { display:flex; flex-direction:column; gap:min(7.2px,2cqh); min-width:0; }
+.weather-reference-condition { margin:0; font-size:min(calc(17px * var(--weather-content-scale)),4.8cqw,16cqh); line-height:1.15; font-weight:700; letter-spacing:0; overflow-wrap:anywhere; }
+.weather-reference-detail { margin:0; font-size:min(calc(13.5px * var(--weather-content-scale)),3.8cqw,13cqh); line-height:1.2; color:var(--muted-foreground); overflow-wrap:anywhere; }
 .weather-widget .weather-offline { color:var(--muted-foreground); background:var(--muted); }
-@container widget (max-width:440px) {
-  .weather-reference-row { grid-template-columns:36px auto minmax(0,1fr); gap:8px; }
-  .weather-reference-row .weather-symbol { width:36px; }
-  .weather-reference-temperature { font-size:44px; }
-  .weather-reference-temperature > span { font-size:18px; }
-  .weather-reference-condition { font-size:13px; }
-  .weather-reference-detail { font-size:12px; }
-  .weather-reference-row .weather-reading { gap:4px; }
-}
-@container widget (max-width:300px) {
-  .weather-reference-row { grid-template-columns:32px minmax(0,1fr); gap:6px 10px; }
-  .weather-reference-row .weather-symbol { width:32px; }
-  .weather-reference-row .weather-reading { grid-column:1 / -1; }
-  .weather-reference-temperature { font-size:40px; }
+@container widget (max-width:600px) {
+  .weather-reference-row { grid-template-columns:auto auto; gap:min(8px,2cqh) min(24px,5cqw); }
+  .weather-reference-row .weather-symbol { font-size:min(calc(56px * var(--weather-content-scale)),25cqw,40cqh)!important; }
+  .weather-reference-temperature { font-size:min(calc(52px * var(--weather-content-scale)),32cqw,44cqh); }
+  .weather-reference-row .weather-reading { grid-column:1 / -1; text-align:center; gap:min(5px,1cqh); }
+  .weather-reference-condition { font-size:min(calc(17px * var(--weather-content-scale)),6cqw,12cqh); }
+  .weather-reference-detail { font-size:min(calc(13.5px * var(--weather-content-scale)),5.5cqw,10cqh); }
 }
 .weather-hour-card .weather-symbol { width: 1.35rem; min-width: 1.35rem; margin: .15rem auto; }
 .weather-day-detail .weather-symbol { width: min(2.25rem, 11cqw); min-width: 2rem; margin: 0 auto; }
