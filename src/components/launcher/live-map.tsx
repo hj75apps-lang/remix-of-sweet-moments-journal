@@ -85,15 +85,10 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
       rotationFrame.current = requestAnimationFrame(rotate);
     }
     map.stop();
-    if (firstFix.current) map.setView(ll, zoom, { animate: false });
+    if (firstFix.current || map.getZoom() !== zoom) map.setView(ll, zoom, { animate: false });
     else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
     firstFix.current = false;
   }, [position, visible, animated, settings.vehicleIcon, zoom]);
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !position || !visible) return;
-    map.setView([position.latitude, position.longitude], zoom, { animate: false });
-  }, [zoom, visible]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
