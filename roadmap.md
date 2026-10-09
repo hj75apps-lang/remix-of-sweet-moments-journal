@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Sincronizar play/pause da tela inicial com eventos reais do Rádio Online e dos players externos; testar pausa, retomada e retorno à Home.
+- [x] Sincronizar play/pause com eventos reais de áudio e sessões externas, protegendo contra leituras antigas; 13 testes aprovados e áudio WAV real verificado: Rádio → Home, pausa → play, retomada → pause. Players externos testados com ponte simulada; confirmação física continua dependente da central.
 
 - [x] Reservar abertura comum para toque explícito na moldura; remover abertura comum automática da Home e manter janela posicionada ao iniciar/retornar. 14 testes aprovados; moldura limpa verificada na web. Tela cheia e permanência reais dependem de validação na central.
 
