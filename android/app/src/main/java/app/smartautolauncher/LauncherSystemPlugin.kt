@@ -278,7 +278,17 @@ class LauncherSystemPlugin : Plugin() {
             else -> if (app.startsWith("package:")) app.removePrefix("package:") else return call.reject("window_choose_app")
         }
         if (pkg == context.packageName) return call.reject("not_installed")
-        val launch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
+        val mainLaunch = context.packageManager.getLaunchIntentForPackage(pkg) ?: return call.reject("not_installed")
+        val destination = call.getString("destination")?.trim().orEmpty().take(200)
+        val q = Uri.encode(destination)
+        val launch = if (destination.isEmpty()) mainLaunch else {
+            val uri = when (app) {
+                "waze" -> "https://waze.com/ul?q=$q&navigate=yes"
+                "maps" -> "https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving&dir_action=navigate"
+                else -> "geo:0,0?q=$q"
+            }
+            Intent(Intent.ACTION_VIEW, Uri.parse(uri)).setPackage(pkg)
+        }
         val bounds = call.getObject("bounds") ?: return call.reject("window_invalid_bounds")
         val left = bounds.optDouble("left", Double.NaN)
         val top = bounds.optDouble("top", Double.NaN)
