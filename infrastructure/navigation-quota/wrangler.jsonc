@@ -1,0 +1,12 @@
+{
+  "name": "smart-auto-navigation-quota",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-08",
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": { "NAVIGATION_CREATE_HOURLY_LIMIT": "100" },
+  "durable_objects": {
+    "bindings": [{ "name": "NAVIGATION_QUOTA_STATE", "class_name": "NavigationQuota" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["NavigationQuota"] }]
+}

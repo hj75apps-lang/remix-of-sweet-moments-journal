@@ -1,5 +1,5 @@
 import { buildNavigationUrl } from "./navigation-deep-link-manager";
-import { createNavigationConnectTrip } from "./navigation-connect";
+import { createNavigationConnectTrip, NavigationConnectSupersededError } from "./navigation-connect";
 /**
  * Bridge to the native "LauncherSystem" plugin. Outside the Android app every
  * call reports "unavailable" instead of pretending to succeed.
@@ -109,7 +109,9 @@ export async function startNavigation(app: NavApp, destination: string): Promise
         window.open(trip.launchUrl, "_blank", "noopener,noreferrer");
       }
       return;
-    } catch {
+    } catch (error) {
+      // A cancelled/superseded request must not reopen its old destination through fallback.
+      if (error instanceof NavigationConnectSupersededError) throw error;
       // Official telemetry is optional until the server/Google Cloud project is configured.
       // Preserve the existing navigation behavior rather than blocking navigation.
     }

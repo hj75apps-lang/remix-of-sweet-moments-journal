@@ -24,4 +24,11 @@ describe("stream discovery URL policy", () => {
   it("rejects invalid IPv4 values", () => {
     expect(isPublicHttps("https://999.1.1.1/stream")).toBe(false);
   });
+  it("rejects reserved address ranges and local names with a trailing dot", () => {
+    for (const host of ["localhost.", "radio.local.", "device.home.arpa", "service.internal", "192.0.0.1", "192.0.2.1", "198.18.0.1", "198.19.1.1", "198.51.100.1", "203.0.113.1", "100.64.0.1"]) {
+      expect(isPublicHttps(`https://${host}/live`), host).toBe(false);
+    }
+    expect(isPublicHttps("https://radio.example./live")).toBe(true);
+    expect(isPublicHttps("https://8.8.8.8/live")).toBe(true);
+  });
 });

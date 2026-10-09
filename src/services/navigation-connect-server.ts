@@ -1,3 +1,5 @@
+import { readBoundedText } from "./bounded-body";
+
 type Env = Record<string, unknown>;
 
 interface ServiceAccount {
@@ -21,11 +23,13 @@ function envValue(env: Env, name: string): string | undefined {
 function readServiceAccount(env: Env): ServiceAccount {
   const raw = envValue(env, "GOOGLE_NAVIGATION_CONNECT_SERVICE_ACCOUNT_JSON");
   if (!raw) throw new Error("Navigation Connect não configurado: credencial do servidor ausente");
+  if (raw.length > 32_768) throw new Error("Credencial do Navigation Connect inválida");
   let value: unknown;
   try { value = JSON.parse(raw); } catch { throw new Error("Credencial do Navigation Connect inválida"); }
   if (!value || typeof value !== "object") throw new Error("Credencial do Navigation Connect inválida");
   const account = value as Partial<ServiceAccount>;
-  if (!account.client_email || !account.private_key) throw new Error("Credencial do Navigation Connect incompleta");
+  if (typeof account.client_email !== "string" || !account.client_email || typeof account.private_key !== "string" || !account.private_key ||
+    (account.project_id !== undefined && typeof account.project_id !== "string")) throw new Error("Credencial do Navigation Connect incompleta");
   return account as ServiceAccount;
 }
 
@@ -44,7 +48,20 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-async function createGoogleAccessToken(env: Env): Promise<string> {
+async function googleJson(url: string, init: RequestInit, limit: number, signal?: AbortSignal): Promise<Record<string, unknown>> {
+  signal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(8_000);
+  const response = await fetch(url, { ...init, redirect: "error", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
+  if (!response.ok) {
+    void response.body?.cancel().catch(() => undefined);
+    throw new Error(`Google service unavailable (${response.status})`);
+  }
+  const payload: unknown = JSON.parse(await readBoundedText(response, limit, 8_000));
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("Invalid Google response");
+  return payload as Record<string, unknown>;
+}
+
+async function createGoogleAccessToken(env: Env, signal?: AbortSignal): Promise<string> {
   const account = readServiceAccount(env);
   const now = Math.floor(Date.now() / 1000);
   const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -65,18 +82,17 @@ async function createGoogleAccessToken(env: Env): Promise<string> {
   );
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
   const assertion = `${unsigned}.${base64Url(signature)}`;
-  const response = await fetch("https://oauth2.googleapis.com/token", {
+  const payload = await googleJson("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
       assertion,
     }),
-  });
-  if (!response.ok) throw new Error(`Falha na autenticação Google (${response.status})`);
-  const payload = await response.json() as { access_token?: string };
-  if (!payload.access_token) throw new Error("Google não retornou access token");
-  return payload.access_token;
+  }, 32_768, signal);
+  const token = payload["access_token"];
+  if (typeof token !== "string" || !token || token.length > 4096) throw new Error("Google não retornou access token");
+  return token;
 }
 
 function projectId(env: Env, account: ServiceAccount): string {
@@ -121,6 +137,7 @@ export async function createNavigationConnectAccessKey(env: Env, tripId: string,
 }
 
 export async function verifyNavigationConnectAccessKey(env: Env, tripId: string, accessKey: string): Promise<boolean> {
+  if (accessKey.length > 512 || !/^[a-zA-Z0-9_-]{1,128}$/.test(tripId)) return false;
   const separator = accessKey.indexOf(".");
   if (separator <= 0) return false;
   try {
@@ -145,6 +162,7 @@ function navLaunchUrl(app: "maps" | "waze", destination: string, token: string):
 export async function createTrackedTrip(
   env: Env,
   input: { app: "maps" | "waze"; destination: string },
+  signal?: AbortSignal,
 ): Promise<{ tripId: string; authToken: string; expiresAt: string; launchUrl: string }> {
   // Fail before creating a billable trip if its capability cannot be signed.
   navigationSecret(env);
@@ -153,9 +171,9 @@ export async function createTrackedTrip(
   if (!project) throw new Error("GOOGLE_NAVIGATION_CONNECT_PROJECT_ID não configurado");
   if (!input.destination.trim()) throw new Error("Destino obrigatório");
 
-  const accessToken = await createGoogleAccessToken(env);
+  const accessToken = await createGoogleAccessToken(env, signal);
   const tripId = crypto.randomUUID();
-  const response = await fetch(`${tripUrl(project)}?tripId=${encodeURIComponent(tripId)}`, {
+  const payload = await googleJson(`${tripUrl(project)}?tripId=${encodeURIComponent(tripId)}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -168,12 +186,11 @@ export async function createTrackedTrip(
         enableHighFrequencyUpdates: true,
       },
     }),
-  });
-  if (!response.ok) throw new Error(`Navigation Connect CreateTrip falhou (${response.status})`);
-  const payload = await response.json() as TripResponse;
+  }, 32_768, signal) as TripResponse;
   const token = payload.authToken?.token;
   const expiresAt = payload.authToken?.expireTime;
-  if (!token || !expiresAt) throw new Error("Navigation Connect não retornou token de viagem");
+  if (typeof token !== "string" || !token || token.length > 4096 || typeof expiresAt !== "string" ||
+    !Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now()) throw new Error("Navigation Connect não retornou token de viagem válido");
   return { tripId, authToken: token, expiresAt, launchUrl: navLaunchUrl(input.app, input.destination, token) };
 }
 
@@ -185,16 +202,14 @@ function durationSeconds(value?: string): number | undefined {
   return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
 }
 
-export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown> {
+export async function getTrackedTrip(env: Env, tripId: string, signal?: AbortSignal): Promise<unknown> {
   const account = readServiceAccount(env);
   const project = projectId(env, account);
   if (!project) throw new Error("GOOGLE_NAVIGATION_CONNECT_PROJECT_ID não configurado");
-  const accessToken = await createGoogleAccessToken(env);
-  const response = await fetch(tripUrl(project, tripId), {
+  const accessToken = await createGoogleAccessToken(env, signal);
+  const payload = await googleJson(tripUrl(project, tripId), {
     headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!response.ok) throw new Error(`Navigation Connect GetTrip falhou (${response.status})`);
-  const payload = await response.json() as {
+  }, 2_000_000, signal) as {
     name?: string;
     state?: string;
     execution?: {
@@ -212,8 +227,10 @@ export async function getTrackedTrip(env: Env, tripId: string): Promise<unknown>
     Number.isFinite(execution.remainingDistanceMeters) && execution.remainingDistanceMeters >= 0
       ? execution.remainingDistanceMeters : undefined;
   const etaEpochMs = remainingDurationSeconds !== undefined ? Date.now() + remainingDurationSeconds * 1000 : undefined;
-  const points = execution?.remainingRoute?.simplePolyline?.points
-    ?.filter((point) => Number.isFinite(point.latitude) && Math.abs(Number(point.latitude)) <= 90 &&
+  const rawPoints = execution?.remainingRoute?.simplePolyline?.points;
+  if (rawPoints !== undefined && (!Array.isArray(rawPoints) || rawPoints.length > 10_000)) throw new Error("Invalid route geometry");
+  const points = rawPoints
+    ?.filter((point) => point && Number.isFinite(point.latitude) && Math.abs(Number(point.latitude)) <= 90 &&
       Number.isFinite(point.longitude) && Math.abs(Number(point.longitude)) <= 180)
     .map((point) => ({ latitude: Number(point.latitude), longitude: Number(point.longitude) })) ?? [];
   const terminalStates = new Set(["ARRIVED", "FAILED", "CLIENT_ERROR", "CANCELED"]);

@@ -47,4 +47,41 @@ describe("Navigation Connect telemetry", () => {
     await expect(createTrackedTrip(env, { app: "maps", destination: "Casa" })).rejects.toThrow("NAVIGATION_CONNECT_SESSION_SECRET");
     expect(requests).not.toHaveBeenCalled();
   });
+  it("cancels an oversized OAuth response before any trip request", async () => {
+    const cancel = vi.fn();
+    const requests = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(new ReadableStream({
+      start(controller) { controller.enqueue(new TextEncoder().encode("x".repeat(32769))); }, cancel,
+    })));
+    await expect(getTrackedTrip(env, "test-trip")).rejects.toThrow("body_too_large");
+    expect(requests).toHaveBeenCalledOnce();
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+  it("rejects an OAuth token with the wrong runtime type", async () => {
+    const requests = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ access_token: { token: "bad" } }));
+    await expect(getTrackedTrip(env, "test-trip")).rejects.toThrow("access token");
+    expect(requests).toHaveBeenCalledOnce();
+  });
+  it("does not start an upstream request after its caller has aborted", async () => {
+    const requests = vi.spyOn(globalThis, "fetch");
+    const controller = new AbortController();
+    controller.abort();
+    await expect(getTrackedTrip(env, "test-trip", controller.signal)).rejects.toThrow();
+    expect(requests).not.toHaveBeenCalled();
+  });
+  it("rejects malformed route geometry instead of calling array methods on external input", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => Response.json(String(url).includes("oauth2") ?
+      { access_token: "test-token" } : { execution: { remainingRoute: { simplePolyline: { points: {} } } } }));
+    await expect(getTrackedTrip(env, "test-trip")).rejects.toThrow("Invalid route geometry");
+  });
+  it("rejects expired newly issued trips and keeps credentials on HTTPS without redirects", async () => {
+    const requests = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => Response.json(String(url).includes("oauth2") ?
+      { access_token: "test-token" } : { authToken: { token: "trip-token", expireTime: "2000-01-01T00:00:00Z" } }));
+    await expect(createTrackedTrip({ ...env, NAVIGATION_CONNECT_SESSION_SECRET: "x".repeat(48) }, { app: "maps", destination: "Casa" })).rejects.toThrow("token de viagem válido");
+    expect(requests).toHaveBeenCalledTimes(2);
+    for (const [url, options] of requests.mock.calls) {
+      expect(String(url)).toMatch(/^https:/);
+      expect(options?.redirect).toBe("error");
+      expect(options?.signal).toBeDefined();
+    }
+  });
 });

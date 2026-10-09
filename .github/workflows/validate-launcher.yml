@@ -41,6 +41,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -49,5 +52,20 @@ jobs:
         run: bun run typecheck
       - name: Tests
         run: bun run test
+      - name: Verify quota worker in workerd with persisted SQLite
+        env:
+          SAL_QUOTA_RUNTIME_DIR: ${{ runner.temp }}/sal-quota-runtime
+          SAL_QUOTA_WORKER_BUNDLE: ${{ runner.temp }}/sal-quota-worker.mjs
+          SAL_QUOTA_STORAGE_DIR: ${{ runner.temp }}/sal-quota-storage
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --prefix "$SAL_QUOTA_RUNTIME_DIR" miniflare@4.20260706.0
+          bun build infrastructure/navigation-quota/worker.ts --target=browser --outfile="$SAL_QUOTA_WORKER_BUNDLE"
+          node scripts/test-navigation-quota-runtime.mjs
       - name: Build web preview
         run: bun run build
+      - name: Verify compiled Cloudflare backend and private binding
+        env:
+          SAL_QUOTA_RUNTIME_DIR: ${{ runner.temp }}/sal-quota-runtime
+          SAL_QUOTA_WORKER_BUNDLE: ${{ runner.temp }}/sal-quota-worker.mjs
+          SAL_QUOTA_STORAGE_DIR: ${{ runner.temp }}/sal-quota-storage
+        run: node scripts/test-navigation-backend-build.mjs
