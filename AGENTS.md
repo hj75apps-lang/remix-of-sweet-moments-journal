@@ -20,7 +20,7 @@
 - Restore weather query freshness from the report timestamp and mark incomplete daily caches stale, so older saved forecasts refresh immediately online without losing offline data.
 - Theme state is owned by the root ThemeProvider; saved manual choices take priority across routes, while Android system night mode applies only until the user chooses a mode.
 - Weather state is shared through useWeather, while the full forecast lives at /clima inside the standard launcher shell so navigation remains available.
-- Expanded weather uses a dedicated workspace overlay and a bounded forecast size container shared with /clima; daily layout adapts by available width and height without scroll or changes to weather fetching.
+- Expanded weather uses a workspace overlay and size container shared with /clima; Dock emits launcher:home to dismiss it on same-route navigation, preserving weather fetching and scroll-free layout.
 - Home weather uses an integrated WeatherSymbol outline with card-size-bounded typography and a stacked narrow-card grid; restyles preserve all readings, fetching, state and forecast access.
 - Cards reuse global glass surface/border tokens and the existing transparency setting so all widgets match across themes.
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
