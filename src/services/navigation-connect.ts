@@ -41,11 +41,13 @@ const tripListeners = new Set<() => void>();
 let volatileTrip: ActiveTripRecord | null = null;
 let volatileOnly = false;
 let creatorCredential: string | null = null;
+let tripRequestVersion = 0;
+let pendingCreate: AbortController | null = null;
 
 /** Supply a provisioned credential from the authenticated host; never persist it or compile it into VITE_*. */
 export function setNavigationConnectCreatorCredential(value: string | null): void {
   if (value !== null && !/^[A-Za-z0-9_-]{32,256}$/.test(value)) throw new Error("Credencial de navegação inválida");
-  if (value === creatorCredential) return;
+  if (value !== null && value === creatorCredential) return;
   creatorCredential = value;
   clearNavigationConnectTrip();
 }
@@ -98,6 +100,9 @@ export function readNavigationConnectTrip(): ActiveTripRecord | null {
 }
 
 export function clearNavigationConnectTrip(): void {
+  tripRequestVersion += 1;
+  pendingCreate?.abort();
+  pendingCreate = null;
   volatileTrip = null;
   volatileOnly = false;
   try { if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(ACTIVE_TRIP_KEY); } catch { /* optional cache */ }
@@ -105,7 +110,11 @@ export function clearNavigationConnectTrip(): void {
 }
 
 function apiUrl(path: string): string {
-  if (!API_BASE) return path;
+  if (!API_BASE) {
+    if (typeof window !== "undefined" && window.location.protocol !== "https:" &&
+      window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") throw new Error("Servidor de navegação deve usar HTTPS");
+    return path;
+  }
   const base = new URL(API_BASE);
   const local = base.protocol === "http:" && (base.hostname === "localhost" || base.hostname === "127.0.0.1");
   if ((base.protocol !== "https:" && !local) || base.username || base.password || base.search || base.hash) throw new Error("Servidor de navegação deve usar HTTPS");
@@ -122,6 +131,19 @@ async function navigationJson(response: Response, limit: number): Promise<unknow
     throw new Error(`Serviço de navegação indisponível (${response.status})`);
   }
   return JSON.parse(await readBoundedText(response, limit));
+}
+
+async function navigationRequest(path: string, init: RequestInit, limit: number, controller = new AbortController()): Promise<{ response: Response; payload: unknown }> {
+  // AbortController works on WebViews that predate AbortSignal.timeout/any.
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch(apiUrl(path), { ...init, signal: controller.signal, redirect: "error" });
+    return { response, payload: await navigationJson(response, limit) };
+  } finally { clearTimeout(timer); }
+}
+
+export class NavigationConnectSupersededError extends Error {
+  constructor() { super("Solicitação de navegação substituída ou encerrada"); this.name = "NavigationConnectSupersededError"; }
 }
 
 function isLaunchUrl(value: unknown, app: "maps" | "waze"): value is string {
@@ -143,25 +165,32 @@ export async function createNavigationConnectTrip(input: {
   latitude?: number;
   longitude?: number;
 }): Promise<NavigationConnectTrip> {
-  const response = await fetch(apiUrl("/api/navigation/trips"), {
-    method: "POST",
-    headers: { "content-type": "application/json", ...(creatorCredential ? { authorization: `Bearer ${creatorCredential}` } : {}) },
-    credentials: "same-origin",
-    body: JSON.stringify(input),
-    signal: AbortSignal.timeout(10_000),
-    redirect: "error",
-  });
-  const payload = await navigationJson(response, 32_768);
-  const trip = payload as Partial<NavigationConnectTrip> | null;
-  const accessKey = response.headers.get("x-navigation-connect-access-key");
-  const record = { tripId: trip?.tripId, expiresAt: trip?.expiresAt, app: input.app, accessKey };
-  if (!trip || typeof trip !== "object" || typeof trip.tripId !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(trip.tripId) ||
-    typeof trip.authToken !== "string" || !trip.authToken || trip.authToken.length > 4096 ||
-    !isLaunchUrl(trip.launchUrl, input.app) || !validTrip(record)) {
-    throw new Error("Servidor retornou uma viagem inválida");
-  }
-  rememberNavigationConnectTrip(record);
-  return trip as NavigationConnectTrip;
+  pendingCreate?.abort();
+  const controller = new AbortController();
+  pendingCreate = controller;
+  const version = ++tripRequestVersion;
+  try {
+    const { response, payload } = await navigationRequest("/api/navigation/trips", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(creatorCredential ? { authorization: `Bearer ${creatorCredential}` } : {}) },
+      credentials: "same-origin",
+      body: JSON.stringify(input),
+    }, 32_768, controller);
+    if (version !== tripRequestVersion) throw new NavigationConnectSupersededError();
+    const trip = payload as Partial<NavigationConnectTrip> | null;
+    const accessKey = response.headers.get("x-navigation-connect-access-key");
+    const record = { tripId: trip?.tripId, expiresAt: trip?.expiresAt, app: input.app, accessKey };
+    if (!trip || typeof trip !== "object" || typeof trip.tripId !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(trip.tripId) ||
+      typeof trip.authToken !== "string" || !trip.authToken || trip.authToken.length > 4096 ||
+      !isLaunchUrl(trip.launchUrl, input.app) || !validTrip(record)) {
+      throw new Error("Servidor retornou uma viagem inválida");
+    }
+    rememberNavigationConnectTrip(record);
+    return trip as NavigationConnectTrip;
+  } catch (error) {
+    if (version !== tripRequestVersion) throw new NavigationConnectSupersededError();
+    throw error;
+  } finally { if (pendingCreate === controller) pendingCreate = null; }
 }
 
 export class NavigationConnectUnauthorizedError extends Error {
@@ -169,14 +198,11 @@ export class NavigationConnectUnauthorizedError extends Error {
 }
 
 export async function getNavigationConnectTelemetry(tripId: string, accessKey: string): Promise<NavigationConnectTelemetry> {
-  const response = await fetch(apiUrl(`/api/navigation/trips/${encodeURIComponent(tripId)}`), {
+  const { payload } = await navigationRequest(`/api/navigation/trips/${encodeURIComponent(tripId)}`, {
     headers: { "x-navigation-connect-access-key": accessKey },
     credentials: "same-origin",
     cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-    redirect: "error",
-  });
-  const payload = await navigationJson(response, 2_000_000);
+  }, 2_000_000);
   if (!validTelemetry(payload, tripId)) throw new Error("Servidor retornou telemetria inválida");
   return payload;
 }

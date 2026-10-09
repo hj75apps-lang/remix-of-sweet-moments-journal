@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearNavigationConnectTrip, isNavigationConnectConfigured, readNavigationConnectTrip, rememberNavigationConnectTrip, onNavigationConnectTripChanged,
   setNavigationConnectCreatorCredential, createNavigationConnectTrip, getNavigationConnectTelemetry } from "./navigation-connect";
 
-afterEach(() => { vi.restoreAllMocks(); setNavigationConnectCreatorCredential(null); clearNavigationConnectTrip(); sessionStorage.clear(); });
+afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); setNavigationConnectCreatorCredential(null); clearNavigationConnectTrip(); sessionStorage.clear(); });
 
 describe("Navigation Connect client", () => {
   it("keeps configuration server-side", () => {
@@ -76,5 +76,38 @@ describe("Navigation Connect client", () => {
     await expect(getNavigationConnectTelemetry("other-trip", "signed-key")).rejects.toThrow("telemetria inválida");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ...valid, latitude: 200, longitude: 0 }));
     await expect(getNavigationConnectTelemetry("trip", "signed-key")).rejects.toThrow("telemetria inválida");
+  });
+  it("does not restore a cookie-authenticated trip after logout, even if fetch ignores abort", async () => {
+    let resolve!: (response: Response) => void;
+    const request = vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise<Response>((done) => { resolve = done; }));
+    const pending = expect(createNavigationConnectTrip({ app: "maps", destination: "Casa" })).rejects.toMatchObject({ name: "NavigationConnectSupersededError" });
+    setNavigationConnectCreatorCredential(null);
+    expect(request.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+    resolve(Response.json({ tripId: "trip", expiresAt: new Date(Date.now() + 60000).toISOString(), authToken: "token", launchUrl: "https://www.google.com/maps/dir/" },
+      { headers: { "x-navigation-connect-access-key": "signed-key" } }));
+    await pending;
+    expect(readNavigationConnectTrip()).toBeNull();
+  });
+  it("keeps the newest destination when an older create completes last", async () => {
+    let resolve!: (response: Response) => void;
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => new Promise<Response>((done) => { resolve = done; }))
+      .mockResolvedValueOnce(Response.json({ tripId: "new-trip", expiresAt: new Date(Date.now() + 60000).toISOString(), authToken: "token", launchUrl: "https://waze.com/ul" },
+        { headers: { "x-navigation-connect-access-key": "new-key" } }));
+    const older = expect(createNavigationConnectTrip({ app: "maps", destination: "Antigo" })).rejects.toMatchObject({ name: "NavigationConnectSupersededError" });
+    await createNavigationConnectTrip({ app: "waze", destination: "Novo" });
+    resolve(Response.json({ tripId: "old-trip", expiresAt: new Date(Date.now() + 60000).toISOString(), authToken: "token", launchUrl: "https://www.google.com/maps/dir/" },
+      { headers: { "x-navigation-connect-access-key": "old-key" } }));
+    await older;
+    expect(readNavigationConnectTrip()?.tripId).toBe("new-trip");
+  });
+  it("aborts a stalled request after ten seconds without AbortSignal.timeout support", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, "fetch").mockImplementation((_url, options) => new Promise<Response>((_resolve, reject) => {
+      options?.signal?.addEventListener("abort", () => reject(new Error("deadline")));
+    }));
+    const pending = expect(createNavigationConnectTrip({ app: "maps", destination: "Casa" })).rejects.toThrow("deadline");
+    await vi.advanceTimersByTimeAsync(10_000);
+    await pending;
+    expect(readNavigationConnectTrip()).toBeNull();
   });
 });

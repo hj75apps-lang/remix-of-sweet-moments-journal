@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 
 const runtimeDirectory = process.env["SAL_QUOTA_RUNTIME_DIR"];
 const bundle = process.env["SAL_QUOTA_WORKER_BUNDLE"];
@@ -9,7 +10,7 @@ assert.ok(runtimeDirectory && bundle && storage, "Configure the quota test direc
 const require = createRequire(path.join(runtimeDirectory, "package.json"));
 const { Miniflare } = require("miniflare");
 const options = {
-  name: "sal-private-quota-test", modules: true, scriptPath: bundle,
+  name: "sal-private-quota-test", modules: true, script: await readFile(bundle, "utf8"), rootPath: path.dirname(bundle),
   compatibilityDate: "2026-07-06", durableObjectsPersist: storage,
   durableObjects: { NAVIGATION_QUOTA_STATE: { className: "NavigationQuota", useSQLite: true } },
   bindings: { NAVIGATION_CREATE_HOURLY_LIMIT: "6" },

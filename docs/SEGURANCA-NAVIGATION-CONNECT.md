@@ -38,6 +38,8 @@ O service binding deve ficar acessível apenas ao backend autorizado. Não expor
 
 OAuth/criação de viagem aceitam até 32 KiB de resposta; telemetria aceita até 2 MB e 10.000 pontos. As chamadas Google exigem HTTPS, recusam redirects, têm deadline de oito segundos e acompanham o cancelamento do request. O cliente tem deadline de dez segundos, limita corpos reais e valida identidade da viagem, expiração, coordenadas, métricas e URL oficial de abertura. Erros externos não são exibidos como texto bruto nem registrados com objetos de request/credenciais.
 
+Uma criação antiga não pode restaurar a viagem depois de logout, troca de credencial, limpeza da viagem ou criação mais recente. O cliente aborta o request e compara sua versão mesmo quando o transporte entrega uma resposta tardia. O fallback externo também respeita esse cancelamento; falhas de configuração/conectividade continuam abrindo o navegador normalmente. O deadline do cliente usa AbortController e timer, sem depender das APIs estáticas recentes AbortSignal.timeout/any em WebViews antigos.
+
 O CI executa regressões de autenticação, rotação de headers de IP, concorrência e falhas. Um teste separado em workerd/Miniflare com SQLite persistido admite somente cinco de vinte criações concorrentes, aplica o teto horário entre clientes e reconstrói o runtime para conferir persistência. Ele não faz deploy nem acessa a conta Google.
 
 ## Pendências que exigem o ambiente real
