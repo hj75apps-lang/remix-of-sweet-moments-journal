@@ -566,6 +566,20 @@ body {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
 
+.navigation-live-map .leaflet-control-attribution {
+  background: var(--card-glass-surface);
+  color: var(--muted-foreground);
+  font-family: var(--font-body);
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  padding: 1px 4px;
+  box-shadow: none;
+}
+.navigation-live-map .leaflet-control-attribution a {
+  color: inherit;
+}
+
 .vehicle-marker { background: transparent; border: 0; }
 .vehicle-dot { position: absolute; inset: 8px; border-radius: 50%; background: var(--primary); border: 3px solid var(--primary-foreground); box-shadow: var(--shadow-card); }
 .vehicle-heading { display: none; position: absolute; inset: 0; transform: rotate(var(--vehicle-heading, 0deg)); }
