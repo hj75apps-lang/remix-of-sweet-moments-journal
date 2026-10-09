@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { useNavigationTheme } from "@/hooks/use-navigation-theme";
 import { useNavigationState } from "@/contexts/navigation-context";
-import { errorMessage } from "@/services/launcher-system";
+import { errorMessage, startNavigation } from "@/services/launcher-system";
 import { navigationWindowBounds, openNavigationWindow } from "@/services/navigation-window";
 import { useNavigationApps } from "@/services/navigation-apps";
 import { formatDistance, formatDuration } from "@/services/navigation-state";
@@ -60,6 +60,27 @@ export function NavigationWidget() {
     }
   };
 
+  const navigateToDestination = async () => {
+    const target = destination.trim();
+    if (!target || pending.current || !ready) return;
+    if (settings.navApp !== "system" && !selected) {
+      toast.error("Escolha um navegador instalado nos ajustes.");
+      return;
+    }
+    pending.current = true;
+    setOpening(true);
+    try {
+      // A submitted destination explicitly opens the selected app, not a window request.
+      await startNavigation(settings.navApp, target);
+      update({ lastDestination: target });
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      pending.current = false;
+      setOpening(false);
+    }
+  };
+
   const distance = state.route?.remainingDistanceMeters ?? state.guidance?.remainingDistanceMeters;
   const duration = state.route?.remainingDurationSeconds ?? state.guidance?.remainingDurationSeconds;
 
@@ -85,7 +106,7 @@ export function NavigationWidget() {
             {state.guidance.text && <p className="navigation-street break-words text-sm text-muted-foreground">{state.guidance.text}</p>}
             {(distance !== undefined || duration !== undefined) && <p className="navigation-details mt-1 text-sm text-muted-foreground">{[formatDistance(distance), formatDuration(duration)].filter(Boolean).join(" · ")}</p>}
           </div>}
-          <form className="navigation-search pointer-events-auto flex min-w-0 gap-2 rounded-lg border bg-card p-2 shadow-card" onSubmit={(event) => { event.preventDefault(); const target = destination.trim(); if (target) void openNavigator(target); }}>
+          <form className="navigation-search pointer-events-auto flex min-w-0 gap-2 rounded-lg border bg-card p-2 shadow-card" onSubmit={(event) => { event.preventDefault(); void navigateToDestination(); }}>
             <Input aria-label="Destino da navegação" placeholder="Para onde?" value={destination} onChange={(event) => setDestination(event.target.value)} maxLength={200} className="min-h-11 min-w-0 flex-1 bg-transparent" />
             <Button type="submit" size="icon" className="size-11 shrink-0" disabled={opening || !ready || !destination.trim()} aria-label="Iniciar navegação" title="Iniciar navegação"><Search className="size-5" /></Button>
           </form>

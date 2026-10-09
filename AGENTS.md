@@ -32,7 +32,7 @@
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
 - Native Capacitor plugins register in MainActivity; reference files never run.
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
-- Positioned navigation uses freeform-gated LauncherSystem launchBounds with screen conversion; no split/fullscreen fallback or claims of verified embedding, since the OS owns placement.
+- Window control uses freeform-gated launchBounds, never fullscreen fallback or embedding claims. Destination submit calls startNavigation directly, independent of window support.
 - Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
