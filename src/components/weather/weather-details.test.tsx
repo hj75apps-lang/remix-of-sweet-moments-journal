@@ -15,6 +15,16 @@ const weather: WeatherReport = {
 };
 
 describe("weather forecast calendar", () => {
+  it("labels hourly forecasts by time instead of presenting a different forecast as Agora", () => {
+    render(<WeatherDetails weather={{ ...weather, hours: [
+      { time: "2026-10-08T12:00:00", temp: 28, code: 3, text: "Nublado", rain: 20 },
+    ] }} />);
+    expect(screen.queryByText("Agora")).not.toBeInTheDocument();
+    expect(screen.getByText("12:00")).toBeInTheDocument();
+    expect(screen.getByText("28°")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Condição atual" })).toHaveTextContent("33°C");
+  });
+
   it("highlights today and reserves all five forecast items for tomorrow onward", () => {
     render(<WeatherDetails weather={weather} />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveClass("sr-only");

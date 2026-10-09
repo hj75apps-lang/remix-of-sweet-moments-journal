@@ -1,5 +1,5 @@
 import { Moon } from "lucide-react";
-import { weatherIcon } from "./weather-details";
+import { weatherIcon } from "./weather-presentation";
 
 function isNight() {
   const hour = new Date().getHours();
@@ -11,11 +11,13 @@ export function WeatherSymbol({
   text,
   large = false,
   night,
+  className = "",
 }: {
   code: number | undefined;
   text: string;
   large?: boolean;
   night?: boolean;
+  className?: string;
 }) {
   const Icon = weatherIcon(code, text);
   const storm = code !== undefined && code >= 95;
@@ -26,7 +28,7 @@ export function WeatherSymbol({
 
   return (
     <span
-      className={`weather-symbol ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
+      className={`weather-symbol ${className} ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
       role="img"
       aria-label={text}
     >

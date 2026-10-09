@@ -64,7 +64,8 @@ export function useWeather() {
     const stored = readStoredPosition();
     if (stored) {
       const cachedWeather = readStoredWeather();
-      if (cachedWeather)
+      // A second screen must not replace the shared live reading with disk cache.
+      if (cachedWeather && queryClient.getQueryData(["weather", weatherPositionKey(stored)]) === undefined)
         queryClient.setQueryData(["weather", weatherPositionKey(stored)], cachedWeather, {
           updatedAt: weatherCacheUpdatedAt(cachedWeather),
         });

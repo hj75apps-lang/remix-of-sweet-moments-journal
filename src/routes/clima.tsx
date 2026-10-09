@@ -30,22 +30,6 @@ function WeatherPage() {
   const { position, gpsError, locate, query } = useWeather();
   const weather = query.data;
 
-  // Assegura que o primeiro dia da previsão (dia da leitura) utilize exatamente a temperatura atual e condições do weather principal
-  const effectiveWeather = weather ? {
-    ...weather,
-    forecast: weather.forecast && weather.forecast.length > 0 ? [
-      {
-        ...weather.forecast[0],
-        temp: weather.temp,
-        tempMin: weather.tempMin ?? weather.forecast[0].tempMin,
-        tempMax: weather.tempMax ?? weather.forecast[0].tempMax,
-        condition: weather.condition,
-        icon: weather.icon,
-      },
-      ...weather.forecast.slice(1)
-    ] : weather.forecast
-  } : weather;
-
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <StatusBar />
@@ -55,9 +39,9 @@ function WeatherPage() {
           className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border bg-card"
           aria-label="Previsão do tempo"
         >
-          {effectiveWeather ? (
+          {weather ? (
             <div className="forecast-viewport">
-              <WeatherDetails weather={effectiveWeather} />
+              <WeatherDetails weather={weather} />
             </div>
           ) : (
             <div className="m-auto flex max-w-sm flex-col items-center gap-3 px-6 text-center">

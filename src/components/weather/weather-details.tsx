@@ -4,32 +4,16 @@ import {
   CloudLightning,
   CloudRain,
   CloudSnow,
-  CloudSun,
   Droplets,
   Sunrise,
   Sunset,
-  Sun,
   Umbrella,
   Wind,
-  type LucideIcon,
 } from "lucide-react";
+import { WeatherSymbol } from "./weather-symbol";
+import { isNightBySun, weatherIcon } from "./weather-presentation";
+export { weatherIcon } from "./weather-presentation";
 import type { WeatherReport } from "@/services/weather";
-export function weatherIcon(code: number | undefined, description: string): LucideIcon {
-  if (code === 0) return Sun;
-  if (code === 1 || code === 2) return CloudSun;
-  if (code === 3) return Cloud;
-  if (code === 45 || code === 48) return CloudFog;
-  if ((code !== undefined && code >= 51 && code <= 67) || (code !== undefined && code >= 80 && code <= 82)) return CloudRain;
-  if (code !== undefined && code >= 71 && code <= 86) return CloudSnow;
-  if (code !== undefined && code >= 95) return CloudLightning;
-  const normalized = description.toLocaleLowerCase("pt-BR");
-  if (normalized.includes("tempestade")) return CloudLightning;
-  if (normalized.includes("neve")) return CloudSnow;
-  if (normalized.includes("chuva") || normalized.includes("garoa")) return CloudRain;
-  if (normalized.includes("neblina")) return CloudFog;
-  if (normalized.includes("nublado")) return Cloud;
-  return CloudSun;
-}
 export function shortWeekday(date: string, index = 1) {
   if (index === 0) return "Hoje";
   return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
@@ -45,8 +29,7 @@ function calendarDay(date: string) {
   }).replace(".", "");
 }
 
-function hourLabel(time: string, index: number) {
-  if (index === 0) return "Agora";
+function hourLabel(time: string) {
   return new Date(time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
@@ -56,7 +39,6 @@ function clockLabel(value?: string) {
 }
 
 export function WeatherDetails({ weather }: { weather: WeatherReport }) {
-  const CurrentIcon = weatherIcon(weather.code, weather.text);
   const days = Array.isArray(weather.days) ? weather.days : [];
   const hours = Array.isArray(weather.hours) ? weather.hours : [];
   const today = days[0];
@@ -68,7 +50,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
 
       <section aria-label="Condição atual" className="weather-week-current">
         <div className="weather-week-current-reading">
-          <CurrentIcon className="weather-week-current-icon" aria-label={weather.text} />
+          <WeatherSymbol code={weather.code} text={weather.text} night={isNightBySun(weather)} className="weather-week-current-icon" />
           <p className="weather-week-current-temp">{weather.temp}<span>°C</span></p>
           <div className="weather-week-current-copy">
             <p>Hoje · {weather.text}</p>
@@ -122,9 +104,9 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
         </div>
         <div className="weather-hourly-strip weather-week-hourly-strip">
           {hours.length === 0 && <p className="text-sm text-muted-foreground" role="status">Previsão por hora indisponível no momento.</p>}
-          {hours.slice(0, 8).map((hour, index) => (
+          {hours.slice(0, 8).map((hour) => (
             <div key={hour.time} className="weather-hour-card weather-week-hour">
-              <span>{hourLabel(hour.time, index)}</span>
+              <span>{hourLabel(hour.time)}</span>
               {(() => { const HourIcon = weatherIcon(hour.code, hour.text); return <HourIcon aria-label={hour.text} />; })()}
               <strong>{hour.temp}°</strong>
               <span className="weather-week-hour-rain"><Droplets aria-hidden="true" />{hour.rain}%</span>
