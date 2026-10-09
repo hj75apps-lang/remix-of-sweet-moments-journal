@@ -429,10 +429,10 @@ body {
 @container widget (max-width:600px) {
   .weather-reference-row { grid-template-columns:auto auto; gap:min(8px,2cqh) min(24px,5cqw); }
   .weather-reference-row .weather-symbol { font-size:min(calc(56px * var(--weather-content-scale)),25cqw,40cqh)!important; }
-  .weather-reference-temperature { font-size:min(calc(52px * var(--weather-content-scale)),32cqw,44cqh); }
+  .weather-reference-temperature { font-size:min(calc(52px * var(--weather-content-scale)),32cqw,50cqh); }
   .weather-reference-row .weather-reading { grid-column:1 / -1; text-align:center; gap:min(5px,1cqh); }
-  .weather-reference-condition { font-size:min(calc(17px * var(--weather-content-scale)),6cqw,12cqh); }
-  .weather-reference-detail { font-size:min(calc(13.5px * var(--weather-content-scale)),5.5cqw,10cqh); }
+  .weather-reference-condition { font-size:min(calc(17px * var(--weather-content-scale)),6cqw,16cqh); }
+  .weather-reference-detail { font-size:min(calc(13.5px * var(--weather-content-scale)),5.5cqw,13cqh); }
 }
 .weather-hour-card .weather-symbol { width: 1.35rem; min-width: 1.35rem; margin: .15rem auto; }
 .weather-day-detail .weather-symbol { width: min(2.25rem, 11cqw); min-width: 2rem; margin: 0 auto; }
