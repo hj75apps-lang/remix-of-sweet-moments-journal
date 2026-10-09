@@ -74,5 +74,5 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
   }, [route]);
 
   useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else mapRef.current?.stop(); }, [visible]);
-  return <div ref={el} className="absolute inset-0 z-0" aria-hidden />;
+  return <div ref={el} className="navigation-live-map absolute inset-0 z-0" aria-hidden />;
 }
