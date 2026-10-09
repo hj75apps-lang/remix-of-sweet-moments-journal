@@ -36,4 +36,4 @@
 - Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
 - The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
 - The root NavigationProvider owns the last GPS fix and real notification guidance; visible map adapters acquire one foreground LocationService subscription, because navigation must survive route changes without duplicate GPS watches.
-- Home renders Leaflet lazily behind ClientOnly; external navigators open only on explicit actions, keeping the home map visible on startup/return and Leaflet out of SSR.
+- Home renders Leaflet lazily behind ClientOnly; explicit navigator actions request the measured home area through navigation-window, including destination, with no normal-launch fallback, keeping the own map on startup and browser-only imports out of SSR.

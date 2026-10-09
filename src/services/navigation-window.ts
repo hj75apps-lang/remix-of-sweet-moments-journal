@@ -15,14 +15,14 @@ export function navigationWindowBounds(rect: Pick<DOMRect, "left" | "top" | "rig
 }
 
 interface WindowPlugin {
-  openNavigationWindow(options: { app: NavApp; bounds: NavigationWindowBounds }): Promise<{ requested: boolean }>;
+  openNavigationWindow(options: { app: NavApp; bounds: NavigationWindowBounds; destination: string }): Promise<{ requested: boolean }>;
 }
 
-export async function openNavigationWindow(app: NavApp, bounds: NavigationWindowBounds): Promise<void> {
+export async function openNavigationWindow(app: NavApp, bounds: NavigationWindowBounds, destination = ""): Promise<void> {
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean; Plugins?: { LauncherSystem?: WindowPlugin } } }).Capacitor;
   const plugin = cap?.Plugins?.LauncherSystem;
   if (!cap?.isNativePlatform?.() || !plugin?.openNavigationWindow) throw new Error("window_unavailable");
-  const result = await plugin.openNavigationWindow({ app, bounds });
+  const result = await plugin.openNavigationWindow({ app, bounds, destination: destination.trim().slice(0, 200) });
   // A request is not proof of the external window's position or persistence.
   if (!result.requested) throw new Error("window_unsupported");
 }
