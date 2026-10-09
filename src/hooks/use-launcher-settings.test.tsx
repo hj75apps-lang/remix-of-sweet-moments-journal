@@ -5,10 +5,27 @@ vi.mock("@/services/launcher-system", () => ({ applyLauncherPrefs: async () => {
 vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ apps: [], ready: false }) }));
 import { DEFAULT_SETTINGS, LauncherSettingsProvider, useLauncherSettings } from "./use-launcher-settings";
 import { VEHICLE_ICONS } from "@/services/vehicle-icon";
+import { MAP_VIEWS } from "@/services/navigation-view";
 const wrapper = ({ children }: { children: ReactNode }) => <LauncherSettingsProvider>{children}</LauncherSettingsProvider>;
 beforeEach(() => { localStorage.clear(); localStorage.setItem("sal.android-system-integration-v2", "1"); });
 afterEach(() => cleanup());
 describe("launcher preference validation", () => {
+  it.each(MAP_VIEWS)("persists and restores the $label map view", ({ value }) => {
+    const first = renderHook(useLauncherSettings, { wrapper });
+    act(() => first.result.current.update({ mapView: value }));
+    expect(first.result.current.settings.mapView).toBe(value);
+    first.unmount();
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings.mapView).toBe(value);
+  });
+  it("preserves old preferences when adding the map view", () => {
+    const { mapView: _view, ...legacy } = DEFAULT_SETTINGS;
+    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: { ...legacy, navApp: "waze", vehicleIcon: "red" } }));
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings).toMatchObject({ mapView: "2d", navApp: "waze", vehicleIcon: "red" });
+  });
+  it("rejects unknown map views without discarding other preferences", () => {
+    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: { ...DEFAULT_SETTINGS, mapView: "invalid", navApp: "waze" } }));
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings).toMatchObject({ mapView: "2d", navApp: "waze" });
+  });
   it.each(VEHICLE_ICONS)("persists and restores $label as the GPS icon", ({ value }) => {
     const first = renderHook(useLauncherSettings, { wrapper });
     act(() => first.result.current.update({ vehicleIcon: value }));

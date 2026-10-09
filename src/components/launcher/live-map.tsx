@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { mapViewZoom, resolveMapPerspective, type MapPerspective } from "@/services/navigation-view";
+import { VehicleIcon } from "./vehicle-icon";
 import L from "leaflet";
 import "leaflet-rotate";
 import type { NavigationRoute } from "@/services/navigation-state";
@@ -9,9 +11,14 @@ import { vehicleIconMarkup } from "@/services/vehicle-icon";
 import { followHeading, headingDelta, INITIAL_HEADING } from "@/services/navigation-heading";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
-export default function LiveMap({ dark, position, visible, animated, route }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null }) {
+export default function LiveMap({ dark, position, visible, animated, route, navigating = false }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null; navigating?: boolean }) {
   const { settings } = useLauncherSettings();
   const el = useRef<HTMLDivElement | null>(null);
+  const viewport = useRef<HTMLDivElement | null>(null);
+  const previousPerspective = useRef<MapPerspective>("2d");
+  const perspective = resolveMapPerspective(settings.mapView, navigating || Boolean(route?.points?.length), position?.speed ?? null, previousPerspective.current);
+  useEffect(() => { previousPerspective.current = perspective; }, [perspective]);
+  const zoom = mapViewZoom(perspective);
   const mapRef = useRef<L.Map | null>(null);
   const tilesRef = useRef<L.TileLayer | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -23,6 +30,9 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     if (!el.current) return;
     const map = L.map(el.current, { rotate: true, rotateControl: false, touchRotate: false, shiftKeyRotate: false, zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([-15.78, -47.93], 4);
     map.attributionControl.setPrefix(false);
+    // Credit stays readable outside the tilted ground plane.
+    const credit = map.attributionControl.getContainer();
+    if (credit && viewport.current) viewport.current.appendChild(credit);
     mapRef.current = map;
     markerRef.current = L.marker([0, 0], { interactive: false, zIndexOffset: 1000 });
     const resize = () => map.invalidateSize({ pan: false });
@@ -65,10 +75,15 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
       rotationFrame.current = requestAnimationFrame(rotate);
     }
     map.stop();
-    if (firstFix.current) map.setView(ll, 16, { animate: false });
+    if (firstFix.current) map.setView(ll, zoom, { animate: false });
     else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
     firstFix.current = false;
-  }, [position, visible, animated, settings.vehicleIcon]);
+  }, [position, visible, animated, settings.vehicleIcon, zoom]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !position || !visible) return;
+    map.setView([position.latitude, position.longitude], zoom, { animate: false });
+  }, [zoom, visible]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -96,5 +111,8 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
   }, [route]);
 
   useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else { mapRef.current?.stop(); if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); } }, [visible]);
-  return <div ref={el} className="navigation-live-map absolute inset-0 z-0" aria-hidden />;
+  return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} aria-hidden>
+    <div className="navigation-map-ground"><div ref={el} className="navigation-live-map absolute inset-0 z-0" /></div>
+    {perspective === "3d" && position && <div className="navigation-perspective-vehicle"><VehicleIcon icon={settings.vehicleIcon} /></div>}
+  </div>;
 }

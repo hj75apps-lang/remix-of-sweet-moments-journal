@@ -13,7 +13,7 @@
 
 - Radio uses plain audio plus separate CORS-enabled EQ audio; actual audio events own playback state, so controls stay accurate without silencing non-CORS stations.
 - Radio listening history is a validated local preference owned by the global player; rank filtered station lists by confirmed listening time over the last thirty days, using normalized names across catalog id changes and leaving next/previous queues stable.
-- Radio directory requests go through mirror failover (radio-browser.ts) with the verified catalog as offline fallback, so search survives server outages.
+- Radio directory uses mirror failover and a verified offline catalog so search survives outages.
 - Radio website discovery shares one parser: web uses the existing server function; APK uses the registered RadioNetwork plugin for bounded public HTTPS page/probe reads and playlists, because the static package has no server RPC and stream hosts may omit CORS. Audio and EQ remain on separate WebView audio elements.
 - Weather data loads directly from Open-Meteo in the browser with a cached last-known forecast; location names use reverse geocoding with coordinate fallback.
 - Validate and migrate weather caches through weather-cache before query hydration; legacy daily-only reports receive empty hourly arrays so offline forecasts remain usable after upgrades.
@@ -37,4 +37,4 @@
 - The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
 - Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
 - Home lazy-loads Leaflet behind ClientOnly; explicit navigation-window requests use card bounds and destination without fallback, preserving startup map and SSR safety.
-- Map themes preserve settings; vehicle SVGs are shared. Leaflet rotation follows validated GPS course so markers stay upright.
+- Map themes preserve settings; shared vehicle SVGs follow GPS heading. navigation-view owns perspective/zoom rules; Leaflet tilts real tiles, not vehicle or credit, without claiming 3D terrain.

@@ -27,7 +27,7 @@ export function FullscreenNavigation({
   const route = state.route;
   return (
     <div className="fixed inset-0 z-[1000] bg-background text-foreground" role="dialog" aria-modal="true" aria-label="Navegação em tela cheia">
-      <LiveMap dark={darkMap} position={state.position} visible animated={animated} route={route} />
+      <LiveMap dark={darkMap} position={state.position} visible animated={animated} route={route} navigating={state.active} />
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-6">
         <div className="pointer-events-auto flex items-start justify-between gap-3">
           <Button type="button" size="icon" variant="secondary" onClick={onClose} aria-label="Voltar para a Launcher" className="size-12 rounded-full bg-popover/95 shadow-card">
