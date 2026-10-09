@@ -36,4 +36,4 @@
 - Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
 - The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
 - The root NavigationProvider owns the last GPS fix and real notification guidance; visible map adapters acquire one foreground LocationService subscription, because navigation must survive route changes without duplicate GPS watches.
-- The home navigation frame requests only the selected external navigator through navigation-window; never render Leaflet or use normal navigation as a fallback there, because the user's navigator must not be replaced with the launcher's own map.
+- The home frame uses navigation-window automatically; normal external navigation is only for explicit frame taps, never startup or failure fallback, so full-screen launch is user-initiated. Never render a launcher map there.

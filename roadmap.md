@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Reservar abertura comum para toque explícito na moldura; remover abertura comum automática da Home e manter janela posicionada ao iniciar/retornar. 14 testes aprovados; moldura limpa verificada na web. Tela cheia e permanência reais dependem de validação na central.
+
 - [x] Remover qualquer mapa próprio/fallback da moldura e solicitar apenas o navegador selecionado; opção de abertura automática preservada, 11 testes aprovados e ausência de mapa ao tocar/retornar verificada no navegador. Posicionamento real continua pendente na central.
 
 - [x] Aplicar à previsão dos próximos cinco dias a transparência e paleta dos widgets; seis testes aprovados, dados reais e superfícies verificadas em ambos os temas, abertura pelo widget e retorno confirmados.

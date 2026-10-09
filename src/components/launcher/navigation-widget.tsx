@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
-import { errorMessage, isLauncherNative } from "@/services/launcher-system";
+import { errorMessage, isLauncherNative, startNavigation } from "@/services/launcher-system";
 import { navigationWindowBounds, openNavigationWindow } from "@/services/navigation-window";
 import { useNavigationApps } from "@/services/navigation-apps";
 
@@ -45,6 +45,28 @@ export function NavigationWidget() {
     }
   }, [settings.navApp, missing]);
 
+  const openFullScreen = async () => {
+    if (opening.current) return;
+    if (!isLauncherNative()) {
+      toast.error("A abertura do navegador está disponível apenas na central.");
+      return;
+    }
+    if (!ready || settings.navApp === "system" || missing) {
+      toast.error("Escolha um navegador instalado nos ajustes.");
+      return;
+    }
+    opening.current = true;
+    setOpeningWindow(true);
+    try {
+      await startNavigation(settings.navApp, "");
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      opening.current = false;
+      setOpeningWindow(false);
+    }
+  };
+
   // Request a positioned window only; Android still controls placement and persistence.
   useEffect(() => {
     if (!loaded || !ready || missing || !settings.openNavigatorOnStartup ||
@@ -62,9 +84,9 @@ export function NavigationWidget() {
       <Button
         type="button"
         variant="ghost"
-        onClick={() => void openWindow()}
+        onClick={() => void openFullScreen()}
         disabled={openingWindow}
-        aria-label="Abrir navegador escolhido nesta moldura"
+        aria-label="Abrir navegador escolhido em tela cheia"
         className="navigation-map-target absolute inset-0 h-full w-full rounded-none bg-transparent p-0 hover:bg-transparent"
       />
     </section>
