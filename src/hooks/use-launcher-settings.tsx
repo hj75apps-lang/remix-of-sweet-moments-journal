@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { applyLauncherPrefs, setScreenBrightness, type NavApp } from "@/services/launcher-system";
 import { readStored, writeStored } from "@/services/storage";
 import { useNavigationApps } from "@/services/navigation-apps";
@@ -188,8 +188,9 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     });
   }, []);
 
+  const value = useMemo(() => ({ settings, loaded, update }), [settings, loaded, update]);
   return (
-    <SettingsContext.Provider value={{ settings, loaded, update }}>{children}</SettingsContext.Provider>
+    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
   );
 }
 

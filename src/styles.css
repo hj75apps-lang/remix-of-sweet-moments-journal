@@ -656,7 +656,7 @@ body {
 /* Keep large radio lists cheap to paint on mobile/automotive WebViews. */
 .radio-station-row {
   content-visibility: auto;
-  contain-intrinsic-size: 4rem;
+  contain-intrinsic-size: auto 6rem;
 }
 
 
