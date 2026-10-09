@@ -10,9 +10,10 @@ import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { vehicleIconMarkup } from "@/services/vehicle-icon";
 import { followHeading, headingDelta, INITIAL_HEADING } from "@/services/navigation-heading";
 import { navigationMapTiles } from "@/services/navigation-map-style";
+import { viewedMapTile } from "@/services/navigation-offline";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
-export default function LiveMap({ dark, position, visible, animated, route, navigating = false }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null; navigating?: boolean }) {
+export default function LiveMap({ dark, position, visible, animated, route, navigating = false, online = true }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null; navigating?: boolean; online?: boolean }) {
   const { settings } = useLauncherSettings();
   const el = useRef<HTMLDivElement | null>(null);
   const viewport = useRef<HTMLDivElement | null>(null);
@@ -49,7 +50,24 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     const map = mapRef.current;
     if (!map) return;
     const source = navigationMapTiles(settings.mapStyle, dark);
-    if (!tilesRef.current) tilesRef.current = L.tileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 }).addTo(map);
+    if (!tilesRef.current) {
+      const ViewedTileLayer = L.TileLayer.extend({
+        createTile(this: L.TileLayer, coords: L.Coords, done: L.DoneCallback) {
+        const tile = document.createElement("img");
+        tile.alt = "";
+        tile.setAttribute("role", "presentation");
+        void viewedMapTile(this.getTileUrl(coords)).then((blob) => {
+          const objectUrl = URL.createObjectURL(blob);
+          tile.onload = () => { URL.revokeObjectURL(objectUrl); done(undefined, tile); };
+          tile.onerror = () => { URL.revokeObjectURL(objectUrl); done(new Error("map_tile_decode"), tile); };
+          tile.src = objectUrl;
+        }).catch((error: unknown) => done(error instanceof Error ? error : new Error("map_tile_unavailable"), tile));
+        return tile;
+        },
+      }) as new (url: string, options?: L.TileLayerOptions) => L.TileLayer;
+      const layer: L.TileLayer = new ViewedTileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 });
+      tilesRef.current = layer.addTo(map);
+    }
     else {
       const oldAttribution = tilesRef.current.options.attribution;
       if (oldAttribution) map.attributionControl.removeAttribution(oldAttribution);
@@ -64,7 +82,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
   useEffect(() => {
     const map = mapRef.current;
     const marker = markerRef.current;
-    if (!map || !marker || !position || !visible) return;
+    if (!map || !marker || !position || !visible || (!online && !firstFix.current)) return;
     const ll: L.LatLngExpression = [position.latitude, position.longitude];
     marker.setLatLng(ll);
     if (!map.hasLayer(marker)) marker.addTo(map);
@@ -88,7 +106,8 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     if (firstFix.current || map.getZoom() !== zoom) map.setView(ll, zoom, { animate: false });
     else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
     firstFix.current = false;
-  }, [position, visible, animated, settings.vehicleIcon, zoom]);
+  }, [position, visible, animated, settings.vehicleIcon, zoom, online]);
+  useEffect(() => { if (online) tilesRef.current?.redraw(); }, [online]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;

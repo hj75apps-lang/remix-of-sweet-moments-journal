@@ -13,6 +13,7 @@ import {
 } from "@/services/navigation-connect";
 import type { NavigationState } from "@/services/navigation-state";
 import { reconcileNavigationTelemetry } from "@/services/navigation-telemetry";
+import { readMapPosition, saveMapPosition } from "@/services/navigation-offline";
 
 export interface NavigationContextState extends NavigationState {
   access: boolean | null;
@@ -32,6 +33,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [connectTelemetry, setConnectTelemetry] = useState<NavigationConnectTelemetry | null>(null);
   const [tripVersion, setTripVersion] = useState(0);
   const lastFix = useRef(0);
+  useEffect(() => {
+    const saved = readMapPosition();
+    if (saved) { setPosition((current) => current ?? saved); setLocating(false); }
+  }, []);
   useEffect(() => onNavigationConnectTripChanged(() => setTripVersion((version) => version + 1)), []);
 
   const acquireLocation = useCallback(() => {
@@ -64,7 +69,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const active = Boolean(connectTelemetry?.active || guidance);
-  const locationActive = users > 0 && visible;
+  const locationActive = users > 0 && visible && online;
 
   useEffect(() => {
     if (!locationActive) return;
@@ -73,14 +78,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       if (fix.timestamp - lastFix.current < 1000) return;
       lastFix.current = fix.timestamp;
       setPosition(fix);
+      saveMapPosition(fix);
       setLocating(false);
     });
   }, [locationActive]);
-
-  useEffect(() => {
-    if (position) return;
-    setLocating(true);
-  }, [position]);
 
   useEffect(() => {
     let cancelled = false;
