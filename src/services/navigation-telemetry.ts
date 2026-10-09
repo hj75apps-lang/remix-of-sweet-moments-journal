@@ -17,5 +17,5 @@ export function reconcileNavigationTelemetry(previous: NavigationConnectTelemetr
     previous.latitude === next.latitude && previous.longitude === next.longitude && previous.etaEpochMs === next.etaEpochMs &&
     previous.remainingDistanceMeters === next.remainingDistanceMeters && previous.remainingDurationSeconds === next.remainingDurationSeconds &&
     previous.updatedAt === next.updatedAt && previous.route === route) return previous;
-  return route === next.route ? next : { ...next, route };
+  return route && route !== next.route ? { ...next, route } : next;
 }

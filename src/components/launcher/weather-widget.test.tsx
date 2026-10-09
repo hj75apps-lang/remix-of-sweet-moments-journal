@@ -46,6 +46,7 @@ describe("weather expansion in launcher workspace", () => {
     { time: "2026-10-08T12:00:00", icon: "lucide-sun" },
   ])("preserves the current reading and $icon when opening the forecast", async ({ time, icon }) => {
     vi.spyOn(Date, "now").mockReturnValue(new Date(time).getTime());
+    vi.spyOn(Date.prototype, "getHours").mockReturnValue(new Date(time).getHours());
     renderHome();
     const home = document.getElementById("launcher-home-grid")!;
     const symbol = within(home).getByRole("img", { name: "Ensolarado" });
