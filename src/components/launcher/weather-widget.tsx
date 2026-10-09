@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useWeather } from "@/hooks/use-weather";
 import { WeatherSymbol } from "@/components/weather/weather-symbol";
 import { isNightBySun } from "@/components/weather/weather-presentation";
-import { WeatherDetails } from "@/components/weather/weather-details";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+const WeatherDetails = lazy(() => import("@/components/weather/weather-details").then((module) => ({ default: module.WeatherDetails })));
 
 export function WeatherWidget() {
   const { position, gpsError, locate, query } = useWeather();
@@ -135,7 +136,9 @@ export function WeatherWidget() {
             </Button>
           </header>
           <div className="forecast-viewport">
-            <WeatherDetails weather={w} />
+            <Suspense fallback={<div className="weather-details-panel weather-week-panel" aria-busy="true" />}>
+              <WeatherDetails weather={w} />
+            </Suspense>
           </div>
         </section>,
         workspace,

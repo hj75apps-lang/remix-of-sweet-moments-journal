@@ -12,6 +12,7 @@ import {
   type NavigationConnectTelemetry,
 } from "@/services/navigation-connect";
 import type { NavigationState } from "@/services/navigation-state";
+import { reconcileNavigationTelemetry } from "@/services/navigation-telemetry";
 
 export interface NavigationContextState extends NavigationState {
   access: boolean | null;
@@ -94,7 +95,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       try {
         const telemetry = await getNavigationConnectTelemetry(trip.tripId, trip.accessKey);
         if (cancelled || readNavigationConnectTrip()?.tripId !== trip.tripId) return;
-        setConnectTelemetry(telemetry);
+        setConnectTelemetry((previous) => reconcileNavigationTelemetry(previous, telemetry));
         if (!telemetry.active) {
           clearNavigationConnectTrip();
           timer = setTimeout(() => void poll(), 1000);

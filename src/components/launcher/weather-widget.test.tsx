@@ -25,7 +25,7 @@ vi.mock("@/hooks/use-weather", () => ({
   }),
 }));
 
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 function renderHome() {
   return render(
@@ -44,9 +44,8 @@ describe("weather expansion in launcher workspace", () => {
   it.each([
     { time: "2026-10-08T02:00:00", icon: "lucide-moon" },
     { time: "2026-10-08T12:00:00", icon: "lucide-sun" },
-  ])("preserves the current reading and $icon when opening the forecast", ({ time, icon }) => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(time));
+  ])("preserves the current reading and $icon when opening the forecast", async ({ time, icon }) => {
+    vi.spyOn(Date, "now").mockReturnValue(new Date(time).getTime());
     renderHome();
     const home = document.getElementById("launcher-home-grid")!;
     const symbol = within(home).getByRole("img", { name: "Ensolarado" });
@@ -56,7 +55,7 @@ describe("weather expansion in launcher workspace", () => {
     const feels = within(home).getByText("Sensação de 34°").textContent;
     const extremes = within(home).getByLabelText("Temperaturas de hoje").textContent;
     fireEvent.click(screen.getByRole("button", { name: "Abrir previsão do tempo para Cuiabá" }));
-    const current = screen.getByRole("region", { name: "Condição atual" });
+    const current = await screen.findByRole("region", { name: "Condição atual" });
     expect(current.querySelector(".weather-week-current-temp")!.textContent).toBe(temperature);
     expect(within(current).getByText("Sensação de 34°").textContent).toBe(feels);
     expect(within(current).getByText("Máx. 33° · Mín. 24°").textContent).toBe(extremes);
@@ -74,7 +73,7 @@ describe("weather expansion in launcher workspace", () => {
     expect(screen.queryByText("Ver previsão completa")).not.toBeInTheDocument();
   });
 
-  it("opens within the home content area without covering or disabling the Dock", () => {
+  it("opens within the home content area without covering or disabling the Dock", async () => {
     renderHome();
     fireEvent.click(screen.getByRole("button", { name: "Abrir previsão do tempo para Cuiabá" }));
 
@@ -86,7 +85,7 @@ describe("weather expansion in launcher workspace", () => {
     expect(panel).toHaveClass("absolute", "inset-0");
     expect(homeGrid).toHaveAttribute("inert");
     expect(screen.getByRole("navigation", { name: "Menu principal" })).toBeInTheDocument();
-    expect(within(panel).getByRole("heading", { level: 1 })).toHaveTextContent("Cuiabá");
+    expect(await within(panel).findByRole("heading", { level: 1 })).toHaveTextContent("Cuiabá");
     expect(screen.getByRole("button", { name: "Voltar à tela inicial" })).toHaveFocus();
   });
 
