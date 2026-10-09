@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Auditar toda a aplicação antes das alterações e registrar gargalos, impacto e prioridades de desempenho.
+- [x] Auditar toda a aplicação antes das alterações e registrar gargalos, impacto e prioridades de desempenho em docs/DESEMPENHO-2026-10-09.md.
 - [ ] Otimizar carregamento, renderizações, timers e navegação sem alterar funcionalidades ou aparência.
 - [ ] Validar regressões e fluxos no navegador em desktop/mobile e documentar limites das medições e do Android físico.
 
