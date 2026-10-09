@@ -35,7 +35,7 @@
 - Positioned navigation windows use public, freeform-gated LauncherSystem launchBounds requests with WebView-to-screen conversion; never fall back to split/full-screen or report requested bounds as verified embedding, because window placement belongs to the device OS.
 - Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
-- Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
+- Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand. Window requests use card bounds without fallback.
 - navigation-view owns zoom/perspective; Leaflet tilts tiles, not GPS vehicles/credit. navigation-map-style owns cartography, not traffic; real traffic requires a connected provider.
 

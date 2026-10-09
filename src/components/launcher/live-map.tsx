@@ -51,19 +51,21 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     if (!map) return;
     const source = navigationMapTiles(settings.mapStyle, dark);
     if (!tilesRef.current) {
-      const layer = L.tileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 });
-      layer.createTile = (coords, done) => {
+      const ViewedTileLayer = L.TileLayer.extend({
+        createTile(this: L.TileLayer, coords: L.Coords, done: L.DoneCallback) {
         const tile = document.createElement("img");
         tile.alt = "";
         tile.setAttribute("role", "presentation");
-        void viewedMapTile(layer.getTileUrl(coords)).then((blob) => {
+        void viewedMapTile(this.getTileUrl(coords)).then((blob) => {
           const objectUrl = URL.createObjectURL(blob);
           tile.onload = () => { URL.revokeObjectURL(objectUrl); done(undefined, tile); };
           tile.onerror = () => { URL.revokeObjectURL(objectUrl); done(new Error("map_tile_decode"), tile); };
           tile.src = objectUrl;
         }).catch((error: unknown) => done(error instanceof Error ? error : new Error("map_tile_unavailable"), tile));
         return tile;
-      };
+        },
+      });
+      const layer: L.TileLayer = new ViewedTileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 });
       tilesRef.current = layer.addTo(map);
     }
     else {

@@ -10,10 +10,23 @@ import { NavigationProvider, useNavigationState } from "./navigation-context";
 const wrapper = ({ children }: { children: ReactNode }) => <NavigationProvider>{children}</NavigationProvider>;
 const trip = (tripId: string) => ({ tripId, app: "maps" as const, expiresAt: new Date(Date.now() + 60000).toISOString(), accessKey: "key" });
 const telemetry = (tripId: string, active = true) => new Response(JSON.stringify({ tripId, state: active ? "ACTIVE" : "COMPLETED", active, sourcePackage: "com.google.android.apps.maps", route: { points: [], remainingDurationSeconds: 12.5 } }));
-beforeEach(() => { clearNavigationConnectTrip(); sessionStorage.clear(); });
+beforeEach(() => { clearNavigationConnectTrip(); sessionStorage.clear(); localStorage.clear(); });
 afterEach(() => { cleanup(); clearNavigationConnectTrip(); vi.restoreAllMocks(); });
 
 describe("Navigation Connect polling lifecycle", () => {
+  it("restores the last map position offline and resumes on reconnection", async () => {
+    let online = false;
+    vi.spyOn(navigator, "onLine", "get").mockImplementation(() => online);
+    const position = { latitude: -23.56, longitude: -46.65, heading: 90, speed: 10, accuracy: 5, timestamp: Date.now() };
+    localStorage.setItem("sal.navigation-last-position", JSON.stringify({ schema: 1, data: position }));
+    const { result } = renderHook(useNavigationState, { wrapper });
+    await waitFor(() => expect(result.current.online).toBe(false));
+    expect(result.current.position).toEqual(position);
+    expect(result.current.locating).toBe(false);
+    act(() => { online = true; window.dispatchEvent(new Event("online")); });
+    await waitFor(() => expect(result.current.online).toBe(true));
+    expect(result.current.position).toEqual(position);
+  });
   it("starts polling a trip created after the root provider was mounted", async () => {
     const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(telemetry("new"));
     const { result } = renderHook(useNavigationState, { wrapper });
