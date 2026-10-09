@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Preservar a última visualização da Home sem internet, recuperar ao reconectar e validar perda de conexão/retorno.
+- [x] Preservar a última visualização da Home sem internet: posição/tiles salvos, mapa e clima mantidos na queda e no retorno à Home; reconexão com novo GPS verificada, 267 testes aprovados. Limites em docs/HOME-OFFLINE.md; APK atualizado e validação física dependem da central.
 
 - [x] Auditar novamente a estrutura web/Android, corrigir defeitos confirmados e registrar cobertura e limitações em docs/AUDITORIA-2026-10-09.md; 261 testes aprovados, seis páginas, previsão e áudio verificados. Confirmação física permanece nas pendências abaixo.
 
