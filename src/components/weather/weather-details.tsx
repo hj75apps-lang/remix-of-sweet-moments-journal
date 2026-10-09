@@ -53,7 +53,7 @@ export function WeatherDetails({ weather }: { weather: WeatherReport }) {
           <WeatherSymbol code={weather.code} text={weather.text} night={isNightBySun(weather)} className="weather-week-current-icon" />
           <p className="weather-week-current-temp">{weather.temp}<span>°C</span></p>
           <div className="weather-week-current-copy">
-            <p>Hoje · {weather.text}</p>
+            <p>{weather.text}</p>
             <span>Sensação de {weather.feels}°</span>
             {today && <span>Máx. {today.max}° · Mín. {today.min}°</span>}
           </div>
