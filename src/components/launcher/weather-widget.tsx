@@ -82,7 +82,7 @@ export function WeatherWidget() {
             <WeatherSymbol code={w.code} text={w.text} large night={isNightBySun(w)} />
             <p className="weather-reference-temperature">{w.temp}<span>°C</span></p>
             <div className="weather-reading">
-              <p className="weather-reference-condition" aria-label="Condição do tempo">Hoje · {w.text}</p>
+              <p className="weather-reference-condition" aria-label="Condição do tempo">{w.text}</p>
               <p className="weather-reference-detail">Sensação de {Number.isFinite(w.feels) ? `${w.feels}°` : "—"}</p>
               <p className="weather-reference-detail" aria-label="Temperaturas de hoje">
                 Máx. {w.days[0] ? `${w.days[0].max}°` : "—"} · Mín. {w.days[0] ? `${w.days[0].min}°` : "—"}
