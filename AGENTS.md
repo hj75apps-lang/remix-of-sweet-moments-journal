@@ -28,13 +28,16 @@
 - Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
 - StatusBar reserves only the shell's matching top inset; the global microphone action lives in Dock so touch targets do not enlarge margins or overlap page content.
 - The launcher dock keeps Home, Online Radio, Apps, and Settings fixed; the former Phone slot reads the last successfully launched app from LauncherApps native preferences without UsageStats permission, while remaining recent slots use UsageStats and omit duplicates.
-- The default 1280×720 launcher grid reserves four columns for navigation and stacks clock, weather, and media in the two-column side rail.
+- Home grid reserves four navigation columns plus a two-column clock/weather/media rail.
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
-- Native Android capabilities live in compiled Capacitor plugins under the app package and are registered in MainActivity; reference-only plugin files are never runtime implementations.
+- Native Capacitor plugins register in MainActivity; reference files never run.
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
 - Positioned navigation windows use public, freeform-gated LauncherSystem launchBounds requests with WebView-to-screen conversion; never fall back to split/full-screen or report requested bounds as verified embedding, because window placement belongs to the device OS.
 - Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
-- The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
+- Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
-- Home lazy-loads Leaflet behind ClientOnly; explicit navigation-window requests use card bounds and destination without fallback, preserving startup map and SSR safety.
+- Home loads Leaflet behind ClientOnly immediately and customization dialogs on demand; window requests use card bounds/destination without fallback.
 - navigation-view owns zoom/perspective; Leaflet tilts tiles, not GPS vehicles/credit. navigation-map-style owns cartography, not traffic; real traffic requires a connected provider.
+
+- Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
+- Memoize unchanged radio/provider snapshots; reuse tiles/route geometry and skip unchanged bearings to avoid redundant work.
