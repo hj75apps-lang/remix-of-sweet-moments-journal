@@ -9,8 +9,9 @@ export function isNavigationMapStyle(value: unknown): value is NavigationMapStyl
 /** Road hierarchy is not measured traffic. */
 export function navigationMapTiles(style: NavigationMapStyle, dark: boolean) {
   return {
-    url: style === "roads" ? "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png" : "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>' + (style === "roads" ? ' · © <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>' : ""),
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
+    emphasizeRoads: style === "roads",
     darkFilter: dark,
     maxZoom: 19,
   };

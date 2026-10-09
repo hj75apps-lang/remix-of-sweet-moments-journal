@@ -1,6 +1,6 @@
 # Roadmap
 
-- [x] Destacar ruas e avenidas principais com cartografia Voyager, escolha salva e opção Tradicional; 33 testes aprovados, mapas reais em 2D/3D e reabertura verificados.
+- [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
 - [ ] Integrar trânsito real: conexão Mapbox bloqueada pela permissão da conta; um administrador precisa conectar o serviço antes da integração e validação na central.
 
 - [x] Oferecer mapa 2D, 3D em perspectiva e Automático, com escolha salva e aproximação maior em 3D; 41 testes aprovados e seleção, reabertura, mapa e veículo verificados em 1280×720 e 390×844. Validação em movimento na central depende do aparelho.

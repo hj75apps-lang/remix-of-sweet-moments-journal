@@ -565,6 +565,12 @@ body {
 .map-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
+.navigation-tiles.map-roads-enhanced {
+  filter: saturate(1.5) contrast(1.12);
+}
+.navigation-tiles.map-roads-enhanced.map-tiles-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) saturate(1.5) contrast(1.05);
+}
 
 .navigation-map-viewport .leaflet-control-attribution {
   position: absolute;

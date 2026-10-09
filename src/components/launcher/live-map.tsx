@@ -58,6 +58,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
       tilesRef.current.setUrl(source.url);
     }
     tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", source.darkFilter);
+    tilesRef.current.getContainer()?.classList.toggle("map-roads-enhanced", source.emphasizeRoads);
   }, [dark, settings.mapStyle]);
   useEffect(() => {
     const map = mapRef.current;
