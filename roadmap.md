@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Tornar “Para onde?” funcional para abrir o navegador escolhido com destino; incluir no APK pendente.
+
 - [ ] Gerar e entregar APK Android atualizado com abertura HJCar, validar pacote e assinatura.
 
 - [x] Configurar HJCar somente na primeira abertura Android; favicon atualizado, persistência Java e recursos validados. Detalhes em docs/ABERTURA-HJCAR.md.
