@@ -28,15 +28,15 @@ export function WeatherSymbol({
 
   return (
     <span
-      className={`weather-symbol ${className} ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
+      className={`inline-flex shrink-0 items-center justify-center ${className} ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
       role="img"
       aria-label={text}
-      style={{ fontSize: "2.5em" }}
+      style={{ fontSize: "2.5em", lineHeight: 1 }}
     >
       {isNightMode ? (
-        <Moon className="weather-symbol-moon" aria-hidden="true" style={{ width: "1em", height: "1.5em" }} />
+        <Moon className="weather-symbol-moon" aria-hidden="true" style={{ width: "1em", height: "1em" }} />
       ) : (
-        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow || code === 3 || code === 45 || code === 48 ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" style={{ width: "1em", height: "1.5em" }} />
+        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow || code === 3 || code === 45 || code === 48 ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" style={{ width: "1em", height: "1em" }} />
       )}
     </span>
   );
