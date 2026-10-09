@@ -170,10 +170,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     guidance: state.guidance,
     route: state.route,
     position: state.position,
-  }), [state]);
+  }), [state.active, state.sourcePackage, state.guidance, state.route, state.position]);
+
+  const value = useMemo(() => ({ ...state, access, provider, acquireLocation }), [state, access, provider, acquireLocation]);
 
   return (
-    <NavigationContext.Provider value={{ ...state, access, provider, acquireLocation }}>
+    <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
   );

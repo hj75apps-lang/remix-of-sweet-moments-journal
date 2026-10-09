@@ -76,7 +76,17 @@ function current() {
   return selectMedia(radio, system, lastSource);
 }
 
+function sameMedia(a: NowPlaying | null, b: NowPlaying | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.title === b.title && a.artist === b.artist && a.album === b.album &&
+    a.sourceName === b.sourceName && a.packageName === b.packageName &&
+    a.artwork === b.artwork && a.playing === b.playing && a.duration === b.duration &&
+    a.position === b.position && a.kind === b.kind;
+}
+
 function receiveSystem(media: NowPlaying | null) {
+  if (sameMedia(system, media)) return;
   if (media?.playing && (!system?.playing || media.packageName !== system.packageName)) lastSource = "system";
   system = media;
   emit();
@@ -112,8 +122,16 @@ function startNative() {
   };
   refreshNative = refresh;
   void refresh();
-  const timer = setInterval(() => void refresh(), 1000);
-  const onResume = () => void refresh();
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const onResume = () => {
+    clearInterval(timer);
+    timer = undefined;
+    if (document.hidden) return;
+    void refresh();
+    timer = setInterval(() => void refresh(), 1000);
+  };
+  // Native events and explicit controls remain active even while hidden.
+  onResume();
   window.addEventListener("focus", onResume);
   document.addEventListener("visibilitychange", onResume);
   const mediaListener = Promise.resolve(
