@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
+- [ ] Integrar trânsito real: conexão Mapbox bloqueada pela permissão da conta; um administrador precisa conectar o serviço antes da integração e validação na central.
+
 - [x] Oferecer mapa 2D, 3D em perspectiva e Automático, com escolha salva e aproximação maior em 3D; 41 testes aprovados e seleção, reabertura, mapa e veículo verificados em 1280×720 e 390×844. Validação em movimento na central depende do aparelho.
 
 - [x] Retirar círculos dos carros e orientar o mapa pelo sentido real do veículo, mantendo carro/seta para cima e direção estável ao parar; 28 testes aprovados, curvas e parada verificadas com GPS simulado. Validação em movimento na central depende do aparelho.

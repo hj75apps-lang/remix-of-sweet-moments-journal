@@ -9,6 +9,7 @@ import type { VehiclePosition } from "@/services/navigation-location";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { vehicleIconMarkup } from "@/services/vehicle-icon";
 import { followHeading, headingDelta, INITIAL_HEADING } from "@/services/navigation-heading";
+import { navigationMapTiles } from "@/services/navigation-map-style";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
 export default function LiveMap({ dark, position, visible, animated, route, navigating = false }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null; navigating?: boolean }) {
@@ -47,10 +48,18 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    // Keep the same layer/cache when the theme changes.
-    if (!tilesRef.current) tilesRef.current = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap", className: "navigation-tiles", keepBuffer: 2 }).addTo(map);
-    tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", dark);
-  }, [dark]);
+    const source = navigationMapTiles(settings.mapStyle, dark);
+    if (!tilesRef.current) tilesRef.current = L.tileLayer(source.url, { maxZoom: source.maxZoom, attribution: source.attribution, className: "navigation-tiles", keepBuffer: 2 }).addTo(map);
+    else {
+      const oldAttribution = tilesRef.current.options.attribution;
+      if (oldAttribution) map.attributionControl.removeAttribution(oldAttribution);
+      tilesRef.current.options.attribution = source.attribution;
+      map.attributionControl.addAttribution(source.attribution);
+      tilesRef.current.setUrl(source.url);
+    }
+    tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", source.darkFilter);
+    tilesRef.current.getContainer()?.classList.toggle("map-roads-enhanced", source.emphasizeRoads);
+  }, [dark, settings.mapStyle]);
   useEffect(() => {
     const map = mapRef.current;
     const marker = markerRef.current;
@@ -111,7 +120,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
   }, [route]);
 
   useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else { mapRef.current?.stop(); if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); } }, [visible]);
-  return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} data-map-animated={animated && visible} aria-hidden>
+  return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-style={settings.mapStyle} data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} data-map-animated={animated && visible} aria-hidden>
     <div className="navigation-map-ground"><div ref={el} className="navigation-live-map absolute inset-0 z-0" /></div>
     {perspective === "3d" && position && <div className="navigation-perspective-vehicle"><VehicleIcon icon={settings.vehicleIcon} /></div>}
   </div>;
