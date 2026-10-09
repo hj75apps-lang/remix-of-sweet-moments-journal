@@ -18,7 +18,8 @@ Testes antes das alterações: 245 aprovados e uma expectativa antiga de texto n
 | Alta | Leituras idênticas de mídia geram novos objetos | Consumidores redesenhados sem mudança real | Reutilizar snapshots quando todos os campos de mídia forem iguais |
 | Média | Motor de rádio retorna novo objeto em cada render do provedor | Mudanças no histórico propagam atualização a consumidores sem alteração do player | Memoizar retorno do motor e valores dos contextos |
 | Média | Modal de adicionar widgets e previsão detalhada carregam na Home fechados | Mais módulos no carregamento inicial | Importar sob demanda, com Suspense e estrutura estável; não atrasar o mapa principal |
-| Média | Mudança cartográfica de filtro chama setUrl com URL igual | Leaflet redesenha tiles desnecessariamente | Atualizar filtro e crédito sem recarregar a fonte quando a URL não mudou |
+| Média | Snapshots de navegação recriam geometria idêntica | Polilinha recalculada sem mudança de percurso | Reconciliar snapshots e preservar pontos quando só métricas mudam |
+| Baixa | Mudança cartográfica chama setUrl com URL igual | Leaflet já evita redraw da mesma URL; nenhum ganho comprovado aqui | Evitar chamada redundante sem atribuir redução de tiles a essa alteração |
 | Média | Rotação cria RAF mesmo sem mudança de direção | Trabalho de animação durante GPS parado | Animar somente diferenças de direção relevantes |
 | Baixa | Lista ampliada usa estimativa de altura antiga (64px) | Barra de rolagem e cálculo de posição menos estáveis | Alinhar estimativa ao mínimo de 96px e manter fallback para WebView antigo |
 | Baixa | Estado inicial do clima lê navegador/documento durante render | Risco de hidratação divergente offline/oculto | Estado inicial estável; leitura no efeito existente |
@@ -43,3 +44,14 @@ Testes antes das alterações: 245 aprovados e uma expectativa antiga de texto n
 - Screenshots desktop/mobile, tiles e marcador visíveis, console e ausência de overflow.
 - Comparar recursos iniciais em condições equivalentes, separando resultado medido de inferência.
 - Android físico, consumo de GPU/FPS, bateria e memória durante horas, R8/release e Lighthouse/Core Web Vitals publicados exigem medições específicas; não declará-los verificados apenas pelo navegador local.
+
+## Resultado verificado
+
+- 253 testes aprovados em 46 arquivos com dois workers; importação SSR aprovada. O timeout inicial de SSR não se repetiu isoladamente nem com concorrência limitada, sem ampliar seu prazo.
+- Última verificação automática de tipagem/build: `build OK` às 18:39:41 UTC.
+- Relógio e modo noturno usam minutos alinhados; polling de mídia pausa quando oculto sem interromper eventos/controles. Snapshots e geometria iguais são reutilizados.
+- Adicionar widgets, previsão expandida, equalizador e rádio manual carregam ao abrir. A previsão também é importada pela rota /clima; preloading pode carregá-la antes do toque.
+- Playwright confirmou seis páginas, GPS e 55 tiles visíveis, previsão Open-Meteo real e retorno; equalizador e formulário abriram. Áudio WAV real: Rádio → Home → pausa → retomada.
+- Screenshots em 1280×1800 e 390×844 confirmam previsão visível e sem overflow horizontal.
+- Após: 250 recursos, 184 módulos/scripts, 214 elementos DOM. Não houve redução comprovada de requisições iniciais nessa amostra de desenvolvimento; não se promete porcentagem de velocidade, memória ou FPS.
+- Não foi gerado novo APK nem testada central física. Trânsito conectado, áudio/sessões Android e posicionamento externo continuam dependentes das integrações e do aparelho registrados no roadmap.

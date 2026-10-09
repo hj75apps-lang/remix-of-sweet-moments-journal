@@ -36,8 +36,8 @@
 - Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
-- Home loads Leaflet behind ClientOnly immediately and customization dialogs on demand; window requests use card bounds/destination without fallback.
+- Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand. Window requests use card bounds without fallback.
 - navigation-view owns zoom/perspective; Leaflet tilts tiles, not GPS vehicles/credit. navigation-map-style owns cartography, not traffic; real traffic requires a connected provider.
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
-- Memoize unchanged radio/provider snapshots; reuse tiles/route geometry and skip unchanged bearings to avoid redundant work.
+- Memoize snapshots; reconcile navigation telemetry to reuse route geometry and skip unchanged bearings to avoid redundant work.
