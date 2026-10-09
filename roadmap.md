@@ -1,11 +1,11 @@
 # Roadmap
 
-- [ ] Tornar “Para onde?” funcional para abrir o navegador escolhido com destino; incluir no APK pendente.
+- [x] “Para onde?” abre diretamente o navegador escolhido com destino; 22 testes aprovados e abertura real Google Maps verificada na web, Home preservada; incluído no APK.
 
-- [ ] Gerar e entregar APK Android atualizado com abertura HJCar, validar pacote e assinatura.
+- [x] APK HJCar-2026-10-09-v2.apk entregue: compilação Android aprovada, cinco testes nativos aprovados, assinatura v2 e Android mínimo 24 verificados. Assinatura de teste difere do APK anterior; atualização direta não é compatível.
 
 - [x] Configurar HJCar somente na primeira abertura Android; favicon atualizado, persistência Java e recursos validados. Detalhes em docs/ABERTURA-HJCAR.md.
-- [ ] Confirmar abertura HJCar em instalação/reabertura na central: depende de APK atualizado e aparelho Android disponível; nenhum APK gerado nesta alteração.
+- [ ] Confirmar abertura HJCar e destino no navegador instalado na central: APK atualizado entregue, validação depende do aparelho Android disponível.
 
 - [x] Preservar a última visualização da Home sem internet: posição/tiles salvos, mapa e clima mantidos na queda e no retorno à Home; reconexão com novo GPS verificada, 267 testes aprovados. Limites em docs/HOME-OFFLINE.md; APK atualizado e validação física dependem da central.
 

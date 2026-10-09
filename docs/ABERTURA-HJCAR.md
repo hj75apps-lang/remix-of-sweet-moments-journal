@@ -13,4 +13,4 @@ Executado o código Java real de `FirstLaunchState` com verificações de instal
 
 XML dos recursos validado; dimensões do ícone conferidas; navegador confirmou o novo favicon servido na Home.
 
-Não foi gerado APK nesta alteração. A compilação completa e a exibição real da abertura ainda precisam ser verificadas com APK atualizado numa central Android; teste Java isolado não comprova renderização nativa.
+APK `HJCar-2026-10-09-v2.apk` gerado e entregue em 09/10/2026, incluindo o envio direto de destino ao navegador escolhido. Compilação Android e cinco testes JUnit aprovados, integridade ZIP e assinatura v2 verificadas, Android mínimo 24 confirmado. Assinatura de debug difere do APK anterior: não suporta atualização direta desse pacote. Reinstalação perde preferências locais; preservar dados exige compilar com a chave original, indisponível nesta sessão. A exibição real da abertura e abertura de navegador instalado ainda dependem de teste na central.
