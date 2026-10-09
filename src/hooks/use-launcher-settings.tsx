@@ -6,7 +6,7 @@ import { useNavigationApps } from "@/services/navigation-apps";
 export interface LauncherSettings {
   version: 1;
   navApp: NavApp;
-  /** Explicit opt-in: open the selected navigator once on native launcher startup. */
+  /** Legacy preference retained for saved-settings compatibility; home always shows its own map. */
   openNavigatorOnStartup: boolean;
   immersive: boolean;
   keepScreenOn: boolean;

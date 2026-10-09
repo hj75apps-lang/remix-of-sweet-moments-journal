@@ -3,90 +3,48 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NavigationWidget } from "./navigation-widget";
 
 const mocks = vi.hoisted(() => ({
-  native: true,
-  settings: { navApp: "waze", openNavigatorOnStartup: true },
+  settings: { navApp: "waze", openNavigatorOnStartup: true, animations: true },
+  apps: [{ id: "waze", label: "Waze" }, { id: "maps", label: "Google Maps" }, { id: "package:com.example.navigator", label: "Navigator" }],
   launch: vi.fn().mockResolvedValue(undefined),
-  normalLaunch: vi.fn().mockResolvedValue(undefined),
-  toast: vi.fn(),
+  acquire: vi.fn(), release: vi.fn(), update: vi.fn(), toast: vi.fn(),
 }));
-vi.mock("@/hooks/use-launcher-settings", () => ({
-  useLauncherSettings: () => ({ settings: mocks.settings, loaded: true, update: vi.fn() }),
-}));
-vi.mock("@/services/navigation-apps", () => ({
-  useNavigationApps: () => ({ ready: true, apps: [{ id: "waze", label: "Waze" }] }),
-}));
-vi.mock("@/services/launcher-system", () => ({
-  isLauncherNative: () => mocks.native,
-  errorMessage: () => "Indisponível",
-  startNavigation: mocks.normalLaunch,
-}));
-vi.mock("@/services/navigation-window", () => ({
-  navigationWindowBounds: () => ({ left: 100, top: 16, right: 900, bottom: 704 }),
-  openNavigationWindow: mocks.launch,
-}));
+vi.mock("@/hooks/use-launcher-settings", () => ({ useLauncherSettings: () => ({ settings: mocks.settings, loaded: true, update: mocks.update }) }));
+vi.mock("@/hooks/use-theme", () => ({ useTheme: () => ({ mode: "dark" }) }));
+vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ ready: true, apps: mocks.apps }) }));
+vi.mock("@/contexts/navigation-context", () => ({ useNavigationState: () => ({ acquireLocation: mocks.acquire, position: null, online: true, guidance: null, route: null }) }));
+vi.mock("@/services/launcher-system", () => ({ errorMessage: () => "Indisponível", startNavigation: mocks.launch }));
+vi.mock("./live-map", () => ({ default: () => null }));
 vi.mock("sonner", () => ({ toast: { error: mocks.toast } }));
 
-afterEach(() => {
-  cleanup();
-  vi.useRealTimers();
-  vi.clearAllMocks();
-  mocks.native = true;
-  mocks.settings.openNavigatorOnStartup = true;
-  mocks.settings.navApp = "waze";
-  mocks.launch.mockResolvedValue(undefined);
-});
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.useRealTimers(); mocks.settings.navApp = "waze"; });
 
-describe("external navigator frame", () => {
-  it("requests the selected navigator when home opens and opens again on return", async () => {
-    vi.useFakeTimers();
+describe("home GPS navigation", () => {
+  it("never launches an external navigator at startup or when returning home, even with the legacy opt-in", async () => {
+    vi.useFakeTimers(); mocks.acquire.mockReturnValue(mocks.release);
     const first = render(<NavigationWidget />);
-    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
-    expect(mocks.launch).toHaveBeenCalledWith("waze", { left: 100, top: 16, right: 900, bottom: 704 });
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     first.unmount();
-    render(<NavigationWidget />);
-    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
-    expect(mocks.launch).toHaveBeenCalledTimes(2);
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
-  });
-  it("never opens a replacement navigator when positioned windows fail", async () => {
-    vi.useFakeTimers();
-    mocks.launch.mockRejectedValue(new Error("window_unsupported"));
-    render(<NavigationWidget />);
-    await act(async () => { await vi.advanceTimersByTimeAsync(600); });
-    expect(mocks.launch).toHaveBeenCalledTimes(1);
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
-    expect(mocks.toast).toHaveBeenCalled();
-  });
-  it("does not launch a web map when the frame is tapped in a browser", async () => {
-    mocks.native = false;
-    render(<NavigationWidget />);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
-    expect(mocks.launch).not.toHaveBeenCalled();
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
-    expect(mocks.toast).toHaveBeenCalled();
-  });
-  it("respects a disabled automatic-opening preference", async () => {
-    vi.useFakeTimers();
-    mocks.settings.openNavigatorOnStartup = false;
     render(<NavigationWidget />);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(mocks.launch).not.toHaveBeenCalled();
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
+    expect(mocks.acquire).toHaveBeenCalledTimes(2);
+    expect(mocks.release).toHaveBeenCalledTimes(1);
   });
-  it("opens only the selected navigator after an explicit tap", async () => {
-    mocks.settings.openNavigatorOnStartup = false;
-    render(<NavigationWidget />);
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
-    expect(mocks.normalLaunch).toHaveBeenCalledExactlyOnceWith("waze", "");
-    expect(mocks.launch).not.toHaveBeenCalled();
+  it.each(["waze", "maps", "package:com.example.navigator", "system"])("explicitly opens configured navigator %s", async (app) => {
+    mocks.settings.navApp = app; render(<NavigationWidget />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador configurado" })); });
+    expect(mocks.launch).toHaveBeenCalledExactlyOnceWith(app, "");
   });
-  it("does not substitute a navigator when none is selected", async () => {
-    mocks.settings.navApp = "system";
+  it("launches the entered destination with the selected app and remembers it after success", async () => {
     render(<NavigationWidget />);
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador escolhido em tela cheia" })); });
-    expect(mocks.normalLaunch).not.toHaveBeenCalled();
-    expect(mocks.launch).not.toHaveBeenCalled();
-    expect(mocks.toast).toHaveBeenCalled();
+    fireEvent.change(screen.getByRole("textbox", { name: "Destino da navegação" }), { target: { value: "  Avenida Paulista  " } });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Iniciar navegação" })); });
+    expect(mocks.launch).toHaveBeenCalledExactlyOnceWith("waze", "Avenida Paulista");
+    expect(mocks.update).toHaveBeenCalledWith({ lastDestination: "Avenida Paulista" });
+  });
+  it("does not replace an uninstalled selected navigator", async () => {
+    mocks.settings.navApp = "package:com.missing.navigator"; render(<NavigationWidget />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador configurado" })); });
+    expect(mocks.launch).not.toHaveBeenCalled(); expect(mocks.toast).toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 # Widget de navegação em tempo real
 
-O Smart Auto Launcher possui um widget de navegação que mantém o mapa Leaflet em uma única instância por card, acompanha a posição do veículo com suavização e expõe uma camada de estado independente do navegador utilizado.
+O Smart Auto Launcher exibe seu próprio mapa Leaflet no espaço de navegação da Home ao abrir o launcher, inclusive após iniciar a central. A posição vem do GPS compartilhado e acompanha o veículo com suavização. Este mapa não é a tela incorporada do Waze ou Google Maps.
 
 ## O que é integrado hoje
 - Google Maps, Waze e outros apps Android que se anunciam como handlers de navegação;
@@ -9,9 +9,11 @@ O Smart Auto Launcher possui um widget de navegação que mantém o mapa Leaflet
 - GPS nativo/web compartilhado pelo location-store;
 - orientações publicadas por Google Maps/Waze/etc. via Notification Listener;
 - distância/tempo extraídos da orientação quando o app fornece esses dados no texto;
-- mapa em tela cheia;
-- retorno à Launcher sem reconstruir o estado do mapa;
+- busca de destino e abertura explícita do navegador escolhido em Ajustes;
+- retorno à Launcher com o mapa próprio e a última posição preservada no estado compartilhado;
 - geometria de rota opcional no NavigationProvider, usada somente quando um provedor entrega pontos de rota autoritativos.
+
+Não há abertura externa automática nem solicitação de janela posicionada na Home. A preferência antiga `openNavigatorOnStartup` permanece no formato salvo apenas por compatibilidade; não controla o mapa. Para iniciar o launcher ao ligar a central, use Ajustes → Abrir ao ligar a central e configure-o como tela inicial padrão; a execução após boot depende da política do aparelho.
 
 ## O que não é falsificado
 Android não fornece uma API genérica que permita incorporar a interface privada de navegação do Google Maps ou Waze dentro de outro app. O Launcher não usa iframe, WebView, captura de tela ou scraping desses aplicativos.
@@ -32,7 +34,7 @@ Para telemetria oficial de uma viagem externa — localização da viagem, ETA, 
 - location-store / navigation-location — fonte única de GPS.
 - navigation-apps — descoberta dos apps instalados.
 - navigation-deep-link-manager — URLs oficiais.
-- FullscreenNavigation — experiência expandida.
+- NavigationWidget abre o navegador externo somente por ação explícita; não carrega FullscreenNavigation.
 - LiveMap — uma instância Leaflet com câmera suavizada e rota opcional.
 
 ## Performance
