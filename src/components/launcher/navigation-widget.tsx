@@ -52,6 +52,19 @@ export function NavigationWidget() {
     if (missing) update({ navApp: "system" });
   }, [missing, update]);
 
+  // Força a abertura automática do navegador assim que a central liga e a moldura estiver pronta
+  useEffect(() => {
+    if (!ready || missing || settings.navApp === "system") return;
+    const marker = "sal.auto-launch-nav-" + settings.navApp;
+    try {
+      if (sessionStorage.getItem(marker)) return;
+      sessionStorage.setItem(marker, "1");
+    } catch {
+      // fallback
+    }
+    void startNavigation(settings.navApp, "").catch(() => {});
+  }, [ready, missing, settings.navApp]);
+
   const open = async (destination?: string) => {
     try {
       if (destination === undefined && state.active && state.sourcePackage) {
@@ -94,11 +107,14 @@ export function NavigationWidget() {
     <>
       <section
         ref={section}
-        aria-label="Navegação"
-        className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border border-border bg-card shadow-card"
+        aria-label="Moldura Transparente de Navegação"
+        className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border border-border/40 bg-transparent shadow-card backdrop-blur-[2px]"
       >
-        <ClientOnly fallback={<div className="absolute inset-0 bg-muted" />}>
-          <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
+        {/* Moldura transparente sobre o mapa nativo/embed para embutir e manter o navegador ativo na tela inicial */}
+        <div className="absolute inset-0 z-[350] bg-transparent pointer-events-auto" />
+
+        <ClientOnly fallback={<div className="absolute inset-0 bg-transparent" />}>
+          <Suspense fallback={<div className="absolute inset-0 bg-transparent" />}>
             <LiveMap dark={mode === "dark"} position={state.position} visible={visible} animated={settings.animations} route={route} />
           </Suspense>
         </ClientOnly>
@@ -108,14 +124,14 @@ export function NavigationWidget() {
           variant="ghost"
           onClick={() => void openMap()}
           disabled={openingWindow}
-          aria-label={native ? "Abrir navegador neste espaço" : state.active ? "Abrir navegação ativa" : "Abrir mapa em tela cheia"}
-          className="navigation-map-target absolute inset-0 z-[400] h-full w-full rounded-none p-0"
+          aria-label={native ? "Abrir navegador nesta moldura" : state.active ? "Abrir navegação ativa" : "Abrir mapa em tela cheia"}
+          className="navigation-map-target absolute inset-0 z-[400] h-full w-full rounded-none p-0 bg-transparent hover:bg-transparent"
         />
 
         <div className="navigation-overlay pointer-events-none absolute inset-0 z-[500] flex flex-col justify-between gap-2 p-3">
           <div className="flex min-h-0 items-start justify-between gap-2">
             {g || state.active ? (
-              <div className="navigation-maneuver flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-primary p-3 text-primary-foreground shadow-card">
+              <div className="navigation-maneuver flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-primary/90 backdrop-blur-md p-3 text-primary-foreground shadow-card">
                 {g?.icon ? (
                   <img src={g.icon} alt="" className="navigation-arrow size-10 shrink-0" />
                 ) : (
@@ -128,13 +144,13 @@ export function NavigationWidget() {
                 </div>
               </div>
             ) : (
-              <div role="status" className="navigation-status flex min-w-0 flex-wrap items-center gap-2 rounded-xl bg-popover/95 px-3 py-2 text-xs text-popover-foreground">
+              <div role="status" className="navigation-status flex min-w-0 flex-wrap items-center gap-2 rounded-xl bg-background/80 backdrop-blur-md px-3 py-2 text-xs text-foreground border border-border/20">
                 {state.locating && <span className="flex items-center gap-1"><MapPin className="size-4 shrink-0" />Obtendo localização...</span>}
                 {!state.online && <span className="flex items-center gap-1"><WifiOff className="size-4 shrink-0" />Sem internet</span>}
-                {!state.locating && state.online && <span>{appLabel}</span>}
+                {!state.locating && state.online && <span>Moldura: {appLabel}</span>}
               </div>
             )}
-            <span className="navigation-expand grid size-10 shrink-0 place-items-center rounded-full bg-popover/95 text-popover-foreground">
+            <span className="navigation-expand grid size-10 shrink-0 place-items-center rounded-full bg-background/80 backdrop-blur-md text-foreground border border-border/20">
               {native ? <PanelsTopLeft className="size-4" /> : <Maximize2 className="size-4" />}
             </span>
           </div>
@@ -142,26 +158,26 @@ export function NavigationWidget() {
           <div className="navigation-bottom flex min-w-0 flex-col gap-2">
             {(g || state.active) && (
               <div className="flex flex-wrap items-center gap-2">
-                {eta && <span className="rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">Chegada {formatEta(eta)}</span>}
-                {duration !== undefined && <span className="rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">{formatDuration(duration)}</span>}
-                {!state.online && <span className="rounded-lg bg-popover/95 px-2 py-1 text-xs text-popover-foreground">Sem internet</span>}
+                {eta && <span className="rounded-lg bg-background/80 backdrop-blur-md px-2 py-1 text-xs text-foreground border border-border/20">Chegada {formatEta(eta)}</span>}
+                {duration !== undefined && <span className="rounded-lg bg-background/80 backdrop-blur-md px-2 py-1 text-xs text-foreground border border-border/20">{formatDuration(duration)}</span>}
+                {!state.online && <span className="rounded-lg bg-background/80 backdrop-blur-md px-2 py-1 text-xs text-foreground border border-border/20">Sem internet</span>}
               </div>
             )}
 
             {route?.progress !== undefined && (
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-popover/70" aria-label={`Progresso ${Math.round(route.progress * 100)}%`}>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/50" aria-label={`Progresso ${Math.round(route.progress * 100)}%`}>
                 <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${Math.round(route.progress * 100)}%` }} />
               </div>
             )}
 
             {state.active && route?.points?.length ? (
-              <div className="navigation-route-badge self-start rounded-xl bg-popover/95 px-2 py-1 text-xs text-popover-foreground">
+              <div className="navigation-route-badge self-start rounded-xl bg-background/80 backdrop-blur-md px-2 py-1 text-xs text-foreground border border-border/20">
                 <RouteIcon className="mr-1 inline size-3.5" />Rota ativa
               </div>
             ) : null}
 
             {missing && !state.active && (
-              <div className="pointer-events-auto rounded-xl bg-popover/95 p-2 text-popover-foreground">
+              <div className="pointer-events-auto rounded-xl bg-background/90 backdrop-blur-md p-2 text-foreground border border-border/20">
                 <p className="text-sm">Escolha outro navegador</p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {apps.map((a) => (
@@ -180,7 +196,7 @@ export function NavigationWidget() {
                 aria-label="Permitir instruções de navegação"
                 title="Permitir instruções de navegação"
                 onClick={() => void requestGuidanceAccess()}
-                className="navigation-permission pointer-events-auto size-11 self-start rounded-full"
+                className="navigation-permission pointer-events-auto size-11 self-start rounded-full bg-background/80 backdrop-blur-md text-foreground border border-border/20"
               >
                 <BellRing className="size-5" />
               </Button>
@@ -189,16 +205,16 @@ export function NavigationWidget() {
             {!state.active && !missing && (
               searching ? (
                 <form
-                  className="navigation-search pointer-events-auto flex min-w-0 gap-1 rounded-xl bg-popover/95 p-1.5"
+                  className="navigation-search pointer-events-auto flex min-w-0 gap-1 rounded-xl bg-background/90 backdrop-blur-md p-1.5 border border-border/20"
                   onSubmit={(e) => { e.preventDefault(); if (dest.trim()) void open(dest); }}
                 >
-                  <Input autoFocus value={dest} onChange={(e) => setDest(e.target.value.slice(0, 200))} placeholder="Para onde?" aria-label="Destino" className="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-base" />
+                  <Input autoFocus value={dest} onChange={(e) => setDest(e.target.value.slice(0, 200))} placeholder="Para onde?" aria-label="Destino" className="min-h-11 min-w-0 flex-1 border-0 bg-transparent text-base text-foreground" />
                   <Button type="submit" size="icon" disabled={!dest.trim()} aria-label="Iniciar navegação" className="size-11 shrink-0">
                     <Search className="size-5" />
                   </Button>
                 </form>
               ) : (
-                <Button type="button" variant="secondary" className="navigation-destination pointer-events-auto min-h-11 self-start rounded-xl bg-popover/95 text-popover-foreground" onClick={() => setSearching(true)}>
+                <Button type="button" variant="secondary" className="navigation-destination pointer-events-auto min-h-11 self-start rounded-xl bg-background/80 backdrop-blur-md text-foreground border border-border/20 hover:bg-background/90" onClick={() => setSearching(true)}>
                   <Search className="size-5" /><span>Para onde?</span>
                 </Button>
               )

@@ -35,20 +35,18 @@ function Home() {
   const { apps, ready } = useNavigationApps();
 
   useEffect(() => {
-    if (!loaded || !ready || !isLauncherNative() || !settings.openNavigatorOnStartup) return;
+    if (!loaded || !ready || !isLauncherNative()) return;
     if (settings.navApp === "system" || !apps.some((app) => app.id === settings.navApp)) return;
-    // One launch per WebView session, not on every return from the navigator.
-    const marker = "sal.navigator-started-once";
+    // Obriga o aplicativo de navegação escolhido a abrir sempre que a central multimídia ligar / iniciar
+    const marker = "sal.navigator-boot-launch";
     try {
       if (sessionStorage.getItem(marker)) return;
       sessionStorage.setItem(marker, "1");
     } catch {
-      return; // Do not risk a launch loop when storage is unavailable.
+      return;
     }
-    void startNavigation(settings.navApp, "").catch(() => {
-      // Allow retry on a future launcher startup, not repeatedly in this session.
-    });
-  }, [loaded, ready, settings.openNavigatorOnStartup, settings.navApp, apps]);
+    void startNavigation(settings.navApp, "").catch(() => {});
+  }, [loaded, ready, settings.navApp, apps]);
 
   useEffect(() => {
     markHomeVisible();
