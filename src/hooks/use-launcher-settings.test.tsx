@@ -6,10 +6,22 @@ vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ apps:
 import { DEFAULT_SETTINGS, LauncherSettingsProvider, useLauncherSettings } from "./use-launcher-settings";
 import { VEHICLE_ICONS } from "@/services/vehicle-icon";
 import { MAP_VIEWS } from "@/services/navigation-view";
+import { MAP_STYLES } from "@/services/navigation-map-style";
 const wrapper = ({ children }: { children: ReactNode }) => <LauncherSettingsProvider>{children}</LauncherSettingsProvider>;
 beforeEach(() => { localStorage.clear(); localStorage.setItem("sal.android-system-integration-v2", "1"); });
 afterEach(() => cleanup());
 describe("launcher preference validation", () => {
+  it.each(MAP_STYLES)("persists the $label cartography", ({ value }) => {
+    const first = renderHook(useLauncherSettings, { wrapper });
+    act(() => first.result.current.update({ mapStyle: value }));
+    first.unmount();
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings.mapStyle).toBe(value);
+  });
+  it("migrates old cartography without losing vehicle or perspective", () => {
+    const { mapStyle: _style, ...legacy } = DEFAULT_SETTINGS;
+    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: { ...legacy, mapView: "3d", vehicleIcon: "red" } }));
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings).toMatchObject({ mapStyle: "roads", mapView: "3d", vehicleIcon: "red" });
+  });
   it.each(MAP_VIEWS)("persists and restores the $label map view", ({ value }) => {
     const first = renderHook(useLauncherSettings, { wrapper });
     act(() => first.result.current.update({ mapView: value }));

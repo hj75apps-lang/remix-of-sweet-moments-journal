@@ -15,6 +15,7 @@ import { useNavigationApps } from "@/services/navigation-apps";
 import { VEHICLE_ICONS } from "@/services/vehicle-icon";
 import { VehicleIcon } from "./vehicle-icon";
 import { MAP_VIEWS } from "@/services/navigation-view";
+import { MAP_STYLES } from "@/services/navigation-map-style";
 
 type BoolKey = "immersive" | "keepScreenOn" | "autostart" | "clock24h" | "animations";
 const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
@@ -204,6 +205,23 @@ export function LauncherSettingsPanel() {
 
       <div className={card}>
         <h2 className="text-lg font-semibold">Navegação padrão</h2>
+        <fieldset className="mt-4">
+          <legend className="text-base font-medium">Estilo do mapa</legend>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {MAP_STYLES.map((style) => (
+              <Button key={style.value} type="button" variant="secondary"
+                aria-pressed={settings.mapStyle === style.value}
+                className="min-h-12 whitespace-normal rounded-lg border border-border px-2 aria-pressed:border-primary aria-pressed:bg-primary/15"
+                onClick={() => update({ mapStyle: style.value })}>
+                {style.label}
+              </Button>
+            ))}
+          </div>
+        </fieldset>
+        <div className="mt-4 flex items-center justify-between gap-4 border-b border-border pb-4">
+          <span className="font-medium">Trânsito em tempo real</span>
+          <span role="status" className="text-right text-sm text-muted-foreground">Serviço não conectado</span>
+        </div>
         <fieldset className="mt-4">
           <legend className="text-base font-medium">Visualização do mapa</legend>
           <div className="mt-3 grid grid-cols-3 gap-2">
