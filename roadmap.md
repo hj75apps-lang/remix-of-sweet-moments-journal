@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Auditar toda a aplicação antes das alterações e registrar gargalos, impacto e prioridades de desempenho em docs/DESEMPENHO-2026-10-09.md.
+- [x] Otimizar carregamento, renderizações, timers e navegação sem alterar funcionalidades ou aparência.
+- [x] Validar regressões e fluxos em desktop/mobile; 253 testes aprovados, seis páginas e áudio real verificados; limites registrados no relatório.
+
 - [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
 - [ ] Integrar trânsito real: conexão Mapbox bloqueada pela permissão da conta; um administrador precisa conectar o serviço antes da integração e validação na central.
 

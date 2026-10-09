@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type Hls from "hls.js";
 import type { RadioStation } from "@/services/radio-browser";
 import { normalizeRadioStations, radioGain } from "@/services/radio-preferences";
@@ -437,7 +437,7 @@ export function useRadioPlayer(options: Options = {}) {
     });
   }, []);
 
-  return {
+  return useMemo(() => ({
     station,
     status,
     sourceIndex,
@@ -453,5 +453,5 @@ export function useRadioPlayer(options: Options = {}) {
     toggleFavorite,
     setEq,
     setGain,
-  };
+  }), [station, status, sourceIndex, audioConfirmed, volume, favorites, eqEnabled, eqStatus, gains, play, toggle, setVolume, toggleFavorite, setEq, setGain]);
 }

@@ -4,9 +4,23 @@ import { useEffect, useState } from "react";
 export function useClock(intervalMs = 1000): Date | null {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), intervalMs);
-    return () => clearInterval(id);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const period = Math.max(1000, intervalMs);
+    const refresh = () => {
+      clearTimeout(timer);
+      if (document.hidden) return;
+      setNow(new Date());
+      // Align to the displayed unit rather than drifting from mount time.
+      timer = setTimeout(refresh, period - Date.now() % period);
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [intervalMs]);
   return now;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   DndContext,
@@ -17,13 +17,13 @@ import type { HomeItem, AppId, WidgetKind } from "@/types/home";
 import { useHomeLayout } from "@/hooks/use-home-layout";
 import { homeGridRows } from "@/services/home-grid";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
-import { AddItemSheet } from "./add-item-sheet";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 import { memo } from "react";
 
 const LONG_PRESS_MS = 500;
+const AddItemSheet = lazy(() => import("./add-item-sheet").then((module) => ({ default: module.AddItemSheet })));
 
 
 const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
@@ -230,7 +230,8 @@ export function CustomizableHome() {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       if (!entry) return;
-      setBox({ width: entry.contentRect.width, height: entry.contentRect.height });
+      const { width, height } = entry.contentRect;
+      setBox((previous) => previous.width === width && previous.height === height ? previous : { width, height });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -346,14 +347,14 @@ export function CustomizableHome() {
           Pressione e segure qualquer cartão para personalizar a tela inicial.
         </p>
       )}
-      <AddItemSheet
+      {adding && <Suspense fallback={null}><AddItemSheet
         open={adding}
         onOpenChange={setAdding}
         onAdd={(item) => {
           home.add(item);
           setAdding(false);
         }}
-      />
+      /></Suspense>}
     </div>
   );
 }

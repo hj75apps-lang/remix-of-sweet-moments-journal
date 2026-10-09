@@ -5,18 +5,24 @@ import { navigationNightMode } from "@/services/navigation-theme";
 /** Map-only schedule; never modifies the saved preference. */
 export function useNavigationTheme(): boolean {
   const { preferredMode } = useTheme();
-  const [localTime, setLocalTime] = useState<Date | null>(null);
+  const [scheduledNight, setScheduledNight] = useState(false);
   useEffect(() => {
-    const refresh = () => setLocalTime(new Date());
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      if (document.hidden) return;
+      setScheduledNight(navigationNightMode(false, new Date()));
+      // Exact local 18:00/06:00 transitions, with no Date-driven 1 Hz renders.
+      timer = setTimeout(refresh, 60_000 - Date.now() % 60_000);
+    };
     refresh();
-    const timer = window.setInterval(refresh, 1000);
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     return () => {
-      window.clearInterval(timer);
+      clearTimeout(timer);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
-  return navigationNightMode(preferredMode === "dark", localTime);
+  return preferredMode === "dark" || scheduledNight;
 }

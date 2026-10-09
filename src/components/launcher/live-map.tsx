@@ -55,7 +55,8 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
       if (oldAttribution) map.attributionControl.removeAttribution(oldAttribution);
       tilesRef.current.options.attribution = source.attribution;
       map.attributionControl.addAttribution(source.attribution);
-      tilesRef.current.setUrl(source.url);
+      // The two OSM styles share a source; CSS-only changes must not reload tiles.
+      tilesRef.current.setUrl(source.url, true);
     }
     tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", source.darkFilter);
     tilesRef.current.getContainer()?.classList.toggle("map-roads-enhanced", source.emphasizeRoads);
@@ -71,10 +72,10 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     const smooth = animated && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !firstFix.current;
     if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current);
     const targetBearing = -heading.current.heading;
+    const delta = headingDelta(map.getBearing(), (targetBearing + 360) % 360);
     if (!smooth) map.setBearing(targetBearing);
-    else {
+    else if (Math.abs(delta) > 0.1) {
       const from = map.getBearing();
-      const delta = headingDelta(from, (targetBearing + 360) % 360);
       const started = performance.now();
       const rotate = (now: number) => {
         const progress = Math.min(1, (now - started) / 500);
@@ -117,7 +118,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     } else {
       routeRef.current.setLatLngs(points);
     }
-  }, [route]);
+  }, [route?.points]);
 
   useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else { mapRef.current?.stop(); if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); } }, [visible]);
   return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-style={settings.mapStyle} data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} data-map-animated={animated && visible} aria-hidden>

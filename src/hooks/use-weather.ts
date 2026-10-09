@@ -27,8 +27,8 @@ function readStoredWeather(): WeatherReport | undefined {
 export function useWeather() {
   const [position, setPosition] = useState<WeatherPosition | null>(null);
   const [gpsError, setGpsError] = useState("");
-  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
-  const [visible, setVisible] = useState(typeof document === "undefined" ? true : !document.hidden);
+  const [online, setOnline] = useState(true);
+  const [visible, setVisible] = useState(true);
   const queryClient = useQueryClient();
 
   const locate = useCallback(() => {

@@ -12,6 +12,7 @@ import {
   type NavigationConnectTelemetry,
 } from "@/services/navigation-connect";
 import type { NavigationState } from "@/services/navigation-state";
+import { reconcileNavigationTelemetry } from "@/services/navigation-telemetry";
 
 export interface NavigationContextState extends NavigationState {
   access: boolean | null;
@@ -94,7 +95,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       try {
         const telemetry = await getNavigationConnectTelemetry(trip.tripId, trip.accessKey);
         if (cancelled || readNavigationConnectTrip()?.tripId !== trip.tripId) return;
-        setConnectTelemetry(telemetry);
+        setConnectTelemetry((previous) => reconcileNavigationTelemetry(previous, telemetry));
         if (!telemetry.active) {
           clearNavigationConnectTrip();
           timer = setTimeout(() => void poll(), 1000);
@@ -170,10 +171,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     guidance: state.guidance,
     route: state.route,
     position: state.position,
-  }), [state]);
+  }), [state.active, state.sourcePackage, state.guidance, state.route, state.position]);
+
+  const value = useMemo(() => ({ ...state, access, provider, acquireLocation }), [state, access, provider, acquireLocation]);
 
   return (
-    <NavigationContext.Provider value={{ ...state, access, provider, acquireLocation }}>
+    <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
   );

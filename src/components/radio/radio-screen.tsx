@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Play,
@@ -33,10 +33,11 @@ import {
 } from "@/services/radio-search";
 import { useRadio } from "@/contexts/radio-player-context";
 import { rankRadioStations } from "@/services/radio-listening";
-import { RadioEqualizer } from "./radio-equalizer";
-import { CustomStationForm } from "./custom-station-form";
 import { useCustomStations } from "@/hooks/use-custom-stations";
 import { cn } from "@/lib/utils";
+
+const RadioEqualizer = lazy(() => import("./radio-equalizer").then((module) => ({ default: module.RadioEqualizer })));
+const CustomStationForm = lazy(() => import("./custom-station-form").then((module) => ({ default: module.CustomStationForm })));
 
 function StationLogo({ station, className }: { station: RadioStation; className?: string }) {
   const [broken, setBroken] = useState(false);
@@ -52,6 +53,7 @@ function StationLogo({ station, className }: { station: RadioStation; className?
           src={station.favicon}
           alt=""
           loading="lazy"
+          decoding="async"
           onError={() => setBroken(true)}
           className="size-full object-cover"
         />
@@ -195,13 +197,13 @@ export function RadioScreen() {
         </div>
 
         {showEq ? (
-          <RadioEqualizer
+          <Suspense fallback={<div className="min-h-0 flex-1" aria-busy="true" />}><RadioEqualizer
             enabled={player.eqEnabled}
             status={player.eqStatus}
             gains={player.gains}
             onToggle={player.setEq}
             onGain={player.setGain}
-          />
+          /></Suspense>
         ) : current ? (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
             <div className="relative">
@@ -552,7 +554,7 @@ export function RadioScreen() {
             : `${all.length} estações · diretório Radio Browser + catálogo verificado`}
         </p>
       </section>
-      <CustomStationForm
+      {showAdd && <Suspense fallback={null}><CustomStationForm
         open={showAdd}
         onOpenChange={setShowAdd}
         onSave={(st) => {
@@ -560,7 +562,7 @@ export function RadioScreen() {
           setTab("mine");
           player.play(st);
         }}
-      />
+      /></Suspense>}
     </div>
   );
 }

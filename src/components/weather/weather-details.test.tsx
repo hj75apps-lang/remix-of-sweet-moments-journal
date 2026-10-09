@@ -31,7 +31,7 @@ describe("weather forecast calendar", () => {
     expect(screen.queryByText("Previsão da semana")).not.toBeInTheDocument();
     expect(screen.queryByText(weather.source)).not.toBeInTheDocument();
     expect(screen.queryByText(weather.city)).not.toBeInTheDocument();
-    expect(screen.getByText("Hoje · Céu limpo")).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Condição atual" })).getByText("Céu limpo")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Condição atual" })).getByText("Máx. 34° · Mín. 22°")).toBeInTheDocument();
     const forecast = screen.getByRole("list", { name: "Previsão de cinco dias" });
     expect(within(forecast).getAllByRole("listitem")).toHaveLength(5);

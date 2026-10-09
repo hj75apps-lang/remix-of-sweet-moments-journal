@@ -4,7 +4,7 @@ import { WidgetCard } from "./widget-card";
 
 export function ClockWidget() {
   const { settings } = useLauncherSettings();
-  const now = useClock();
+  const now = useClock(60_000);
   const weekday = now?.toLocaleDateString("pt-BR", { weekday: "long" });
   const fullDate = now?.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const dateLabel = weekday && fullDate
