@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import "leaflet-rotate";
 import type { NavigationRoute } from "@/services/navigation-state";
 import "leaflet/dist/leaflet.css";
 import type { VehiclePosition } from "@/services/navigation-location";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { vehicleIconMarkup } from "@/services/vehicle-icon";
+import { followHeading, headingDelta, INITIAL_HEADING } from "@/services/navigation-heading";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
 export default function LiveMap({ dark, position, visible, animated, route }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null }) {
@@ -15,9 +17,11 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
   const markerRef = useRef<L.Marker | null>(null);
   const routeRef = useRef<L.Polyline | null>(null);
   const firstFix = useRef(true);
+  const heading = useRef(INITIAL_HEADING);
+  const rotationFrame = useRef<number | null>(null);
   useEffect(() => {
     if (!el.current) return;
-    const map = L.map(el.current, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([-15.78, -47.93], 4);
+    const map = L.map(el.current, { rotate: true, rotateControl: false, touchRotate: false, shiftKeyRotate: false, zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([-15.78, -47.93], 4);
     map.attributionControl.setPrefix(false);
     mapRef.current = map;
     markerRef.current = L.marker([0, 0], { interactive: false, zIndexOffset: 1000 });
@@ -25,7 +29,7 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     ro?.observe(el.current);
     window.addEventListener("resize", resize);
-    return () => { ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; tilesRef.current = null; markerRef.current = null; routeRef.current = null; firstFix.current = true; };
+    return () => { if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; tilesRef.current = null; markerRef.current = null; routeRef.current = null; firstFix.current = true; };
   }, []);
   useEffect(() => {
     markerRef.current?.setIcon(L.divIcon({ className: "vehicle-marker", html: vehicleIconMarkup(settings.vehicleIcon), iconSize: [64, 64], iconAnchor: [32, 32] }));
@@ -44,9 +48,22 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     const ll: L.LatLngExpression = [position.latitude, position.longitude];
     marker.setLatLng(ll);
     if (!map.hasLayer(marker)) marker.addTo(map);
-    const icon = marker.getElement();
-    icon?.style.setProperty("--vehicle-heading", `${position.heading ?? 0}deg`);
+    heading.current = followHeading(heading.current, position);
     const smooth = animated && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !firstFix.current;
+    if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current);
+    const targetBearing = -heading.current.heading;
+    if (!smooth) map.setBearing(targetBearing);
+    else {
+      const from = map.getBearing();
+      const delta = headingDelta(from, (targetBearing + 360) % 360);
+      const started = performance.now();
+      const rotate = (now: number) => {
+        const progress = Math.min(1, (now - started) / 500);
+        map.setBearing(from + delta * (1 - (1 - progress) ** 3));
+        rotationFrame.current = progress < 1 ? requestAnimationFrame(rotate) : null;
+      };
+      rotationFrame.current = requestAnimationFrame(rotate);
+    }
     map.stop();
     if (firstFix.current) map.setView(ll, 16, { animate: false });
     else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
@@ -78,6 +95,6 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     }
   }, [route]);
 
-  useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else mapRef.current?.stop(); }, [visible]);
+  useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else { mapRef.current?.stop(); if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); } }, [visible]);
   return <div ref={el} className="navigation-live-map absolute inset-0 z-0" aria-hidden />;
 }

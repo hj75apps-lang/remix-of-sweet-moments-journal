@@ -37,4 +37,4 @@
 - The Android build (build:android) prerenders a static SPA shell with nitro disabled so Capacitor can package the app offline; the web/Cloudflare build is unchanged.
 - Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
 - Home lazy-loads Leaflet behind ClientOnly; explicit navigation-window requests use card bounds and destination without fallback, preserving startup map and SSR safety.
-- Map schedules preserve preferences; validated vehicle choices share fixed SVG previews and GPS markers.
+- Map themes preserve settings; vehicle SVGs are shared. Leaflet rotation follows validated GPS course so markers stay upright.
