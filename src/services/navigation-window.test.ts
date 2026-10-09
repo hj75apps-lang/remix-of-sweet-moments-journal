@@ -22,7 +22,14 @@ describe("navigation window", () => {
     vi.stubGlobal("window", { Capacitor: { isNativePlatform: () => true, Plugins: { LauncherSystem: { openNavigationWindow: launch } } } });
     const bounds = { left: 100, top: 16, right: 900, bottom: 704 };
     await openNavigationWindow("waze", bounds);
-    expect(launch).toHaveBeenCalledExactlyOnceWith({ app: "waze", bounds });
+    expect(launch).toHaveBeenCalledExactlyOnceWith({ app: "waze", bounds, destination: "" });
+  });
+  it("sends the entered destination to the same positioned navigator", async () => {
+    const launch = vi.fn().mockResolvedValue({ requested: true });
+    vi.stubGlobal("window", { Capacitor: { isNativePlatform: () => true, Plugins: { LauncherSystem: { openNavigationWindow: launch } } } });
+    const bounds = { left: 100, top: 16, right: 900, bottom: 704 };
+    await openNavigationWindow("maps", bounds, "  Avenida Paulista  ");
+    expect(launch).toHaveBeenCalledExactlyOnceWith({ app: "maps", bounds, destination: "Avenida Paulista" });
   });
   it("reports unsupported windows without requesting normal navigation", async () => {
     vi.stubGlobal("window", { Capacitor: { isNativePlatform: () => true, Plugins: { LauncherSystem: { openNavigationWindow: vi.fn().mockResolvedValue({ requested: false }) } } } });
