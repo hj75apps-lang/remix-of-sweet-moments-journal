@@ -13,7 +13,6 @@ import { navigationId, useNavigationApps } from "@/services/navigation-apps";
 import { useNavigationState } from "@/contexts/navigation-context";
 import { formatDistance, formatDuration, formatEta } from "@/services/navigation-state";
 
-const LiveMap = lazy(() => import("./live-map"));
 const FullscreenNavigation = lazy(() => import("./fullscreen-navigation").then((module) => ({ default: module.FullscreenNavigation })));
 
 export function NavigationWidget() {
@@ -52,7 +51,7 @@ export function NavigationWidget() {
     if (missing) update({ navApp: "system" });
   }, [missing, update]);
 
-  // Força a abertura automática do navegador assim que a central liga e a moldura estiver pronta
+  // Abertura automática e embutimento via Torque Hammer window na moldura transparente ao iniciar
   useEffect(() => {
     if (!ready || missing || settings.navApp === "system") return;
     const marker = "sal.auto-launch-nav-" + settings.navApp;
@@ -62,7 +61,19 @@ export function NavigationWidget() {
     } catch {
       // fallback
     }
-    void startNavigation(settings.navApp, "").catch(() => {});
+    const timer = setTimeout(() => {
+      if (section.current && isLauncherNative()) {
+        const bounds = navigationWindowBounds(section.current.getBoundingClientRect());
+        if (bounds) {
+          void openNavigationWindow(settings.navApp, bounds).catch(() => {
+            void startNavigation(settings.navApp, "");
+          });
+          return;
+        }
+      }
+      void startNavigation(settings.navApp, "").catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
   }, [ready, missing, settings.navApp]);
 
   const open = async (destination?: string) => {
@@ -113,11 +124,7 @@ export function NavigationWidget() {
         {/* Moldura transparente sobre o mapa nativo/embed para embutir e manter o navegador ativo na tela inicial */}
         <div className="absolute inset-0 z-[350] bg-transparent pointer-events-auto" />
 
-        <ClientOnly fallback={<div className="absolute inset-0 bg-transparent" />}>
-          <Suspense fallback={<div className="absolute inset-0 bg-transparent" />}>
-            <LiveMap dark={mode === "dark"} position={state.position} visible={visible} animated={settings.animations} route={route} />
-          </Suspense>
-        </ClientOnly>
+        <div className="absolute inset-0 z-0 bg-transparent pointer-events-none" aria-hidden />
 
         <Button
           type="button"
