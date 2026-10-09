@@ -661,3 +661,32 @@ body {
 .navigation-map-viewport[data-map-view="3d"] .vehicle-marker { visibility:hidden; }
 .navigation-perspective-vehicle { position:absolute; left:50%; top:50%; width:64px; height:64px; transform:translate(-50%,-50%); z-index:4; pointer-events:none; }
 .navigation-perspective-vehicle .vehicle-icon-preview { width:64px; height:64px; }
+
+.vehicle-marker::before,
+.navigation-perspective-vehicle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--vehicle-blue);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: vehicle-position-wave 2.4s ease-out infinite;
+}
+@keyframes vehicle-position-wave {
+  0% { transform: translate(-50%, -50%) scale(.65); opacity: .7; }
+  75%, 100% { transform: translate(-50%, -50%) scale(1.85); opacity: 0; }
+}
+.navigation-map-viewport[data-map-animated="false"] .vehicle-marker::before,
+.navigation-map-viewport[data-map-animated="false"] .navigation-perspective-vehicle::before,
+.reduce-motion .vehicle-marker::before,
+.reduce-motion .navigation-perspective-vehicle::before {
+  animation: none;
+  content: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vehicle-marker::before,
+  .navigation-perspective-vehicle::before { animation: none; content: none; }
+}

@@ -111,7 +111,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
   }, [route]);
 
   useEffect(() => { if (visible) mapRef.current?.invalidateSize({ pan: false }); else { mapRef.current?.stop(); if (rotationFrame.current !== null) cancelAnimationFrame(rotationFrame.current); } }, [visible]);
-  return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} aria-hidden>
+  return <div ref={viewport} className="navigation-map-viewport absolute inset-0 z-0 overflow-hidden" data-map-view={perspective} data-map-mode={settings.mapView} data-map-zoom={position ? zoom : 4} data-map-animated={animated && visible} aria-hidden>
     <div className="navigation-map-ground"><div ref={el} className="navigation-live-map absolute inset-0 z-0" /></div>
     {perspective === "3d" && position && <div className="navigation-perspective-vehicle"><VehicleIcon icon={settings.vehicleIcon} /></div>}
   </div>;
