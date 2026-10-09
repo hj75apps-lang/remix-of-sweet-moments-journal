@@ -140,23 +140,25 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     void applyLauncherPrefs({
       immersive: settings.immersive,
       keepScreenOn: settings.keepScreenOn,
       autostart: settings.autostart,
     }).catch(() => undefined);
-  }, [settings.immersive, settings.keepScreenOn, settings.autostart]);
+  }, [loaded, settings.immersive, settings.keepScreenOn, settings.autostart]);
 
   useEffect(() => {
+    if (!loaded) return;
     void setScreenBrightness(settings.brightness).catch(() => undefined);
-  }, [settings.brightness]);
+  }, [loaded, settings.brightness]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("reduce-motion", !settings.animations);
   }, [settings.animations]);
 
   useEffect(() => {
-    if (!navigationAppsReady || settings.navApp === "system") return;
+    if (!loaded || !navigationAppsReady || settings.navApp === "system") return;
     if (!navigationApps.some((app) => app.id === settings.navApp)) {
       setSettings((prev) => {
         const next = { ...prev, navApp: "system" as NavApp };
@@ -164,7 +166,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
         return next;
       });
     }
-  }, [navigationApps, navigationAppsReady, settings.navApp]);
+  }, [loaded, navigationApps, navigationAppsReady, settings.navApp]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;

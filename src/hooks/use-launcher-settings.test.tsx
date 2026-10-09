@@ -1,16 +1,25 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-vi.mock("@/services/launcher-system", () => ({ applyLauncherPrefs: async () => {}, setScreenBrightness: async () => {} }));
+vi.mock("@/services/launcher-system", () => ({ applyLauncherPrefs: vi.fn(async () => {}), setScreenBrightness: vi.fn(async () => {}) }));
 vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ apps: [], ready: false }) }));
 import { DEFAULT_SETTINGS, LauncherSettingsProvider, useLauncherSettings } from "./use-launcher-settings";
 import { VEHICLE_ICONS } from "@/services/vehicle-icon";
 import { MAP_VIEWS } from "@/services/navigation-view";
 import { MAP_STYLES } from "@/services/navigation-map-style";
+import { applyLauncherPrefs, setScreenBrightness } from "@/services/launcher-system";
 const wrapper = ({ children }: { children: ReactNode }) => <LauncherSettingsProvider>{children}</LauncherSettingsProvider>;
-beforeEach(() => { localStorage.clear(); localStorage.setItem("sal.android-system-integration-v2", "1"); });
+beforeEach(() => { vi.clearAllMocks(); localStorage.clear(); localStorage.setItem("sal.android-system-integration-v2", "1"); });
 afterEach(() => cleanup());
 describe("launcher preference validation", () => {
+  it("applies only restored settings to Android, not transient startup defaults", () => {
+    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: { ...DEFAULT_SETTINGS, immersive: true, brightness: 0.4 } }));
+    renderHook(useLauncherSettings, { wrapper });
+    expect(applyLauncherPrefs).toHaveBeenCalledTimes(1);
+    expect(applyLauncherPrefs).toHaveBeenCalledWith({ immersive: true, keepScreenOn: false, autostart: false });
+    expect(setScreenBrightness).toHaveBeenCalledTimes(1);
+    expect(setScreenBrightness).toHaveBeenCalledWith(0.4);
+  });
   it.each(MAP_STYLES)("persists the $label cartography", ({ value }) => {
     const first = renderHook(useLauncherSettings, { wrapper });
     act(() => first.result.current.update({ mapStyle: value }));

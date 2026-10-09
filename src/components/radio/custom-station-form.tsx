@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from "react";
-import { z } from "zod";
+import { useId, useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { customStationSchema } from "@/services/custom-station";
 import {
   Dialog,
   DialogContent,
@@ -8,23 +9,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { RadioStation } from "@/services/radio-browser";
-
-const schema = z.object({
-  name: z.string().trim().min(2, "Informe o nome da rádio").max(80),
-  url: z
-    .string()
-    .trim()
-    .url("Endereço inválido")
-    .max(500)
-    .refine((u) => u.startsWith("https://"), "Use um endereço que comece com https://"),
-  frequency: z
-    .string()
-    .trim()
-    .max(12)
-    .regex(/^$|^\d{2,4}([.,]\d)?\s*(FM|AM)?$/i, "Ex.: 106.7 FM"),
-  city: z.string().trim().max(60),
-  state: z.string().trim().max(40),
-});
 
 const fields = [
   { key: "name", label: "Nome da rádio", placeholder: "Minha Rádio" },
@@ -53,10 +37,11 @@ export function CustomStationForm({
 }) {
   const [values, setValues] = useState<Values>(empty);
   const [errors, setErrors] = useState<Partial<Values>>({});
+  const errorId = useId();
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const r = schema.safeParse(values);
+    const r = customStationSchema.safeParse(values);
     if (!r.success) {
       const errs: Partial<Values> = {};
       for (const i of r.error.issues) errs[i.path[0] as keyof Values] ??= i.message;
@@ -102,21 +87,25 @@ export function CustomStationForm({
                 value={values[f.key]}
                 placeholder={f.placeholder}
                 aria-invalid={!!errors[f.key]}
-                onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                aria-describedby={errors[f.key] ? `${errorId}-${f.key}` : undefined}
+                onChange={(e) => {
+                  const value = e.currentTarget.value;
+                  setValues((v) => ({ ...v, [f.key]: value }));
+                }}
                 inputMode={f.key === "url" ? "url" : f.key === "frequency" ? "decimal" : "text"}
                 className="min-h-11 rounded-xl border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring"
               />
               {errors[f.key] && (
-                <span className="text-xs font-normal text-destructive">{errors[f.key]}</span>
+                <span id={`${errorId}-${f.key}`} role="alert" className="text-xs font-normal text-destructive">{errors[f.key]}</span>
               )}
             </label>
           ))}
-          <button
+          <Button
             type="submit"
             className="min-h-11 rounded-xl bg-primary font-semibold text-primary-foreground"
           >
             Salvar rádio
-          </button>
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

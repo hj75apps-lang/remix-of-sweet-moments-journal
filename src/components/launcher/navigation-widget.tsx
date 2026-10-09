@@ -18,6 +18,7 @@ export function NavigationWidget() {
   const { settings, update } = useLauncherSettings();
   const { apps, ready } = useNavigationApps();
   const state = useNavigationState();
+  const { acquireLocation } = state;
   const darkMap = useNavigationTheme();
   const [destination, setDestination] = useState("");
   const [opening, setOpening] = useState(false);
@@ -26,7 +27,7 @@ export function NavigationWidget() {
   const selected = apps.find((app) => app.id === settings.navApp);
 
   // The home map owns one foreground subscription; the root retains the last fix.
-  useEffect(() => state.acquireLocation(), [state.acquireLocation]);
+  useEffect(() => acquireLocation(), [acquireLocation]);
 
   const openNavigator = async (target: string) => {
     if (pending.current || !ready) return;
