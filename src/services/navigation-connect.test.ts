@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearNavigationConnectTrip, isNavigationConnectConfigured, readNavigationConnectTrip, rememberNavigationConnectTrip, onNavigationConnectTripChanged } from "./navigation-connect";
+import { clearNavigationConnectTrip, isNavigationConnectConfigured, readNavigationConnectTrip, rememberNavigationConnectTrip, onNavigationConnectTripChanged,
+  setNavigationConnectCreatorCredential, createNavigationConnectTrip, getNavigationConnectTelemetry } from "./navigation-connect";
 
-afterEach(() => { vi.restoreAllMocks(); clearNavigationConnectTrip(); sessionStorage.clear(); });
+afterEach(() => { vi.restoreAllMocks(); setNavigationConnectCreatorCredential(null); clearNavigationConnectTrip(); sessionStorage.clear(); });
 
 describe("Navigation Connect client", () => {
   it("keeps configuration server-side", () => {
@@ -36,5 +37,44 @@ describe("Navigation Connect client", () => {
     expect(readNavigationConnectTrip()).toEqual(trip);
     clearNavigationConnectTrip();
     expect(readNavigationConnectTrip()).toBeNull();
+  });
+  it("uses a memory-only creator key while persisting only the trip capability", async () => {
+    const credential = "a".repeat(48);
+    setNavigationConnectCreatorCredential(credential);
+    const trip = { tripId: "new-trip", expiresAt: new Date(Date.now() + 60000).toISOString(), authToken: "temporary-google-token", launchUrl: "https://waze.com/ul?q=Casa" };
+    const request = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json(trip, { headers: { "x-navigation-connect-access-key": "signed-trip-key" } }));
+    expect(await createNavigationConnectTrip({ app: "waze", destination: "Casa" })).toEqual(trip);
+    expect(request).toHaveBeenCalledWith("/api/navigation/trips", expect.objectContaining({
+      headers: { "content-type": "application/json", authorization: `Bearer ${credential}` }, redirect: "error", signal: expect.anything(),
+    }));
+    const stored = sessionStorage.getItem("smart-auto-launcher:navigation-connect-trip:v2");
+    expect(stored).not.toContain(credential);
+    expect(stored).not.toContain(trip.authToken);
+    setNavigationConnectCreatorCredential(null);
+    expect(readNavigationConnectTrip()).toBeNull();
+  });
+  it.each(["https://attacker.example/maps/dir/", "javascript:alert(1)", "https://user:pass@www.google.com/maps/dir/"])("rejects an unexpected launch URL: %s", async (launchUrl) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ tripId: "trip", expiresAt: new Date(Date.now() + 60000).toISOString(), authToken: "token", launchUrl },
+      { headers: { "x-navigation-connect-access-key": "signed-key" } }));
+    await expect(createNavigationConnectTrip({ app: "maps", destination: "Casa" })).rejects.toThrow("viagem inválida");
+    expect(readNavigationConnectTrip()).toBeNull();
+  });
+  it("rejects oversized successful trip payloads", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("x".repeat(32769)));
+    await expect(createNavigationConnectTrip({ app: "maps", destination: "Casa" })).rejects.toThrow("body_too_large");
+    expect(readNavigationConnectTrip()).toBeNull();
+  });
+  it("keeps server error bodies out of user-facing exceptions", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("unexpected-provider-secret", { status: 503 }));
+    await expect(createNavigationConnectTrip({ app: "maps", destination: "Casa" })).rejects.toThrow("Serviço de navegação indisponível (503)");
+  });
+  it("accepts authoritative metrics but rejects another trip and invalid positions", async () => {
+    const valid = { tripId: "trip", state: "ENROUTE", active: true, sourcePackage: null, remainingDurationSeconds: 12.5,
+      route: { points: [], remainingDistanceMeters: 300 } };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json(valid));
+    await expect(getNavigationConnectTelemetry("trip", "signed-key")).resolves.toEqual(valid);
+    await expect(getNavigationConnectTelemetry("other-trip", "signed-key")).rejects.toThrow("telemetria inválida");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ ...valid, latitude: 200, longitude: 0 }));
+    await expect(getNavigationConnectTelemetry("trip", "signed-key")).rejects.toThrow("telemetria inválida");
   });
 });

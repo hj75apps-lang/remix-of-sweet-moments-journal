@@ -6,6 +6,8 @@ Base examinada: `d77c264bde6d7d7a33b78def49580477b65c6e5e`, árvore `789d47d5ea5
 
 ## Resultado e alcance
 
+Continuidade: [proteção do backend Navigation Connect](SEGURANCA-NAVIGATION-CONNECT.md) documenta autenticação de criadores, quota SQLite compartilhada, limites de chamadas externas e o estado da validação no Lovable. Essa implementação exige provisionamento e binding privados no ambiente de implantação; não certifica configuração de produção.
+
 A revisão encontrou falhas concretas de dados, ciclo de vida e integração, além de dependências com avisos de segurança. As correções mantêm os widgets, o player global, a edição da Home e as integrações nativas. A previsão conserva hoje em destaque e os cinco dias seguintes. Não houve publicação de Site, mudança de visibilidade ou certificação de comportamento em uma central real.
 
 | Área | Revisão realizada | Limite da evidência |

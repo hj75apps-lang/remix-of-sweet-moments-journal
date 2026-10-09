@@ -1,40 +1,11 @@
 import { createTrackedTrip, getTrackedTrip, createNavigationConnectAccessKey, verifyNavigationConnectAccessKey } from "./navigation-connect-server";
 import { BodyLimitError, readBoundedText } from "./bounded-body";
-
-const navigationRateLimits = new Map<string, { windowStart: number; count: number }>();
-const NAVIGATION_RATE_WINDOW_MS = 60_000;
-const NAVIGATION_RATE_MAX = 5;
-
-function navigationClientKey(request: Request): string {
-  return request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown";
-}
-
-function allowNavigationCreate(request: Request): boolean {
-  const now = Date.now();
-  for (const [storedKey, entry] of navigationRateLimits) {
-    if (now - entry.windowStart >= NAVIGATION_RATE_WINDOW_MS) navigationRateLimits.delete(storedKey);
-  }
-  while (navigationRateLimits.size >= 2000) {
-    const oldest = navigationRateLimits.keys().next().value as string | undefined;
-    if (!oldest) break;
-    navigationRateLimits.delete(oldest);
-  }
-  const key = navigationClientKey(request);
-  const current = navigationRateLimits.get(key);
-  if (!current || now - current.windowStart >= NAVIGATION_RATE_WINDOW_MS) {
-    navigationRateLimits.set(key, { windowStart: now, count: 1 });
-    return true;
-  }
-  if (current.count >= NAVIGATION_RATE_MAX) return false;
-  current.count += 1;
-  return true;
-}
+import { authenticateNavigationCreator, consumeNavigationQuota, NavigationGuardError } from "./navigation-request-guard";
 
 export async function handleNavigationConnect(request: Request, env: unknown): Promise<Response | null> {
   const url = new URL(request.url);
-  if (!url.pathname.startsWith("/api/navigation/trips")) return null;
+  if (url.pathname !== "/api/navigation/trips" && !url.pathname.startsWith("/api/navigation/trips/")) return null;
+  const serverEnv = env && typeof env === "object" ? env as Record<string, unknown> : {};
   const allowedOrigin =
     typeof (env as { [key: string]: unknown })?.["NAVIGATION_CONNECT_ALLOWED_ORIGIN"] === "string"
       ? String((env as { [key: string]: unknown })["NAVIGATION_CONNECT_ALLOWED_ORIGIN"])
@@ -44,11 +15,15 @@ export async function handleNavigationConnect(request: Request, env: unknown): P
     "cache-control": "no-store",
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type,x-navigation-connect-access-key",
-    "access-control-expose-headers": "x-navigation-connect-access-key",
+    "access-control-allow-headers": "content-type,authorization,x-navigation-connect-access-key",
+    "access-control-expose-headers": "x-navigation-connect-access-key,retry-after",
+    "x-content-type-options": "nosniff",
     "vary": "Origin",
   };
-  if (allowedOrigin && requestOrigin === allowedOrigin) cors["access-control-allow-origin"] = allowedOrigin;
+  if (allowedOrigin && requestOrigin === allowedOrigin) {
+    cors["access-control-allow-origin"] = allowedOrigin;
+    cors["access-control-allow-credentials"] = "true";
+  }
   const expectedOrigin = allowedOrigin || url.origin;
   if ((request.method === "POST" || request.method === "OPTIONS") &&
       (allowedOrigin ? requestOrigin !== expectedOrigin : requestOrigin && requestOrigin !== expectedOrigin)) {
@@ -59,6 +34,7 @@ export async function handleNavigationConnect(request: Request, env: unknown): P
       return new Response(null, { status: 204, headers: cors });
     }
     if (request.method === "POST" && url.pathname === "/api/navigation/trips") {
+      const creator = await authenticateNavigationCreator(request, serverEnv);
       let body: unknown;
       try { body = JSON.parse(await readBoundedText(request, 4096)); } catch (error) {
         return new Response(JSON.stringify({ error: error instanceof BodyLimitError ? "request_too_large" : "invalid_json" }), {
@@ -70,14 +46,12 @@ export async function handleNavigationConnect(request: Request, env: unknown): P
           !body.destination.trim() || body.destination.trim().length > 200) {
         return new Response(JSON.stringify({ error: "invalid_trip_input" }), { status: 400, headers: cors });
       }
-      if (!allowNavigationCreate(request)) return new Response(JSON.stringify({ error: "rate_limited" }), {
-        status: 429, headers: { ...cors, "retry-after": "60" },
-      });
-      const trip = await createTrackedTrip(env as Record<string, unknown>, {
+      await consumeNavigationQuota(serverEnv, "create", creator);
+      const trip = await createTrackedTrip(serverEnv, {
         app: body.app,
         destination: body.destination.trim(),
-      });
-      const accessKey = await createNavigationConnectAccessKey(env as Record<string, unknown>, trip.tripId, trip.expiresAt);
+      }, request.signal);
+      const accessKey = await createNavigationConnectAccessKey(serverEnv, trip.tripId, trip.expiresAt);
       return new Response(JSON.stringify(trip), {
         status: 200,
         headers: { ...cors, "x-navigation-connect-access-key": accessKey },
@@ -86,18 +60,25 @@ export async function handleNavigationConnect(request: Request, env: unknown): P
 
     const match = url.pathname.match(/^\/api\/navigation\/trips\/([^/]+)$/);
     if (request.method === "GET" && match?.[1]) {
-      const tripId = decodeURIComponent(match[1]);
+      let tripId: string;
+      try { tripId = decodeURIComponent(match[1]); } catch { return new Response(JSON.stringify({ error: "invalid_trip_id" }), { status: 400, headers: cors }); }
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(tripId)) return new Response(JSON.stringify({ error: "invalid_trip_id" }), { status: 400, headers: cors });
       const accessKey = request.headers.get("x-navigation-connect-access-key");
-      if (!accessKey || !(await verifyNavigationConnectAccessKey(env as Record<string, unknown>, tripId, accessKey))) {
+      if (!accessKey || accessKey.length > 512 || !(await verifyNavigationConnectAccessKey(serverEnv, tripId, accessKey))) {
         return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors });
       }
-      const telemetry = await getTrackedTrip(env as Record<string, unknown>, tripId);
+      await consumeNavigationQuota(serverEnv, "read", tripId);
+      const telemetry = await getTrackedTrip(serverEnv, tripId, request.signal);
       return new Response(JSON.stringify(telemetry), { status: 200, headers: cors });
     }
 
     return new Response(JSON.stringify({ error: "not_found" }), { status: 404, headers: cors });
   } catch (error) {
-    console.error(error);
+    if (error instanceof NavigationGuardError) return new Response(JSON.stringify({ error: error.code }), {
+      status: error.status, headers: { ...cors, ...(error.retryAfter ? { "retry-after": String(error.retryAfter) } : {}) },
+    });
+    // Do not log arbitrary upstream error objects, which may embed request credentials.
+    console.error("navigation_service_unavailable");
     return new Response(JSON.stringify({ error: "navigation_service_unavailable" }), {
       status: 503,
       headers: cors,

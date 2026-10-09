@@ -21,8 +21,8 @@ export function isPublicHttps(value: string): boolean {
     return false;
   }
   if (parsed.protocol !== "https:" || parsed.username || parsed.password) return false;
-  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (!host.includes(".") || host === "localhost" || host.endsWith(".local")) return false;
+  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+  if (!host.includes(".") || host === "localhost" || /\.(local|localhost|internal|home\.arpa)$/.test(host)) return false;
   // IPv6 literals are not accepted by the discovery bridge. DNS names beginning
   // with fc/fd are ordinary public names, not IPv6 private-address prefixes.
   if (host.includes(":")) return false;
@@ -30,7 +30,7 @@ export function isPublicHttps(value: string): boolean {
   if (!ipv4) return !/^\d+$/.test(host);
   const octets = ipv4.slice(1).map(Number);
   if (octets.some((part) => part > 255)) return false;
-  const [a = 0, b = 0] = octets;
+  const [a = 0, b = 0, c = 0] = octets;
   return !(
     a === 0 ||
     a === 10 ||
@@ -39,6 +39,9 @@ export function isPublicHttps(value: string): boolean {
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
     (a === 192 && b === 168) ||
+    (a === 192 && b === 0 && (c === 0 || c === 2)) ||
+    (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) ||
+    (a === 203 && b === 0 && c === 113) ||
     a >= 224
   );
 }
