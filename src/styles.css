@@ -656,7 +656,7 @@ body {
 
 /* Tilt only the geographic ground; controls, vehicle and credit remain upright. */
 .navigation-map-viewport { perspective: 900px; }
-.navigation-map-ground { position:absolute; inset:-25%; transform-origin:center; }
+.navigation-map-ground { position:absolute; inset:-25%; transform-origin:center; z-index:0; }
 .navigation-map-viewport[data-map-view="3d"] .navigation-map-ground { transform:rotateX(45deg) scale(1.35); }
 .navigation-map-viewport[data-map-view="3d"] .vehicle-marker { visibility:hidden; }
 .navigation-perspective-vehicle { position:absolute; left:50%; top:50%; width:64px; height:64px; transform:translate(-50%,-50%); z-index:4; pointer-events:none; }
