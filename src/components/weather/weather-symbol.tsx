@@ -31,11 +31,12 @@ export function WeatherSymbol({
       className={`weather-symbol ${className} ${large ? "weather-symbol-large" : ""} ${isNightMode ? "weather-night" : ""} ${storm ? "weather-symbol-storm" : ""} ${rain ? "weather-symbol-rain" : ""} ${snow ? "weather-symbol-snow" : ""}`}
       role="img"
       aria-label={text}
+      style={{ fontSize: "2.5em" }}
     >
       {isNightMode ? (
-        <Moon className="weather-symbol-moon" aria-hidden="true" />
+        <Moon className="weather-symbol-moon" aria-hidden="true" style={{ width: "1em", height: "1.5em" }} />
       ) : (
-        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow || code === 3 || code === 45 || code === 48 ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" />
+        <Icon className={`weather-symbol-single ${storm ? "weather-storm" : rain ? "weather-rain" : snow || code === 3 || code === 45 || code === 48 ? "weather-cloud" : "weather-sun"}`} aria-hidden="true" style={{ width: "1em", height: "1.5em" }} />
       )}
     </span>
   );
