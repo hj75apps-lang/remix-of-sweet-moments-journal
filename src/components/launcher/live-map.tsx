@@ -3,9 +3,12 @@ import L from "leaflet";
 import type { NavigationRoute } from "@/services/navigation-state";
 import "leaflet/dist/leaflet.css";
 import type { VehiclePosition } from "@/services/navigation-location";
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
+import { vehicleIconMarkup } from "@/services/vehicle-icon";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
 export default function LiveMap({ dark, position, visible, animated, route }: { dark: boolean; position: VehiclePosition | null; visible: boolean; animated: boolean; route?: NavigationRoute | null }) {
+  const { settings } = useLauncherSettings();
   const el = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tilesRef = useRef<L.TileLayer | null>(null);
@@ -17,13 +20,16 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     const map = L.map(el.current, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([-15.78, -47.93], 4);
     map.attributionControl.setPrefix(false);
     mapRef.current = map;
-    markerRef.current = L.marker([0, 0], { interactive: false, icon: L.divIcon({ className: "vehicle-marker", html: '<span class="vehicle-heading"></span><span class="vehicle-dot"></span>', iconSize: [36, 36], iconAnchor: [18, 18] }) });
+    markerRef.current = L.marker([0, 0], { interactive: false, zIndexOffset: 1000 });
     const resize = () => map.invalidateSize({ pan: false });
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     ro?.observe(el.current);
     window.addEventListener("resize", resize);
     return () => { ro?.disconnect(); window.removeEventListener("resize", resize); map.remove(); mapRef.current = null; tilesRef.current = null; markerRef.current = null; routeRef.current = null; firstFix.current = true; };
   }, []);
+  useEffect(() => {
+    markerRef.current?.setIcon(L.divIcon({ className: "vehicle-marker", html: vehicleIconMarkup(settings.vehicleIcon), iconSize: [64, 64], iconAnchor: [32, 32] }));
+  }, [settings.vehicleIcon]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -40,13 +46,12 @@ export default function LiveMap({ dark, position, visible, animated, route }: { 
     if (!map.hasLayer(marker)) marker.addTo(map);
     const icon = marker.getElement();
     icon?.style.setProperty("--vehicle-heading", `${position.heading ?? 0}deg`);
-    icon?.classList.toggle("has-heading", position.heading !== null);
     const smooth = animated && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && !firstFix.current;
     map.stop();
     if (firstFix.current) map.setView(ll, 16, { animate: false });
     else map.panTo(ll, { animate: smooth, duration: 0.8, easeLinearity: 0.5 });
     firstFix.current = false;
-  }, [position, visible, animated]);
+  }, [position, visible, animated, settings.vehicleIcon]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;

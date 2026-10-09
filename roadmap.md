@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Oferecer seta e carros branco, azul, vermelho e amarelo para a posição GPS, com destaque no mapa e escolha preservada; 19 testes aprovados e cinco opções verificadas no mapa após reabrir.
+
 - [x] Aplicar modo noturno ao mapa das 18h às 6h locais, preservando a preferência fora desse período; 15 testes aprovados e transições 17h59 → 18h → 6h verificadas no mapa. Aparência de Waze/Maps externos continua controlada por esses aplicativos.
 
 - [x] Solicitar o navegador configurado na área da Home ao tocar, incluindo destino, sem alternativa de abertura comum em tela cheia; 14 testes aprovados e permanência do mapa na web verificada.
