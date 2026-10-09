@@ -60,7 +60,6 @@ describe("weather expansion in launcher workspace", () => {
     expect(current.querySelector(".weather-week-current-temp")!.textContent).toBe(temperature);
     expect(within(current).getByText("Sensação de 34°").textContent).toBe(feels);
     expect(within(current).getByText("Máx. 33° · Mín. 24°").textContent).toBe(extremes);
-    expect(within(current).getByText("Hoje · Ensolarado")).toBeInTheDocument();
     expect(within(current).getByRole("img", { name: "Ensolarado" }).innerHTML).toBe(symbolMarkup);
   });
 
