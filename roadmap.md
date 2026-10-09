@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Solicitar o navegador configurado na área da Home ao tocar, incluindo destino, sem alternativa em tela cheia; validar posicionamento real depende da central.
+- [x] Solicitar o navegador configurado na área da Home ao tocar, incluindo destino, sem alternativa de abertura comum em tela cheia; 14 testes aprovados e permanência do mapa na web verificada.
+- [ ] Confirmar que o Android respeita a janela pedida na área da Home (depende da central; solicitação não comprova incorporação).
 
 - [x] Restaurar mapa próprio com GPS no espaço de navegação da Home, visível ao iniciar, com destino e abertura explícita do navegador configurado; 24 testes únicos aprovados, mapa real/GPS e destino no Waze web verificados em 1280×720 e 390×844; inicialização física e navegadores Android aguardam a central.
 
