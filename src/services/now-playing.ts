@@ -77,7 +77,7 @@ function current() {
 }
 
 function receiveSystem(media: NowPlaying | null) {
-  if (media?.playing) lastSource = "system";
+  if (media?.playing && (!system?.playing || media.packageName !== system.packageName)) lastSource = "system";
   system = media;
   emit();
 }
@@ -85,27 +85,32 @@ function receiveSystem(media: NowPlaying | null) {
 let started = false;
 let listenerCleanup: (() => void) | null = null;
 let consumers = 0;
+let refreshNative: (() => Promise<void>) | null = null;
 function startNative() {
   const p = native();
   if (!p || started) return;
   started = true;
   let disposed = false;
   let pending = false;
+  let revision = 0;
   const refresh = async () => {
     if (disposed || pending) return;
     pending = true;
+    const requestRevision = revision;
     try {
       const access = await p.hasPermission();
       if (disposed) return;
       permission = access.granted;
       const result = await p.getCurrent();
-      if (!disposed) receiveSystem(result.media);
+      // A callback received during this read is newer than the captured snapshot.
+      if (!disposed && requestRevision === revision) receiveSystem(result.media);
     } catch {
       /* Retry on the next refresh; keep last-known metadata. */
     } finally {
       pending = false;
     }
   };
+  refreshNative = refresh;
   void refresh();
   const timer = setInterval(() => void refresh(), 1000);
   const onResume = () => void refresh();
@@ -113,7 +118,10 @@ function startNative() {
   document.addEventListener("visibilitychange", onResume);
   const mediaListener = Promise.resolve(
     p.addListener("mediaChanged", (d) => {
-      if (!disposed) receiveSystem(d.media);
+      if (!disposed) {
+        revision += 1;
+        receiveSystem(d.media);
+      }
     }),
   );
   const steeringListener = Promise.resolve(
@@ -135,6 +143,7 @@ function startNative() {
     void mediaListener.then((listener) => listener.remove());
     void steeringListener.then((listener) => listener.remove());
     started = false;
+    refreshNative = null;
   };
 }
 
@@ -155,14 +164,16 @@ export function useNowPlaying() {
     current,
     () => null,
   );
-  const control = (action: Control) => {
-    if (media && media === radio && radio.controls) {
+  const control = async (action: Control) => {
+    const selected = current();
+    if (selected && selected === radio && radio.controls) {
       if (action === "next") radio.controls.next();
       else if (action === "previous") radio.controls.prev();
       else if ((action === "play" && !radio.playing) || (action === "pause" && radio.playing)) radio.controls.toggle();
       return;
     }
-    return native()?.control({ action, packageName: media?.packageName ?? "" });
+    await native()?.control({ action, packageName: selected?.packageName ?? "" });
+    await refreshNative?.();
   };
   return {
     media,

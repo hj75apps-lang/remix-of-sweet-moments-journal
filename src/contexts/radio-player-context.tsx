@@ -43,7 +43,7 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
   toggleRef.current = player.toggle;
 
   const current = player.station;
-  const playing = player.status === "playing";
+  const playing = player.status === "playing" && player.audioConfirmed;
   const listeningHistory = useRadioListening(current, playing && player.audioConfirmed);
   useEffect(() => {
     publishRadio(
