@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { publishRadio, useNowPlaying, type NowPlaying } from "./now-playing";
 
 const track = (playing: boolean): NowPlaying => ({ title: "Real track", artist: "Artist", album: "", sourceName: "Player", packageName: "music.player", artwork: "", playing, duration: 1000, position: 0, kind: "app" });
-afterEach(() => { cleanup(); publishRadio(null); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); publishRadio(null); });
 
 describe("confirmed now-playing state", () => {
   it("follows native play/pause events without assuming a command succeeded", async () => {

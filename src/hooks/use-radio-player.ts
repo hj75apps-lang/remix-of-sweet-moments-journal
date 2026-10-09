@@ -336,6 +336,8 @@ export function useRadioPlayer(options: Options = {}) {
         ["waiting", "stalled", "error", "ended"].forEach((type) => el.removeEventListener(type, onDrop));
         el.removeEventListener("playing", onResume);
         el.removeEventListener("pause", onPause);
+        el.removeAttribute("src");
+        el.load();
       }
       void graphRef.current?.ctx.close().catch(() => undefined);
       graphRef.current = null;
