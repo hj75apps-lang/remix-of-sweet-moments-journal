@@ -1,6 +1,6 @@
 import { ArrowLeft, ExternalLink, MapPin, Navigation, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
+import { useNavigationTheme } from "@/hooks/use-navigation-theme";
 import type { NavigationState } from "@/services/navigation-state";
 import { formatDistance, formatDuration, formatEta } from "@/services/navigation-state";
 import LiveMap from "./live-map";
@@ -22,12 +22,12 @@ export function FullscreenNavigation({
   onOpenExternal,
   onSearch,
 }: FullscreenNavigationProps) {
-  const { mode } = useTheme();
+  const darkMap = useNavigationTheme();
   const g = state.guidance;
   const route = state.route;
   return (
     <div className="fixed inset-0 z-[1000] bg-background text-foreground" role="dialog" aria-modal="true" aria-label="Navegação em tela cheia">
-      <LiveMap dark={mode === "dark"} position={state.position} visible animated={animated} route={route} />
+      <LiveMap dark={darkMap} position={state.position} visible animated={animated} route={route} />
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-6">
         <div className="pointer-events-auto flex items-start justify-between gap-3">
           <Button type="button" size="icon" variant="secondary" onClick={onClose} aria-label="Voltar para a Launcher" className="size-12 rounded-full bg-popover/95 shadow-card">
