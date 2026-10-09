@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Gerar e entregar APK Android atualizado com abertura HJCar, validar pacote e assinatura.
+
 - [x] Configurar HJCar somente na primeira abertura Android; favicon atualizado, persistência Java e recursos validados. Detalhes em docs/ABERTURA-HJCAR.md.
 - [ ] Confirmar abertura HJCar em instalação/reabertura na central: depende de APK atualizado e aparelho Android disponível; nenhum APK gerado nesta alteração.
 
