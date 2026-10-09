@@ -418,7 +418,10 @@ export function RadioScreen() {
             <div className="flex flex-wrap gap-2">
               <select
                 value={filters.state ?? ""}
-                onChange={(e) => setFilters((f) => ({ ...f, state: e.target.value || undefined }))}
+                onChange={(e) => {
+                  const state = e.currentTarget.value || undefined;
+                  setFilters((f) => ({ ...f, state }));
+                }}
                 aria-label="Estado"
                 className="min-h-9 rounded-xl border bg-card px-2 text-xs"
               >

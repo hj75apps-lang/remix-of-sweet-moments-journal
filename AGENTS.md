@@ -33,11 +33,11 @@
 - Native Capacitor plugins register in MainActivity; reference files never run.
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
 - Positioned navigation windows use public, freeform-gated LauncherSystem launchBounds requests with WebView-to-screen conversion; never fall back to split/full-screen or report requested bounds as verified embedding, because window placement belongs to the device OS.
-- Launcher preferences live in a single versioned, validated settings provider (use-launcher-settings) mounted in the root route.
+- Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider retains GPS and real notification guidance; visible maps share one foreground LocationService subscription to survive route changes without duplicate watches.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand. Window requests use card bounds without fallback.
 - navigation-view owns zoom/perspective; Leaflet tilts tiles, not GPS vehicles/credit. navigation-map-style owns cartography, not traffic; real traffic requires a connected provider.
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
-- Memoize snapshots; reconcile navigation telemetry to reuse route geometry and skip unchanged bearings to avoid redundant work.
+- Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
