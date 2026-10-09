@@ -580,11 +580,33 @@ body {
   color: inherit;
 }
 
+:root {
+  --vehicle-blue: oklch(0.58 0.22 260);
+  --vehicle-white: oklch(0.98 0.005 260);
+  --vehicle-red: oklch(0.6 0.23 25);
+  --vehicle-yellow: oklch(0.88 0.18 90);
+  --vehicle-outline: oklch(0.99 0 0);
+  --vehicle-ink: oklch(0.24 0.03 260);
+  --vehicle-glass: oklch(0.4 0.06 240);
+  --vehicle-halo: oklch(0.65 0.18 255 / 32%);
+  --vehicle-shadow: 0 2px 3px oklch(0 0 0 / 48%);
+}
 .vehicle-marker { background: transparent; border: 0; }
-.vehicle-dot { position: absolute; inset: 8px; border-radius: 50%; background: var(--primary); border: 3px solid var(--primary-foreground); box-shadow: var(--shadow-card); }
-.vehicle-heading { display: none; position: absolute; inset: 0; transform: rotate(var(--vehicle-heading, 0deg)); }
-.has-heading .vehicle-heading { display: block; }
-.vehicle-heading::before { content: ""; position: absolute; top: -8px; left: 8px; width: 20px; height: 24px; background: var(--primary); clip-path: polygon(50% 0, 100% 100%, 50% 75%, 0 100%); }
+.vehicle-icon-preview { display:block; width:56px; height:56px; flex:none; }
+.vehicle-art { display:block; width:100%; height:100%; overflow:visible; filter:drop-shadow(var(--vehicle-shadow)); }
+.vehicle-halo { fill:var(--vehicle-halo); }
+.vehicle-disc { fill:var(--vehicle-blue); stroke:var(--vehicle-outline); stroke-width:2; }
+.vehicle-orientation { transform:rotate(var(--vehicle-heading,0deg)); transform-origin:32px 32px; }
+.vehicle-arrow-shape { fill:var(--vehicle-outline); stroke:var(--vehicle-outline); stroke-width:2; }
+.vehicle-body { fill:var(--vehicle-white); stroke:var(--vehicle-ink); stroke-width:1.6; }
+.vehicle-art-blue .vehicle-body { fill:var(--vehicle-blue); }
+.vehicle-art-red .vehicle-body { fill:var(--vehicle-red); }
+.vehicle-art-yellow .vehicle-body { fill:var(--vehicle-yellow); }
+.vehicle-art:not(.vehicle-art-arrow) .vehicle-disc { fill:var(--vehicle-outline); }
+.vehicle-tires { fill:var(--vehicle-ink); }
+.vehicle-glass { fill:var(--vehicle-glass); stroke:var(--vehicle-ink); stroke-width:.6; }
+.vehicle-roof { fill:var(--vehicle-outline); opacity:.45; }
+.vehicle-lights { fill:none; stroke:var(--vehicle-yellow); stroke-width:2; stroke-linecap:round; }
 .navigation-map-target:hover, .navigation-map-target:active { background: transparent; }
 @container widget (max-height: 200px) {
   .navigation-overlay { padding: 8px; }

@@ -12,6 +12,8 @@ import {
   openHomeSettings,
 } from "@/services/launcher-system";
 import { useNavigationApps } from "@/services/navigation-apps";
+import { VEHICLE_ICONS } from "@/services/vehicle-icon";
+import { VehicleIcon } from "./vehicle-icon";
 
 type BoolKey = "immersive" | "keepScreenOn" | "autostart" | "clock24h" | "animations";
 const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
@@ -201,6 +203,19 @@ export function LauncherSettingsPanel() {
 
       <div className={card}>
         <h2 className="text-lg font-semibold">Navegação padrão</h2>
+        <fieldset className="mt-4">
+          <legend className="text-base font-medium">Ícone do veículo no mapa</legend>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {VEHICLE_ICONS.map((icon) => (
+              <Button key={icon.value} type="button" variant="secondary"
+                aria-pressed={settings.vehicleIcon === icon.value}
+                className="h-auto min-h-28 flex-col gap-2 whitespace-normal rounded-lg border border-border px-2 py-3 text-sm leading-snug aria-pressed:border-primary aria-pressed:bg-primary/15"
+                onClick={() => update({ vehicleIcon: icon.value })}>
+                <VehicleIcon icon={icon.value} />{icon.label}
+              </Button>
+            ))}
+          </div>
+        </fieldset>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {[...navigationApps, { id: "system" as const, label: "Perguntar sempre" }].map((a) => {
             return (
