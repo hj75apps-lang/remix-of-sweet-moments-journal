@@ -67,7 +67,8 @@ public class LauncherOtaPlugin extends Plugin {
             startupClaimed = true;
             String id = prefs.getString("pending", "");
             if (!id.isEmpty()) {
-                if (prefs.edit().remove("pending").putString("lastResult", "activation_pending").commit()) result.put("id", id);
+                boolean sameNative = prefs.getInt("pendingNative", -1) == BuildConfig.VERSION_CODE;
+                if (prefs.edit().remove("pending").putString("lastResult", sameNative ? "activation_pending" : "native_changed").commit() && sameNative) result.put("id", id);
             }
         }
         call.resolve(result);
@@ -102,7 +103,7 @@ public class LauncherOtaPlugin extends Plugin {
             if (envelope == null || !id.matches("[a-zA-Z0-9]{1,64}")) throw new SecurityException("Pacote não identificado.");
             JSONObject m = verify(envelope, true);
             if (!m.getBoolean("compatible") || m.optBoolean("suspended", false)) throw new SecurityException("Esta versão exige outro APK ou está suspensa.");
-            if (!prefs.edit().putLong("highest", m.getLong("sequence")).putString("pending", id).putString("lastResult", "staged").commit())
+            if (!prefs.edit().putLong("highest", m.getLong("sequence")).putInt("pendingNative", BuildConfig.VERSION_CODE).putString("pending", id).putString("lastResult", "staged").commit())
                 throw new Exception("Não foi possível salvar a atualização.");
             call.resolve();
         } catch (Exception e) { call.reject(e.getMessage()); }
