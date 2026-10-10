@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Conectar Mapbox ao widget navegação: conexão Huendeberg's Mapbox vinculada; widget já lê a variável pública oficial, sem alterações necessárias no player/mapa. Navegador com GPS autorizado confirmou tiles Mapbox HTTPS 200, crédito e posição visíveis, e preservação de 55 tiles ao desconectar. Conexão do site não altera o APK já instalado.
+
 - [x] Criar APK definitivo e concluir GitHub: Android Release 1.1.0 (38070997799) concluído; artefato baixado com digest GitHub correspondente, assinatura v2 RSA 3072 verificada por apksigner, pacote app.smartautolauncher/versionCode 1/minSdk 24 conferidos. Entregue HJCar-1.1.0-assinatura-definitiva.apk; configuração production, chave pública e sequência inicial 1 incorporadas, index offline e updater registrados, sem arquivos privados de assinatura.
 
 - [ ] Entregar atualizações prontas e funcionando, conforme pedido de 10/10/2026: APK definitivo entregue, production publicado e downloads assinados conferidos; falta somente validação física na central. A nova assinatura não substitui diretamente os APKs antigos de teste.
