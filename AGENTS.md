@@ -34,7 +34,7 @@
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
 - Home map taps, expansion and destination submit use startNavigation for normal selected-app launches, not freeform windows; preserve Home state and exclude inputs/credits from map taps.
 - Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
-- Android prerenders an offline SPA with nitro disabled; web build is unchanged.
+- Android prerenders an offline SPA without nitro; web build stays unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand.
 - Leaflet tilts ground only; navigation-view owns perspective. Mapbox traffic raster refreshes foreground-only, offline imagery stays last-known; OSM never implies traffic. Preserve Android 7.
@@ -42,4 +42,4 @@
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
 - First-opening artwork uses a native no-backup marker: offline, retained on update, reset on reinstall; system startup stays unbranded.
-- OTA uses native RSA checks, manual Capgo downloads and a root-gated cold-start claim; no background activation. Offline signing needs no backend.
+- OTA: native RSA checks, manual Capgo downloads, root-gated cold-start claim; no background activation. Offline signing needs no backend.
