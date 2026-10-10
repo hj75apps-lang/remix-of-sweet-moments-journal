@@ -697,10 +697,10 @@ body {
 }
 
 
-/* Keep large radio lists cheap to paint on mobile/automotive WebViews. */
-.radio-station-row {
+/* Keep large lists and grids cheap to paint on mobile/automotive WebViews. */
+.radio-station-row, .app-grid-item, .widget-tile {
   content-visibility: auto;
-  contain-intrinsic-size: auto 6rem;
+  contain-intrinsic-size: auto 5rem;
 }
 
 
@@ -727,7 +727,8 @@ body {
 }
 @keyframes vehicle-position-wave {
   0% { transform: translate(-50%, -50%) scale(.65); opacity: .7; }
-  75%, 100% { transform: translate(-50%, -50%) scale(1.85); opacity: 0; }
+  75%, 100% { transform: translate(-50%, -50%) scale(1.85); opacity: 0;
+}
 }
 .navigation-map-viewport[data-map-animated="false"] .vehicle-marker::before,
 .navigation-map-viewport[data-map-animated="false"] .navigation-perspective-vehicle::before,

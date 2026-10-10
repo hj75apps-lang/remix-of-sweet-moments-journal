@@ -86,8 +86,8 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 const queryClientSingleton = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 30,
+      staleTime: 1000 * 60 * 15,
+      gcTime: 1000 * 60 * 60,
       refetchOnWindowFocus: false,
       retry: 1,
     },
