@@ -25,10 +25,9 @@ import { memo } from "react";
 const LONG_PRESS_MS = 500;
 const AddItemSheet = lazy(() => import("./add-item-sheet").then((module) => ({ default: module.AddItemSheet })));
 
-
 const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
   const navigate = useNavigate();
-  if (item.type === "WIDGET") return <>{widgetRegistry[item.ref as WidgetKind].render()}</>;
+  if (item.type === "WIDGET") return <div className="h-full w-full overflow-hidden">{widgetRegistry[item.ref as WidgetKind].render()}</div>;
   const app = appRegistry[item.ref as AppId];
   const Icon = app.icon;
   const routes: Record<AppId, "/apps" | "/radio" | "/telefone" | "/ajustes"> = {
@@ -53,8 +52,6 @@ const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
     </Button>
   );
 });
-
-
 
 interface TileProps {
   item: HomeItem;
