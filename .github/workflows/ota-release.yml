@@ -1,0 +1,68 @@
+name: Prepare signed Launcher OTA
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "OTA semver, e.g. 1.1.0"
+        required: true
+      sequence:
+        description: "Increasing counter across native/OTA releases"
+        required: true
+      channel:
+        type: choice
+        options: [testing, production]
+        default: testing
+        required: true
+      min_native:
+        description: "Minimum compatible native versionCode"
+        required: true
+      max_native:
+        description: "Maximum tested native versionCode"
+        required: true
+      min_launcher:
+        description: "Minimum launcher versionName (semver)"
+        required: true
+      notes:
+        description: "Release notes"
+        required: true
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    environment: ota-${{ inputs.channel }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx vitest run
+      - name: Build offline web bundle
+        run: env -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH CAPACITOR_BUILD=1 bun run build
+      - name: Sign release
+        env:
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
+          OTA_PACKAGE_BASE_URL: ${{ vars.OTA_PACKAGE_BASE_URL }}
+          VERSION: ${{ inputs.version }}
+          SEQUENCE: ${{ inputs.sequence }}
+          CHANNEL: ${{ inputs.channel }}
+          MIN_NATIVE: ${{ inputs.min_native }}
+          MAX_NATIVE: ${{ inputs.max_native }}
+          MIN_LAUNCHER: ${{ inputs.min_launcher }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          test -n "$OTA_SIGNING_KEY"
+          test -n "$OTA_PACKAGE_BASE_URL"
+          umask 077
+          printf '%s' "$OTA_SIGNING_KEY" > "$RUNNER_TEMP/ota-private.pem"
+          node --input-type=module - <<'JS'
+          import {writeFileSync} from 'node:fs';
+          const e=process.env;
+          writeFileSync(e.RUNNER_TEMP+'/ota-metadata.json', JSON.stringify({schema:1,appId:'app.smartautolauncher',sequence:Number(e.SEQUENCE),version:e.VERSION,channel:e.CHANNEL,kind:'ota',minNativeCode:Number(e.MIN_NATIVE),maxNativeCode:Number(e.MAX_NATIVE),minLauncherVersion:e.MIN_LAUNCHER,bridgeRevision:1,publishedAt:Date.now(),expiresAt:Date.now()+90*86400000,url:new URL(e.SEQUENCE+'-'+e.VERSION+'.zip',e.OTA_PACKAGE_BASE_URL.endsWith('/')?e.OTA_PACKAGE_BASE_URL:e.OTA_PACKAGE_BASE_URL+'/').href,notes:e.NOTES,suspended:false}));
+          JS
+          node scripts/package-ota.mjs dist/client "$RUNNER_TEMP/ota-release" "$RUNNER_TEMP/ota-metadata.json" "$RUNNER_TEMP/ota-private.pem"
+          rm "$RUNNER_TEMP/ota-private.pem"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launcher-ota-${{ inputs.channel }}-${{ inputs.sequence }}
+          path: ${{ runner.temp }}/ota-release/
+          retention-days: 30
