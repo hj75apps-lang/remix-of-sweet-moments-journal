@@ -1,0 +1,53 @@
+name: Audit history before public OTA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Inspect all fetched history without printing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ota-audit"
+          chmod 700 "$RUNNER_TEMP/ota-audit"
+          trap 'rm -rf "$RUNNER_TEMP/ota-audit"' EXIT
+          docker pull zricethezav/gitleaks:v8.24.3 > "$RUNNER_TEMP/ota-audit/scanner.log" 2>&1
+          set +e
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo:ro" -v "$RUNNER_TEMP/ota-audit:/report" \
+            zricethezav/gitleaks:v8.24.3 git /repo --log-opts="--all" --redact=100 \
+            --report-format=json --report-path=/report/findings.json \
+            > "$RUNNER_TEMP/ota-audit/scanner.log" 2>&1
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -gt 1 ]; then echo 'History scanner failed; visibility must remain private.'; exit 2; fi
+          python3 - "$RUNNER_TEMP/ota-audit/findings.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json, pathlib, sys
+          report = pathlib.Path(sys.argv[1])
+          if not report.exists():
+              raise SystemExit('Scanner report missing; audit is incomplete.')
+          findings = json.loads(report.read_text())
+          # Never print Secret, Match, Fingerprint, hashes or raw scanner logs.
+          safe = sorted({(row.get('File', 'unknown'), row.get('RuleID', 'unknown')) for row in findings})
+          lines = ['# Pre-publication history audit', '',
+                   'Scope: all refs fetched by checkout; no secret values or raw reports are published.', '']
+          for filename, rule in safe:
+              filename = str(filename).replace('\n', ' ').replace('\r', ' ')
+              rule = str(rule).replace('\n', ' ').replace('\r', ' ')
+              lines.append(f'- File: `{filename}` — category: `{rule}`')
+          if not safe:
+              lines.append('No detector findings. This is not a guarantee that all private data is absent.')
+          pathlib.Path(sys.argv[2]).write_text('\n'.join(lines) + '\n')
+          print('Audit completed; only filenames and categories are available in the summary.')
+          raise SystemExit(1 if safe else 0)
+          PY
