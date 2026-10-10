@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { selectMedia } from "./media-selection";
+import { normalizeNativeMedia, type MediaStatus } from "./media-metadata";
 
 /** What is playing right now, from any source. */
 export interface NowPlaying {
@@ -17,9 +18,13 @@ export interface NowPlaying {
   duration: number;
   position: number;
   kind: "app" | "radio";
+  status?: MediaStatus;
+  stationName?: string;
+  frequency?: string;
+  sourceIcon?: string;
 }
 
-type Control = "play" | "pause" | "next" | "previous";
+type Control = "play" | "pause" | "next" | "previous" | "forward" | "rewind";
 type SteeringControl = Control | "toggle";
 interface NativePlugin {
   getCurrent(): Promise<{ media: NowPlaying | null }>;
@@ -64,7 +69,7 @@ export function publishRadio(v: typeof radio) {
   startNative();
   void native()
     ?.updateRadioSession({
-      title: v?.title ?? "",
+      title: v?.title || v?.stationName || "",
       artist: v?.artist || "Rádio ao vivo",
       playing: v?.playing ?? false,
     })
@@ -82,10 +87,11 @@ function sameMedia(a: NowPlaying | null, b: NowPlaying | null): boolean {
   return a.title === b.title && a.artist === b.artist && a.album === b.album &&
     a.sourceName === b.sourceName && a.packageName === b.packageName &&
     a.artwork === b.artwork && a.playing === b.playing && a.duration === b.duration &&
-    a.position === b.position && a.kind === b.kind;
+    a.position === b.position && a.kind === b.kind && a.status === b.status && a.sourceIcon === b.sourceIcon;
 }
 
 function receiveSystem(media: NowPlaying | null) {
+  media = normalizeNativeMedia(media);
   if (sameMedia(system, media)) return;
   if (media?.playing && (!system?.playing || media.packageName !== system.packageName)) lastSource = "system";
   system = media;
@@ -110,7 +116,8 @@ function startNative() {
     try {
       const access = await p.hasPermission();
       if (disposed) return;
-      permission = access.granted;
+      if (permission !== access.granted) { permission = access.granted; emit(); }
+      if (!access.granted) { receiveSystem(null); return; }
       const result = await p.getCurrent();
       // A callback received during this read is newer than the captured snapshot.
       if (!disposed && requestRevision === revision) receiveSystem(result.media);
@@ -128,7 +135,7 @@ function startNative() {
     timer = undefined;
     if (document.hidden) return;
     void refresh();
-    timer = setInterval(() => void refresh(), 1000);
+    timer = setInterval(() => void refresh(), 5000);
   };
   // Native events and explicit controls remain active even while hidden.
   onResume();
@@ -182,6 +189,7 @@ export function useNowPlaying() {
     current,
     () => null,
   );
+  const access = useSyncExternalStore((cb) => { subs.add(cb); return () => subs.delete(cb); }, () => permission, () => null);
   const control = async (action: Control) => {
     const selected = current();
     if (selected && selected === radio && radio.controls) {
@@ -197,7 +205,7 @@ export function useNowPlaying() {
     media,
     control,
     nativeAvailable: native() !== null,
-    permission,
+    permission: access,
     requestPermission: () => native()?.requestPermission(),
   };
 }

@@ -8,8 +8,9 @@ interface NativeResponse {
 }
 interface RadioNetworkPlugin {
   request(options: { url: string; timeout: number; probe: boolean }): Promise<NativeResponse>;
+  readMetadata(options: { url: string }): Promise<{ block: string }>;
 }
-const network = registerPlugin<RadioNetworkPlugin>("RadioNetwork");
+export const network = registerPlugin<RadioNetworkPlugin>("RadioNetwork");
 
 export const isRadioNative = () => Capacitor.isNativePlatform();
 

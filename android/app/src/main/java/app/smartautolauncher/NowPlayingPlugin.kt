@@ -14,6 +14,7 @@ package app.smartautolauncher
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSession
@@ -90,6 +91,7 @@ class NowPlayingPlugin : Plugin() {
     private var radioSession: MediaSession? = null
     private var sessionsListener: MediaSessionManager.OnActiveSessionsChangedListener? = null
     private var controllers: List<MediaController> = emptyList()
+    private val sourceIcons = android.util.LruCache<String, String>(12)
     private val handler = Handler(Looper.getMainLooper())
     private val cb = object : MediaController.Callback() {
         override fun onMetadataChanged(m: MediaMetadata?) = selectAndPush()
@@ -212,6 +214,22 @@ class NowPlayingPlugin : Plugin() {
             put("album", m?.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: "")
             put("sourceName", app); put("packageName", c.packageName)
             put("artwork", artwork)
+            val icon = sourceIcons.get(c.packageName) ?: runCatching {
+                val drawable = pm.getApplicationIcon(c.packageName)
+                val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+                drawable.setBounds(0, 0, 96, 96); drawable.draw(Canvas(bitmap))
+                val out = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); bitmap.recycle()
+                ("data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)).also { sourceIcons.put(c.packageName, it) }
+            }.getOrDefault("")
+            put("sourceIcon", icon)
+            put("status", when (state?.state) {
+                PlaybackState.STATE_PLAYING -> "playing"
+                PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING -> "loading"
+                PlaybackState.STATE_ERROR -> "error"
+                PlaybackState.STATE_NONE, null -> "unavailable"
+                else -> "paused"
+            })
             put("playing", c.playbackState?.state == PlaybackState.STATE_PLAYING)
             put("duration", duration)
             put("position", if (duration > 0) minOf(duration, position) else position)
@@ -254,7 +272,10 @@ class NowPlayingPlugin : Plugin() {
         val targetPackage = call.getString("packageName")
         val target = if (targetPackage.isNullOrBlank()) active else controllers.firstOrNull { it.packageName == targetPackage }
         val t = target?.transportControls ?: return call.reject("Player indisponível")
-        when (call.getString("action")) { "play" -> t.play(); "pause" -> t.pause(); "next" -> t.skipToNext(); "previous" -> t.skipToPrevious() }
+        when (call.getString("action")) {
+            "play" -> t.play(); "pause" -> t.pause(); "next" -> t.skipToNext(); "previous" -> t.skipToPrevious()
+            "forward" -> t.fastForward(); "rewind" -> t.rewind()
+        }
         call.resolve()
     }
 
@@ -262,6 +283,7 @@ class NowPlayingPlugin : Plugin() {
         MediaListener.onGuidance = null
         controllers.forEach { it.unregisterCallback(cb) }
         controllers = emptyList()
+        sourceIcons.evictAll()
         sessionsListener?.let { runCatching { msm.removeOnActiveSessionsChangedListener(it) } }
         sessionsListener = null
         radioSession?.release()

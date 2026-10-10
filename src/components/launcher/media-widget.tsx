@@ -11,7 +11,8 @@ import {
   FastForward,
   BellRing,
 } from "lucide-react";
-import { errorMessage, sendMediaKey } from "@/services/launcher-system";
+import { errorMessage } from "@/services/launcher-system";
+import { mediaStatusLabel } from "@/services/media-metadata";
 import { WidgetCard, UnavailableState } from "./widget-card";
 import { useNowPlaying } from "@/services/now-playing";
 import { cn } from "@/lib/utils";
@@ -33,10 +34,11 @@ function ArtFallback({ radio }: { radio: boolean }) {
 /** "Now playing" card fed by any source: in-app radio or other apps (Android). */
 export function MediaWidget() {
   const { media, control, nativeAvailable, permission, requestPermission } = useNowPlaying();
-  const runControl = (action: "play" | "pause" | "next" | "previous") =>
+  const runControl = (action: "play" | "pause" | "next" | "previous" | "forward" | "rewind") =>
     void Promise.resolve(control(action)).catch((e: unknown) => toast.error(errorMessage(e)));
-  const [artFailed, setArtFailed] = useState(false);
-  useEffect(() => setArtFailed(false), [media?.artwork]);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
+  useEffect(() => setFailedImages([]), [media?.artwork, media?.sourceIcon, media?.packageName]);
+  const image = [media?.artwork, media?.sourceIcon].find((url) => url && !failedImages.includes(url));
   const navigate = useNavigate();
   /** Opens the app that is the source of the sound. */
   const openSource = () => {
@@ -70,12 +72,13 @@ export function MediaWidget() {
             className="flex h-auto min-h-11 min-w-0 flex-1 items-center justify-start gap-3 whitespace-normal rounded-2xl p-0 text-left transition active:scale-[0.98]"
           >
             <div className="aspect-square h-[clamp(2.5rem,55cqh,7rem)] shrink-0 overflow-hidden rounded-2xl">
-              {media.artwork && !artFailed ? (
+              {image ? (
                 <img
-                  src={media.artwork}
-                  alt={`Capa de ${media.title}`}
-                  className="h-full w-full object-cover"
-                  onError={() => setArtFailed(true)}
+                  src={image}
+                  alt={media.stationName ? `Imagem de ${media.stationName}` : `Capa de ${media.title || media.sourceName}`}
+                  loading="lazy" decoding="async"
+                  className="h-full w-full object-contain"
+                  onError={() => setFailedImages((previous) => [...previous, image])}
                 />
               ) : (
                 <ArtFallback radio={media.kind === "radio"} />
@@ -83,8 +86,10 @@ export function MediaWidget() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[clamp(0.8125rem,14cqh,1.125rem)] font-semibold">
-                {media.title || media.sourceName}
+                {media.kind === "radio" ? media.stationName || media.title || media.sourceName : media.title || "Conteúdo não identificado"}
               </p>
+              {media.kind === "radio" && media.frequency && <p className="truncate text-sm font-medium text-primary">{media.frequency}</p>}
+              {media.kind === "radio" && media.stationName && media.title && <p className="truncate text-sm">{media.title}</p>}
               {media.artist && (
                 <p className="truncate text-[clamp(0.6875rem,11cqh,0.875rem)] text-muted-foreground">
                   {media.artist}
@@ -99,10 +104,12 @@ export function MediaWidget() {
                 {media.sourceName}
                 {media.kind === "radio" ? " · ao vivo" : ""}
               </p>
+              <p role="status" className="truncate text-xs text-muted-foreground">{mediaStatusLabel(media)}</p>
               {pct > 0 && (
                 <div
                   className="mt-1 h-1 overflow-hidden rounded-full bg-secondary"
                   role="progressbar"
+                  aria-label="Progresso da reprodução"
                   aria-valuenow={Math.round(pct)}
                   aria-valuemin={0}
                   aria-valuemax={100}
@@ -139,9 +146,9 @@ export function MediaWidget() {
       >
         {(() => {
           // Live radio has no timeline, so seek buttons only appear for other apps.
-          const seekable = !!media && media.kind !== "radio";
+          const seekable = !!media && media.kind !== "radio" && media.duration > 0;
           const seek = (key: "rewind" | "forward") =>
-            void sendMediaKey(key).catch((e: unknown) => toast.error(errorMessage(e)));
+            runControl(key);
           const items = [
             ...(seekable
               ? [{ i: Rewind, l: "Voltar", run: () => seek("rewind"), main: false }]
@@ -166,6 +173,7 @@ export function MediaWidget() {
               type="button"
               disabled={!media}
               aria-label={l}
+              title={l}
               onClick={run}
               className={cn(
                 "grid place-items-center rounded-full transition active:scale-95 disabled:opacity-40",

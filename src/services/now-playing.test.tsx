@@ -6,6 +6,19 @@ const track = (playing: boolean): NowPlaying => ({ title: "Real track", artist: 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); publishRadio(null); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("confirmed now-playing state", () => {
+  it("refreshes permission even when there is no media snapshot", async () => {
+    let granted = false;
+    vi.stubGlobal("Capacitor", { isNativePlatform: () => true, Plugins: { NowPlaying: {
+      hasPermission: async () => ({ granted }), getCurrent: async () => ({ media: null }),
+      addListener: () => ({ remove: () => {} }),
+    } } });
+    const { result } = renderHook(useNowPlaying);
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(result.current.permission).toBe(false);
+    granted = true;
+    await act(async () => { window.dispatchEvent(new Event("focus")); await Promise.resolve(); await Promise.resolve(); });
+    expect(result.current.permission).toBe(true); expect(result.current.media).toBeNull();
+  });
   it("reuses identical snapshots and stops periodic bridge reads while hidden", async () => {
     vi.useFakeTimers();
     let hidden = false;

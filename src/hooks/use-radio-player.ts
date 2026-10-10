@@ -83,6 +83,7 @@ export function useRadioPlayer(options: Options = {}) {
   const stationRef = useRef<RadioStation | null>(null);
   const [status, setStatus] = useState<PlayerStatus>("idle");
   const [sourceIndex, setSourceIndex] = useState(0);
+  const [activeStream, setActiveStream] = useState("");
   const [audioConfirmed, setAudioConfirmed] = useState(false);
   const [volume, setVolumeState] = useState(0.8);
   const [favorites, setFavorites] = useState<RadioStation[]>([]);
@@ -99,6 +100,7 @@ export function useRadioPlayer(options: Options = {}) {
       retryTimer.current = null;
     }
     activeRef.current = null;
+    setActiveStream("");
     hlsRef.current?.destroy();
     hlsRef.current = null;
     for (const el of [plainRef.current, eqElRef.current]) {
@@ -209,6 +211,7 @@ export function useRadioPlayer(options: Options = {}) {
           if (token !== tokenRef.current) return;
           if (ok) {
             activeRef.current = el;
+            setActiveStream(url);
             attemptRef.current = 0;
             setEqStatus(
               eqEnabledRef.current ? (el === eqElRef.current ? "active" : "unsupported") : "off",
@@ -441,6 +444,7 @@ export function useRadioPlayer(options: Options = {}) {
     station,
     status,
     sourceIndex,
+    activeStream,
     audioConfirmed,
     volume,
     favorites,
@@ -453,5 +457,5 @@ export function useRadioPlayer(options: Options = {}) {
     toggleFavorite,
     setEq,
     setGain,
-  }), [station, status, sourceIndex, audioConfirmed, volume, favorites, eqEnabled, eqStatus, gains, play, toggle, setVolume, toggleFavorite, setEq, setGain]);
+  }), [station, status, sourceIndex, activeStream, audioConfirmed, volume, favorites, eqEnabled, eqStatus, gains, play, toggle, setVolume, toggleFavorite, setEq, setGain]);
 }

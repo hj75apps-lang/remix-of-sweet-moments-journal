@@ -15,6 +15,55 @@ import javax.net.ssl.HttpsURLConnection;
 /** Bounded public HTTPS requests for station pages and playlists, never audio transport. */
 @CapacitorPlugin(name = "RadioNetwork")
 public class RadioNetworkPlugin extends Plugin {
+    /** Reads one ICY block separately from playback, with byte/time/redirect bounds. */
+    @PluginMethod
+    public void readMetadata(PluginCall call) {
+        getBridge().execute(() -> {
+            HttpsURLConnection connection = null;
+            final long deadline = android.os.SystemClock.elapsedRealtime() + 8000;
+            try {
+                URL url = new URL(call.getString("url", ""));
+                for (int redirect = 0; redirect <= 3; redirect++) {
+                    validate(url);
+                    if (android.os.SystemClock.elapsedRealtime() >= deadline) throw new Exception("timeout");
+                    connection = (HttpsURLConnection) url.openConnection();
+                    connection.setInstanceFollowRedirects(false);
+                    connection.setConnectTimeout(2000); connection.setReadTimeout(2000);
+                    connection.setRequestProperty("Icy-MetaData", "1");
+                    connection.setRequestProperty("User-Agent", "SmartAutoLauncher/1.0 Android Radio");
+                    int status = connection.getResponseCode();
+                    if (status >= 300 && status < 400) {
+                        String location = connection.getHeaderField("Location");
+                        if (location == null || redirect == 3) throw new Exception("redirect_limit");
+                        url = new URL(url, location); connection.disconnect(); connection = null; continue;
+                    }
+                    if (status < 200 || status >= 300) throw new Exception("http_error");
+                    String header = connection.getHeaderField("icy-metaint");
+                    int interval = header == null ? 0 : Integer.parseInt(header);
+                    if (interval < 1 || interval > 250000) { call.resolve(new JSObject().put("block", "")); return; }
+                    try (InputStream input = connection.getInputStream()) {
+                        byte[] buffer = new byte[4096]; int remaining = interval;
+                        while (remaining > 0) {
+                            if (android.os.SystemClock.elapsedRealtime() >= deadline) throw new Exception("timeout");
+                            int count = input.read(buffer, 0, Math.min(buffer.length, remaining));
+                            if (count < 0) throw new Exception("stream_ended"); remaining -= count;
+                        }
+                        int size = input.read();
+                        if (size < 0) throw new Exception("stream_ended");
+                        byte[] block = new byte[size * 16]; int offset = 0;
+                        while (offset < block.length) {
+                            if (android.os.SystemClock.elapsedRealtime() >= deadline) throw new Exception("timeout");
+                            int count = input.read(block, offset, block.length - offset);
+                            if (count < 0) throw new Exception("stream_ended"); offset += count;
+                        }
+                        call.resolve(new JSObject().put("block", new String(block, StandardCharsets.UTF_8))); return;
+                    }
+                }
+            } catch (Exception error) { call.resolve(new JSObject().put("block", "")); }
+            finally { if (connection != null) connection.disconnect(); }
+        });
+    }
+
     @PluginMethod
     public void request(PluginCall call) {
         getBridge().execute(() -> {

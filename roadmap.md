@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Aprimorar Tocando Agora: dados nativos validados, ICY separado e limitado, estado/fonte/capas com fallback; 300 testes aprovados e áudio WAV de teste tocar/pausar verificado na Home.
+- [x] Documentar fontes, permissões, limites e testes em docs/TOCANDO-AGORA.md.
+- [ ] Compilar APK e confirmar sessões Spotify/YouTube/Music e ICY ao vivo na central; bloqueado pela ausência de SDK/aparelho nesta rodada, exige acesso a notificações e fontes compatíveis.
+
 - [x] Abrir navegador escolhido ao tocar no mapa ou expandir, sem janela posicionada; 16 testes aprovados (Waze, Maps e outro app), abertura Google Maps verificada no preview e Home preservada. Tela cheia real depende da central e APK atualizado.
 
 - [x] Aplicar visual inspirado no Waze: cartografia limpa diurna/noturna, detalhes ciano e busca arredondada; 21 testes aprovados, Mapbox HTTP 200, GPS, destino e 55 tiles offline verificados. APK anterior não inclui o novo visual.
