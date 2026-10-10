@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Aplicar Mapbox com token público ao widget, preservando GPS, perspectivas, tema e controles; validar carregamento real.
+
 - [x] “Para onde?” abre diretamente o navegador escolhido com destino; 22 testes aprovados e abertura real Google Maps verificada na web, Home preservada; incluído no APK.
 
 - [x] APK HJCar-2026-10-09-v2.apk entregue: compilação Android aprovada, cinco testes nativos aprovados, assinatura v2 e Android mínimo 24 verificados. Assinatura de teste difere do APK anterior; atualização direta não é compatível.

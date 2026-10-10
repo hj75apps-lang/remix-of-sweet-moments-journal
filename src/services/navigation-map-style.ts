@@ -7,12 +7,16 @@ export function isNavigationMapStyle(value: unknown): value is NavigationMapStyl
   return value === "roads" || value === "standard";
 }
 /** Road hierarchy is not measured traffic. */
-export function navigationMapTiles(style: NavigationMapStyle, dark: boolean) {
+export function navigationMapTiles(style: NavigationMapStyle, dark: boolean, publicToken: string = import.meta.env.VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN ?? "") {
+  const token = publicToken.trim();
+  const mapbox = token.startsWith("pk.");
+  const mapboxStyle = dark ? "navigation-night-v1" : style === "roads" ? "navigation-day-v1" : "streets-v12";
   return {
-    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
-    emphasizeRoads: style === "roads",
-    darkFilter: dark,
-    maxZoom: 19,
+    url: mapbox ? `https://api.mapbox.com/styles/v1/mapbox/${mapboxStyle}/tiles/256/{z}/{x}/{y}?access_token=${encodeURIComponent(token)}` : "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: `${mapbox ? '© <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> · ' : ''}© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>${mapbox ? ' · <a href="https://www.mapbox.com/map-feedback/" target="_blank" rel="noopener noreferrer">Improve this map</a>' : ''}`,
+    emphasizeRoads: !mapbox && style === "roads",
+    darkFilter: !mapbox && dark,
+    maxZoom: mapbox ? 22 : 19,
+    provider: mapbox ? "mapbox" : "openstreetmap",
   };
 }
