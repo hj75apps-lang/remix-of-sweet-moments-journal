@@ -11,7 +11,7 @@ import { errorMessage, startNavigation } from "@/services/launcher-system";
 import { useNavigationApps } from "@/services/navigation-apps";
 import { formatDistance, formatDuration } from "@/services/navigation-state";
 
-const LiveMap = lazy(() => import("./live-map"));
+import LiveMap from "./live-map";
 
 export function NavigationWidget() {
   const { settings, update } = useLauncherSettings();
@@ -90,11 +90,9 @@ export function NavigationWidget() {
 
   return (
     <section aria-label="Navegação" className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-card">
-      <ClientOnly fallback={<div className="absolute inset-0 bg-muted" />}>
-        <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
-          <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} navigating={state.active} online={state.online} />
-        </Suspense>
-      </ClientOnly>
+      <div className="absolute inset-0 bg-muted/50">
+        <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} navigating={state.active} online={state.online} />
+      </div>
       <Button type="button" variant="ghost" className="absolute inset-x-0 top-0 bottom-6 z-[1] h-auto w-full rounded-none hover:bg-transparent" disabled={!ready} aria-label="Abrir mapa no navegador configurado em tela cheia" title={selected ? `Abrir ${selected.label} em tela cheia` : "Abrir navegador em tela cheia"} onClick={handleWidgetClick} />
       {fullscreen && (
         <Suspense fallback={null}>
