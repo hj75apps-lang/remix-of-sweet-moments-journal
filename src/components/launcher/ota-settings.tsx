@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { RefreshCw, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { checkOta, nativeOta, otaSnapshot, otaServerSnapshot, subscribeOta } from "@/services/ota-client";
+import { checkOta, otaSnapshot, otaServerSnapshot, subscribeOta } from "@/services/ota-client";
 
 export function OtaSettings() {
   const state = useSyncExternalStore(subscribeOta, otaSnapshot, otaServerSnapshot);
