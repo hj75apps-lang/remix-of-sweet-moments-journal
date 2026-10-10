@@ -13,7 +13,7 @@ O Smart Auto Launcher exibe seu próprio mapa Leaflet no espaço de navegação 
 - retorno à Launcher com o mapa próprio e a última posição preservada no estado compartilhado;
 - geometria de rota opcional no NavigationProvider, usada somente quando um provedor entrega pontos de rota autoritativos.
 
-Não há abertura externa automática. Ao tocar para abrir o navegador ou enviar um destino, a Home solicita uma janela posicionada na área medida do card, usando o aplicativo específico escolhido nos ajustes. Não há alternativa de abertura comum em tela cheia. A central precisa anunciar suporte a janelas livres; o Android ainda pode ignorar os limites pedidos, portanto a solicitação não comprova incorporação ou permanência real. Sem suporte, o mapa próprio permanece. A opção Perguntar sempre requer escolher um aplicativo específico antes desta ação. A preferência antiga `openNavigatorOnStartup` permanece no formato salvo apenas por compatibilidade; não controla o mapa. Para iniciar o launcher ao ligar a central, use Ajustes → Abrir ao ligar a central e configure-o como tela inicial padrão; a execução após boot depende da política do aparelho.
+Não há abertura externa automática. Tocar no mapa ou no controle de expansão abre normalmente o navegador escolhido nos ajustes, sem limites do card nem janela livre. A intenção é tela cheia; o modo final permanece sob controle do Android e precisa ser confirmado na central. Para o toque no mapa, Perguntar sempre exige escolher um navegador específico. Enviar destino continua abrindo o aplicativo com o destino informado. Campos e créditos não acionam abertura pelo mapa; retornar preserva o mapa próprio. A preferência antiga `openNavigatorOnStartup` permanece apenas por compatibilidade. Para iniciar ao ligar a central, use Ajustes → Abrir ao ligar a central e configure o launcher como tela inicial padrão; o boot depende da política do aparelho.
 
 ## O que não é falsificado
 Android não fornece uma API genérica que permita incorporar a interface privada de navegação do Google Maps ou Waze dentro de outro app. O Launcher não usa iframe, WebView, captura de tela ou scraping desses aplicativos.
@@ -34,7 +34,7 @@ Para telemetria oficial de uma viagem externa — localização da viagem, ETA, 
 - location-store / navigation-location — fonte única de GPS.
 - navigation-apps — descoberta dos apps instalados.
 - navigation-deep-link-manager — URLs oficiais.
-- NavigationWidget solicita a janela do navegador somente por ação explícita via navigation-window; não carrega FullscreenNavigation nem usa abertura comum como fallback.
+- NavigationWidget usa startNavigation para toque no mapa, expansão e destino; não carrega FullscreenNavigation nem solicita janela posicionada. navigation-window permanece uma API separada.
 - LiveMap — uma instância Leaflet com câmera suavizada e rota opcional.
 
 ## Performance

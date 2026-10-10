@@ -38,10 +38,21 @@ describe("home GPS navigation", () => {
     expect(mocks.acquire).toHaveBeenCalledTimes(2);
     expect(mocks.release).toHaveBeenCalledTimes(1);
   });
-  it.each(["waze", "maps", "package:com.example.navigator"])("requests configured navigator %s inside the home area", async (app) => {
+  it.each(["waze", "maps", "package:com.example.navigator"])("opens configured navigator %s from the map without window bounds", async (app) => {
     mocks.settings.navApp = app; render(<NavigationWidget />);
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir mapa no navegador configurado em tela cheia" })); });
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith(app, "");
+    expect(mocks.launch).not.toHaveBeenCalled();
+  });
+  it("opens the selected app from the expansion control", async () => {
+    render(<NavigationWidget />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador configurado" })); });
-    expect(mocks.launch).toHaveBeenCalledExactlyOnceWith(app, { left: 100, top: 16, right: 900, bottom: 704 }, "");
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("waze", "");
+  });
+  it("does not open the app while editing a destination", () => {
+    render(<NavigationWidget />);
+    fireEvent.click(screen.getByRole("textbox", { name: "Destino da navegação" }));
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
   it.each(["waze", "maps", "package:com.example.navigator", "system"])("opens destination directly in %s without requiring window support", async (app) => {
     mocks.settings.navApp = app;
@@ -55,12 +66,13 @@ describe("home GPS navigation", () => {
   it("does not replace an uninstalled selected navigator", async () => {
     mocks.settings.navApp = "package:com.missing.navigator"; render(<NavigationWidget />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador configurado" })); });
-    expect(mocks.launch).not.toHaveBeenCalled(); expect(mocks.toast).toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled(); expect(mocks.launch).not.toHaveBeenCalled(); expect(mocks.toast).toHaveBeenCalled();
   });
   it("requires a specific configured app rather than launching an unrestricted chooser", async () => {
     mocks.settings.navApp = "system"; render(<NavigationWidget />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Abrir navegador configurado" })); });
     expect(mocks.launch).not.toHaveBeenCalled();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
   it("keeps the home state and does not save a destination when app launch fails", async () => {
     mocks.navigate.mockRejectedValueOnce(new Error("not_installed")); render(<NavigationWidget />);

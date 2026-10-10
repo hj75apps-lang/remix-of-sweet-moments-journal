@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Abrir navegador escolhido ao tocar no mapa ou expandir, sem janela posicionada; validar testes e fluxo web. Tela cheia real depende da central e APK atualizado.
+
 - [x] Aplicar visual inspirado no Waze: cartografia limpa diurna/noturna, detalhes ciano e busca arredondada; 21 testes aprovados, Mapbox HTTP 200, GPS, destino e 55 tiles offline verificados. APK anterior não inclui o novo visual.
 
 - [x] Aplicar Mapbox raster com token público ao widget: GPS, perspectivas, tema e controles preservados; 21 testes aprovados, imagens reais HTTP 200 e permanência de 55 tiles ao desconectar verificadas. APK anterior não inclui esta alteração.
