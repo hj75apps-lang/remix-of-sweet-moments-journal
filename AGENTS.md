@@ -41,4 +41,5 @@
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
-- First-opening artwork uses a native MainActivity overlay and no-backup file marker: offline, retained on update, reset on reinstall. Keep system startup unbranded to prevent repeats; web navigation stays untouched.
+- First-opening artwork uses a native no-backup marker: offline, retained on update, reset on reinstall; system startup stays unbranded.
+- OTA uses native RSA checks, manual Capgo downloads and a root-gated cold-start claim; no background activation. Offline signing needs no backend.

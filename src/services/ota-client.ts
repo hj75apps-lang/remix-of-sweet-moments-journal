@@ -19,6 +19,7 @@ export const otaSnapshot = () => state;
 export const otaServerSnapshot = () => initialOtaState;
 export const subscribeOta = (listener: () => void) => { subscribers.add(listener); return () => { subscribers.delete(listener); }; };
 export const nativeOta = () => Capacitor.isNativePlatform() && Capacitor.isPluginAvailable("LauncherOta");
+export const prepareOta = () => nativeOta() ? (started ??= engine.start()) : Promise.resolve(false);
 export const checkOta = () => nativeOta() ? engine.check(navigator.onLine, !document.hidden, true) : Promise.resolve();
 
 /** Root mount only; cleanup never clears updater/native preferences or user data. */
@@ -27,9 +28,10 @@ export function mountOta(): () => void {
   let gone = false;
   let ready = false;
   let confirming = false;
+  let startupComplete = false;
   started ??= engine.start();
   const confirmShell = async () => {
-    if (gone || ready || confirming) return;
+    if (gone || ready || confirming || !startupComplete) return;
     if (!document.querySelector('nav[aria-label="Menu principal"]')) return;
     confirming = true;
     try { await engine.ready(); ready = true; await engine.check(navigator.onLine, !document.hidden); }
@@ -37,7 +39,7 @@ export function mountOta(): () => void {
     finally { confirming = false; }
   };
   const timer = window.setInterval(() => { if (!ready) void confirmShell(); }, 500);
-  void started.then((switching) => { if (!switching) void confirmShell(); });
+  void started.then((switching) => { if (!switching) { startupComplete = true; void confirmShell(); } });
   const check = () => { if (ready) void engine.check(navigator.onLine, !document.hidden); };
   const periodic = window.setInterval(check, 6 * 60 * 60_000);
   const online = () => { if (ready) void engine.check(true, !document.hidden, true); };
