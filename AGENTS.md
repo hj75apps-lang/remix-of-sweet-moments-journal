@@ -42,4 +42,4 @@
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
 - First-opening artwork uses a native no-backup marker: offline, retained on update, reset on reinstall; system startup stays unbranded.
-- OTA: RSA/Capgo/cold-start; Releases/Pages. Audit refs. Owner creates/backups keys off-repo; never expose/replace: trust depends on them.
+- OTA: RSA/Capgo/cold-start, Releases/Pages; audit refs. Preserve owner keys off-repo. APK CI requires public Mapbox env.
