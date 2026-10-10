@@ -1,8 +1,10 @@
 # Roadmap
 
-- [ ] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
-- [ ] Integrar TTS pt-BR e invocação do assistente padrão Android; auditar permissões, ciclo de vida e ativação externa.
-- [ ] Validar testes e fluxos de voz e registrar arquitetura, fornecedores reais e limitações; IA remota exige serviço seguro autorizado e configuração externa.
+- [x] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
+- [x] Implementar TTS pt-BR e intents oficiais do assistente Android; auditar permissões, ciclo de vida e ativação externa, sem escuta contínua.
+- [x] Validar comandos escritos no preview e 329 testes; registrar arquitetura, fornecedores e limites em docs/ASSISTENTE-DE-VOZ.md.
+- [ ] Compilar APK atualizado e verificar fala pt-BR, TTS, foco de áudio, permissão, reconhecimento offline e botão externo na central; bloqueado pela ausência de Java e acesso ao aparelho.
+- [ ] Integrar e testar GPT/Gemini apenas com serviço seguro externo autorizado e configuração fornecida; nenhum provedor remoto ativo nesta entrega.
 
 - [x] Aprimorar Tocando Agora: dados nativos validados, ICY separado e limitado, estado/fonte/capas com fallback; 300 testes aprovados e áudio WAV de teste tocar/pausar verificado na Home.
 - [x] Documentar fontes, permissões, limites e testes em docs/TOCANDO-AGORA.md.

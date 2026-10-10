@@ -100,7 +100,9 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
     media: () => nowPlaying.media,
     control: nowPlaying.control,
     volume: async (command) => {
+      const requestId = generation.current;
       const device = await getDeviceInfo();
+      if (generation.current !== requestId) throw new Error("Comando cancelado.");
       const current = device && device.maxVolume > 0 ? device.volume / device.maxVolume : radioRef.current.volume;
       const value = Math.max(0, Math.min(1, command.action === "set" ? command.value ?? current : command.action === "mute" ? 0 : current + (command.action === "up" ? 0.1 : -0.1)));
       if (isLauncherNative()) {

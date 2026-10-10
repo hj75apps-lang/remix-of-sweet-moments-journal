@@ -83,13 +83,14 @@ class VoiceControlPlugin : Plugin() {
             stopRecognizer()
             try {
                 val engine = SpeechRecognizer.createSpeechRecognizer(context)
+                    ?: throw IllegalStateException("Speech recognizer unavailable")
                 recognizer = engine
                 engine.setRecognitionListener(object : RecognitionListener {
-                    override fun onReadyForSpeech(params: Bundle?) { notifyState(true) }
+                    override fun onReadyForSpeech(params: Bundle?) { if (recognizer === engine) notifyState(true) }
                     override fun onBeginningOfSpeech() {}
                     override fun onRmsChanged(rmsdB: Float) {}
                     override fun onBufferReceived(buffer: ByteArray?) {}
-                    override fun onEndOfSpeech() { notifyState(false) }
+                    override fun onEndOfSpeech() { if (recognizer === engine) notifyState(false) }
                     override fun onError(error: Int) {
                         if (recognizer !== engine) return
                         listening = false
