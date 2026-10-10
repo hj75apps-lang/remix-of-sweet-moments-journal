@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
+- [ ] Integrar TTS pt-BR e invocação do assistente padrão Android; auditar permissões, ciclo de vida e ativação externa.
+- [ ] Validar testes e fluxos de voz e registrar arquitetura, fornecedores reais e limitações; IA remota exige serviço seguro autorizado e configuração externa.
+
 - [x] Aprimorar Tocando Agora: dados nativos validados, ICY separado e limitado, estado/fonte/capas com fallback; 300 testes aprovados e áudio WAV de teste tocar/pausar verificado na Home.
 - [x] Documentar fontes, permissões, limites e testes em docs/TOCANDO-AGORA.md.
 - [ ] Compilar APK e confirmar sessões Spotify/YouTube/Music e ICY ao vivo na central; bloqueado pela ausência de SDK/aparelho nesta rodada, exige acesso a notificações e fontes compatíveis.
