@@ -2,6 +2,7 @@
 
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
 - [ ] Ativar o repositório informado hj75apps-lang/remix-of-sweet-moments-journal: escolha pública aprovada, acesso administrativo e workflow OTA confirmados. Publicação suspensa até confirmar revogação/restrições da chave Google Maps encontrada no histórico e concluir auditoria das branches remotas ausentes no histórico local. Pages, assinatura OTA e variáveis ainda não configurados; nenhum secret de Actions nem variável existentes na consulta ao GitHub.
+- [x] Criar environments ota-testing, ota-production e github-pages no GitHub e restringir deploys à branch main; respostas da API confirmaram as três políticas. Aprovação por revisor recusada pelo plano atual com repositório privado (HTTP 422); reconsiderar após mudança segura de visibilidade. Nenhuma publicação executada.
 - [ ] Ativar distribuição GitHub e verificar download real na central; depende de repositório público vinculado, Pages habilitado, chaves do responsável e APK configurado.
 
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
