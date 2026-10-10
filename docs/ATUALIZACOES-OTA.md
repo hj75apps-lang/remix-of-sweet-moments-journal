@@ -62,8 +62,10 @@ Sem rede, o app usa o bundle local; checagens ocorrem em primeiro plano, na aber
 ## Validação realizada / pendente
 - 11 testes Vitest do motor: staging sem recarga, claim de abertura, offline/oculto, nativo/incompatível/suspenso/antigo/sem envelope/hash inválido, recuperação do servidor e retenção de bundles.
 - 3 testes existentes de imports/rotas: aprovados.
+- 1 teste real de publicação local: ZIP offline gerado, hash conferido, assinatura verificada, adulteração recusada e arquivo secreto excluído. Total: 15 testes aprovados; lint dos arquivos OTA sem erros.
 - Navegador abriu Ajustes, painel real e menu; verificação fica desativada no web, sem simulação de atualização recebida.
 - Testes Java de RSA adulterada, origem, semver e anti-downgrade adicionados; execução depende de JDK/Gradle Android.
+- Registro automático Capacitor reconheceu o updater, mas a sincronização não terminou sem `dist/client` no ambiente; `build:android` e sincronização completa continuam obrigatórios no ambiente de compilação.
 - Não verificados: APK assinado/instalação, HTTPS de produção, pacote real ponta a ponta, queda de conexão durante download, falta de espaço, falha/crash e rollback nativo, persistência após atualização, rádio/GPS/chamadas durante download e comandos de voz na central Android 7+. Estes são requisitos antes da produção.
 
 Não considerar a entrega produção pronta até testar APK inicial → download assinado → próxima abertura → confirmação → leitura de preferências; também provocar falha de startup e conferir retorno offline à versão anterior.

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { it, expect } from "vitest";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -21,7 +22,7 @@ it("packages an offline bundle and signs its exact hash without including the ke
     const zip = await readFile(join(output, "2-1.1.0.zip"));
     expect(result.sha256).toBe(createHash("sha256").update(zip).digest("hex"));
     expect(await readFile(join(output, "entries.txt"), "utf8")).toBe("index.html\n");
-    const altered = Buffer.from(envelope.payload, "base64"); altered[0] ^= 1;
+    const altered = Buffer.from(envelope.payload, "base64"); altered[0] = (altered[0] ?? 0) ^ 1;
     expect(verify("RSA-SHA256", altered, keys.publicKey, Buffer.from(envelope.signature, "base64"))).toBe(false);
     await writeFile(join(input, ".env"), "forbidden");
     await expect(publishOta({ input, output: join(root, "bad"), manifest, keyFile })).rejects.toThrow("Forbidden bundle entry");
