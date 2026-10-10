@@ -1,17 +1,17 @@
 # Roadmap
 
-- [ ] Criar assinatura definitiva e APK, concluir GitHub (16h44): bloqueado por geração assistida das chaves no computador do responsável; nenhuma chave ou APK novo criado.
+- [ ] Criar APK definitivo e concluir GitHub: responsável criou e conferiu as chaves no Windows; API confirmou os quatro secrets Android e a chave OTA nos dois environments. Android Release 1.1.0 solicitado; aguarda resultado e verificação do instalador.
 
-- [ ] Entregar atualizações prontas e funcionando, conforme pedido de 10/10/2026: 14 testes OTA aprovados novamente; API confirmou ausência de OTA_PUBLIC_KEY e de secrets no repositório e nos dois canais. Bloqueado pelas chaves OTA, assinatura Android original e validação na central; não há tarefa executando em segundo plano.
+- [ ] Entregar atualizações prontas e funcionando, conforme pedido de 10/10/2026: assinaturas cadastradas e configurações públicas confirmadas pela API; aguarda APK definitivo, publicação de pacote compatível e validação física na central. A nova assinatura não substitui diretamente os APKs antigos de teste.
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
 - [x] Tornar público o repositório aprovado e habilitar Pages por Actions: API confirmou visibilidade pública e HTTPS. Auditoria all-ref 38068226172 detectou somente categoria gcp-api-key no histórico de .env, compatível com a chave cuja revogação o usuário confirmou (não verificada independentemente); revisão dos cinco uploads não detectou dados pessoais. Resumo protegido testado sem valores. OTA_MANIFEST_URL e OTA_BUILTIN_SEQUENCE=1 salvos e lidos novamente pela API.
-- [ ] Configurar OTA_SIGNING_KEY e OTA_PUBLIC_KEY: nenhuma chave RSA existente nos secrets/variáveis; geração segura de par RSA no destino externo não disponível nas ferramentas de secrets (generate_secret gera strings, não PEM). Depende de provisionamento seguro no GitHub, sem valores em chat/código.
+- [x] Configurar OTA_SIGNING_KEY e OTA_PUBLIC_KEY: responsável criou par RSA no Windows e cadastrou diretamente pelo GitHub CLI; API confirmou secret em ota-testing/ota-production e variável pública no repositório, sem leitura de material privado. Correspondência entre as chaves será verificada pela publicação assinada.
 - [x] Criar environments ota-testing, ota-production e github-pages, restringir deploys à main e configurar o responsável como aprovador após tornar público; aprovação de produção confirmada pela API. Nenhum pacote publicado.
-- [ ] Ativar distribuição GitHub e verificar download real na central; depende de repositório público vinculado, Pages habilitado, chaves do responsável e APK configurado.
+- [ ] Publicar distribuição GitHub e verificar download real na central; repositório público, Pages e chaves configurados, aguarda APK definitivo e pacote assinado compatível.
 
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
 - [x] Preparar assinatura offline/CI, painel real de versões, testes e relatório em docs/ATUALIZACOES-OTA.md.
-- [ ] Configurar origem HTTPS/chaves e compilar/sincronizar APK inicial; bloqueado por configuração externa e ambiente Android.
+- [ ] Compilar/sincronizar APK inicial com origem HTTPS/chaves cadastradas; Android Release 1.1.0 solicitado no GitHub, aguarda resultado e inspeção.
 - [ ] Validar atualização real, preservação dos dados e rollback offline na central; bloqueado por APK inicial/origem configurados e acesso ao aparelho.
 
 - [x] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
