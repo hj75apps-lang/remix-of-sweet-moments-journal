@@ -123,9 +123,9 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     if (!points.length) return;
     if (!routeRef.current) {
       routeRef.current = L.polyline(points, {
-        color: "var(--primary)",
-        weight: 6,
-        opacity: 0.82,
+        color: "var(--navigation-accent)",
+        weight: 7,
+        opacity: 0.95,
         lineCap: "round",
         lineJoin: "round",
         interactive: false,

@@ -37,7 +37,7 @@
 - Android prerenders an offline SPA with nitro disabled; web build is unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand. Window requests use card bounds without fallback.
-- Leaflet tilts tiles, not vehicles/credit; navigation-view owns perspective. navigation-map-style uses public-token Mapbox raster (OSM without token) for Android 7; never infer traffic.
+- Leaflet tilts tiles, not vehicles/credit; navigation-view owns perspective, navigation-map-style owns Mapbox raster (OSM fallback), CSS owns accents. Preserve Android 7; never infer traffic.
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.

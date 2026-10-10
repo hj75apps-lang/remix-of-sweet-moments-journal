@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Aplicar visual inspirado no Waze com Mapbox, GPS, temas e offline preservados; verificar mapa e destino.
+
 - [x] Aplicar Mapbox raster com token público ao widget: GPS, perspectivas, tema e controles preservados; 21 testes aprovados, imagens reais HTTP 200 e permanência de 55 tiles ao desconectar verificadas. APK anterior não inclui esta alteração.
 
 - [x] “Para onde?” abre diretamente o navegador escolhido com destino; 22 testes aprovados e abertura real Google Maps verificada na web, Home preservada; incluído no APK.
