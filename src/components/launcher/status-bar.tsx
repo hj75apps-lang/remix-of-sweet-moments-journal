@@ -10,14 +10,12 @@ export function StatusBar() {
 /** Keep the global voice action in the dock, outside the page's top inset. */
 export function VoiceControlButton() {
   const voice = useVoiceControl();
-  if (!voice.available) return null;
   return (
           <Button
             type="button"
             size="icon"
             variant={voice.listening ? "default" : "ghost"}
-            onClick={voice.activate}
-            disabled={voice.listening}
+            onClick={voice.show}
             aria-label={voice.listening ? "Ouvindo comando de voz" : "Ativar comando de voz"}
             title={voice.listening ? "Ouvindo…" : "Comando de voz"}
             className="size-11 shrink-0 rounded-full md:mt-auto"

@@ -20,6 +20,7 @@ import { LauncherSettingsProvider } from "@/hooks/use-launcher-settings";
 import { VoiceControlProvider } from "@/contexts/voice-control-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 import { PhoneIntegration } from "@/components/phone/phone-integration";
+import { VoiceAssistantPanel } from "@/components/launcher/voice-assistant-panel";
 
 function NotFoundComponent() {
   return (
@@ -147,6 +148,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <RadioPlayerProvider>
             <VoiceControlProvider>
+              <VoiceAssistantPanel />
               <NavigationProvider>
               <PhoneIntegration />
               <Outlet />
