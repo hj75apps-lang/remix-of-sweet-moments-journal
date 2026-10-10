@@ -208,6 +208,23 @@ export function LauncherSettingsPanel() {
       <div className={card}>
         <h2 className="text-lg font-semibold">Navegação padrão</h2>
         <fieldset className="mt-4">
+          <legend className="text-base font-medium">Modo do mapa (Widget de Navegação)</legend>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { label: "Automático", value: "auto" as const },
+              { label: "Diurno", value: "light" as const },
+              { label: "Noturno", value: "dark" as const },
+            ].map((mode) => (
+              <Button key={mode.value} type="button" variant="secondary"
+                aria-pressed={settings.navThemeMode === mode.value}
+                className="min-h-12 whitespace-normal rounded-lg border border-border px-2 aria-pressed:border-primary aria-pressed:bg-primary/15"
+                onClick={() => update({ navThemeMode: mode.value })}>
+                {mode.label}
+              </Button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset className="mt-4">
           <legend className="text-base font-medium">Estilo do mapa</legend>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {MAP_STYLES.map((style) => (

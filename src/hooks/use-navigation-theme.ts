@@ -5,6 +5,7 @@ import { navigationNightMode } from "@/services/navigation-theme";
 /** Map-only schedule; never modifies the saved preference. */
 export function useNavigationTheme(): boolean {
   const { preferredMode } = useTheme();
+  const { settings } = useLauncherSettings();
   const [scheduledNight, setScheduledNight] = useState(false);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -24,5 +25,7 @@ export function useNavigationTheme(): boolean {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, []);
+  if (settings.navThemeMode === "light") return false;
+  if (settings.navThemeMode === "dark") return true;
   return preferredMode === "dark" || scheduledNight;
 }

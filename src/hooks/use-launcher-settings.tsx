@@ -24,6 +24,7 @@ export interface LauncherSettings {
   lastDestination: string;
   buttonColor: string;
   buttonOpacity: number;
+  navThemeMode: "auto" | "light" | "dark";
 }
 
 const KEY = "sal.launcher-settings";
@@ -45,6 +46,7 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   lastDestination: "",
   buttonColor: "",
   buttonOpacity: 100,
+  navThemeMode: "auto",
 };
 
 function normalize(value: unknown): LauncherSettings {
@@ -72,6 +74,7 @@ function normalize(value: unknown): LauncherSettings {
       lastDestination: typeof v.lastDestination === "string" ? v.lastDestination.slice(0, 200) : "",
       buttonColor: typeof v.buttonColor === "string" && /^#[\da-f]{6}$/i.test(v.buttonColor) ? v.buttonColor : "",
       buttonOpacity: typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 ? v.buttonOpacity : 100,
+      navThemeMode: v.navThemeMode === "light" || v.navThemeMode === "dark" || v.navThemeMode === "auto" ? v.navThemeMode : "auto",
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -95,6 +98,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.lastDestination === "string" && v.lastDestination.length <= 200 &&
     typeof v.buttonColor === "string" && (v.buttonColor === "" || /^#[\da-f]{6}$/i.test(v.buttonColor)) &&
     typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 &&
+    (v.navThemeMode === "auto" || v.navThemeMode === "light" || v.navThemeMode === "dark") &&
     (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
       (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
