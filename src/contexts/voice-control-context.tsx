@@ -94,7 +94,7 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
       try { custom = normalizeRadioStations(JSON.parse(localStorage.getItem("sal.radio-custom") ?? "[]"), 100); } catch { /* optional preference */ }
       const cached = queryClient.getQueryData<CatalogResult>(["radio-catalog"]);
       const catalog = cached ?? (navigator.onLine ? await queryClient.ensureQueryData({ queryKey: ["radio-catalog"], queryFn: () => fetchCatalog(), staleTime: 30 * 60_000 }) : { stations: verifiedStations });
-      return mergeStations(custom, radioRef.current.favorites, catalog.stations);
+      return mergeStations(custom, radioRef.current.favorites, catalog?.stations ?? verifiedStations);
     },
     play: (station) => radioRef.current.play(station),
     media: () => nowPlaying.media,
@@ -142,9 +142,11 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
     if (command.kind === "cancel") { stop(); setResponse("Cancelado."); return; }
     if (busy.current || !actionsRef.current || !text.trim()) return;
     const id = ++generation.current;
+    const confirmation = confirmed ?? (command.kind === "confirm" ? pendingRef.current : null);
     busy.current = true; capturing.current = false;
     await stopVoiceRecognition().catch(() => {});
     await stopVoiceSpeech().catch(() => {});
+    if (generation.current !== id) return;
     setOpen(true); setTranscript(text.slice(0, 500)); setPending(null); setChoices([]); setPhase("processing");
     // Each asynchronous lookup is followed by a generation guard before an external action.
     const base = actionsRef.current;
@@ -160,7 +162,6 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
       assistant: async () => { guard(); await base.assistant(); },
     };
     try {
-      const confirmation = confirmed ?? (command.kind === "confirm" ? pendingRef.current : null);
       const outcome = confirmation ? await executeVoiceCommand(confirmation, actions, true) : await runVoiceTranscript(text, actions);
       await finish(outcome, id);
     } catch (error) {
@@ -171,7 +172,8 @@ export function VoiceControlProvider({ children }: { children: ReactNode }) {
   performRef.current = perform;
 
   const activate = useCallback(() => {
-    stop(); setOpen(true); setResponse("");
+    const confirmation = pendingRef.current;
+    stop(); setPending(confirmation); setOpen(true); setResponse("");
     if (preferencesRef.current.provider === "android") {
       void openSystemVoiceAssistant().catch((error: unknown) => { setPhase("error"); setResponse(error instanceof Error ? error.message : "Assistente indisponível."); });
       return;

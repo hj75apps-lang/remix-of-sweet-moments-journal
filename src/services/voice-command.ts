@@ -18,11 +18,12 @@ export function normalizeVoiceText(value: string): string {
     .trim();
 }
 
-const hasAny = (text: string, phrases: string[]) => phrases.some((phrase) => text.includes(phrase));
+const hasAny = (text: string, phrases: string[]) => phrases.some((phrase) => text === phrase || text.startsWith(`${phrase} `));
 
 export function parseVoiceCommand(transcript: string): VoiceCommand {
   const text = normalizeVoiceText(transcript);
   if (!text || text.length > 500) return { kind: "unknown", label: "Diga um comando curto e específico." };
+  if (/^(nao |nunca |se |quando )/.test(text) || /\b(?:e depois|e abra|e toque|mas nao|nao abra|nao toque)\b/.test(text)) return { kind: "unknown", label: "Diga uma ação por vez, sem condições ou negações." };
   if (/^(cancelar|cancele|pare|parar|encerrar|encerre|interromper|nao)$/.test(text)) return { kind: "cancel", label: "Cancelado" };
   if (/^(sim|confirmar|confirme|pode abrir|pode continuar)$/.test(text)) return { kind: "confirm", label: "Confirmar" };
   if (/^(que horas sao|qual a hora|me diga as horas|horas)$/.test(text)) return { kind: "time", label: "Hora atual" };
@@ -38,8 +39,8 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
     return value <= 100 ? { kind: "volume", action: "set", value: value / 100, label: "Ajustar volume" } : { kind: "unknown", label: "O volume deve estar entre zero e cem por cento." };
   }
   const destination = text.match(/^(?:trace (?:uma )?rota (?:ate|para)|tracar (?:uma )?rota (?:ate|para)|navegue (?:ate|para)|navegar (?:ate|para)|me leve (?:ate|para)|encontre|procure) (.+)$/);
-  if (destination && !/^(?:uma? |as? |radios? |musicas? )/.test(destination[1] ?? "")) {
-    return { kind: "destination", destination: destination[1] ?? "", label: "Confirmar destino" };
+  if (destination && /^(?:um |uma |o |a )?(?:posto|restaurante|centro|rua|avenida|shopping|hospital|aeroporto|mercado|farmacia)/.test(destination[1] ?? "") || destination && /^(?:trace|tracar|navegue|navegar|me leve)/.test(text)) {
+    return { kind: "destination", destination: destination?.[1] ?? "", label: "Confirmar destino" };
   }
   const radioQuery = text.match(/^(toque|tocar|reproduza|reproduzir|procure|procurar|pesquise|pesquisar|encontre) (?:a |uma |as )?radios? (.+)$/);
   if (radioQuery) return { kind: "search_radio", query: radioQuery[2] ?? "", play: /^(toque|tocar|reproduza|reproduzir)$/.test(radioQuery[1] ?? ""), label: "Buscar rádio" };
@@ -60,7 +61,7 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
   if (hasAny(text, ["abrir radio", "abra a radio", "ir para radio", "mostrar radio"])) {
     return { kind: "navigate", route: "/radio", label: "Abrindo Rádios Online" };
   }
-  if (hasAny(text, ["abrir clima", "previsao do tempo", "como esta o tempo", "mostrar clima"])) {
+  if (hasAny(text, ["abrir clima", "previsao do tempo", "qual e a previsao do tempo", "qual a previsao do tempo", "como esta o tempo", "mostrar clima"])) {
     return { kind: "navigate", route: "/clima", label: "Abrindo previsão do tempo" };
   }
   if (hasAny(text, ["abrir aplicativos", "abrir apps", "mostrar aplicativos", "mostrar apps", "mostre os aplicativos"])) {
