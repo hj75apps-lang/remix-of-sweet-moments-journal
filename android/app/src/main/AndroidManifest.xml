@@ -3,6 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+        <intent><action android:name="android.intent.action.VOICE_COMMAND" /></intent>
+        <intent><action android:name="android.intent.action.ASSIST" /></intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="geo" />
@@ -76,6 +80,11 @@
                 <data android:scheme="tel" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VOICE_COMMAND" />
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <provider
