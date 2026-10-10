@@ -77,6 +77,8 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
       "ir para o inicio",
       "abrir inicio",
       "voltar ao inicio",
+      "volte para a tela inicial",
+      "voltar para a tela inicial",
     ])
   ) {
     return { kind: "navigate", route: "/", label: "Abrindo tela inicial" };
