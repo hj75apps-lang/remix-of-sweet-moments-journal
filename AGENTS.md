@@ -42,4 +42,4 @@
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.
 - First-opening artwork uses a native no-backup marker: offline, retained on update, reset on reinstall; system startup stays unbranded.
-- OTA: RSA checks, manual Capgo, cold-start only; Releases archive signed ZIPs, Pages mirrors ZIP/manifest on one origin to preserve trust.
+- OTA: RSA, manual Capgo, cold-start; Releases archive ZIPs; Pages mirrors one origin. Audit all refs before going public; no secret output.
