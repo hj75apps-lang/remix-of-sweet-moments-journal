@@ -21,6 +21,7 @@ import { VoiceControlProvider } from "@/contexts/voice-control-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 import { PhoneIntegration } from "@/components/phone/phone-integration";
 import { VoiceAssistantPanel } from "@/components/launcher/voice-assistant-panel";
+import { mountOta } from "@/services/ota-client";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,7 @@ function RootComponent() {
   const context = Route.useRouteContext();
   const queryClient = context?.queryClient ?? queryClientSingleton;
   useGlass();
+  useEffect(() => mountOta(), []);
 
   return (
     <QueryClientProvider client={queryClient}>
