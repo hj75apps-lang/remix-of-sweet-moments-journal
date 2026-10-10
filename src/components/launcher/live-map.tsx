@@ -48,7 +48,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
   }, [settings.vehicleIcon]);
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || (!online && tilesRef.current)) return;
     const source = navigationMapTiles(settings.mapStyle, dark);
     if (!tilesRef.current) {
       const ViewedTileLayer = L.TileLayer.extend({
@@ -73,12 +73,13 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
       if (oldAttribution) map.attributionControl.removeAttribution(oldAttribution);
       tilesRef.current.options.attribution = source.attribution;
       map.attributionControl.addAttribution(source.attribution);
-      // The two OSM styles share a source; CSS-only changes must not reload tiles.
-      tilesRef.current.setUrl(source.url, true);
+      // Reload only when the provider or Mapbox style changes.
+      tilesRef.current.options.maxZoom = source.maxZoom;
+      tilesRef.current.setUrl(source.url);
     }
     tilesRef.current.getContainer()?.classList.toggle("map-tiles-dark", source.darkFilter);
     tilesRef.current.getContainer()?.classList.toggle("map-roads-enhanced", source.emphasizeRoads);
-  }, [dark, settings.mapStyle]);
+  }, [dark, settings.mapStyle, online]);
   useEffect(() => {
     const map = mapRef.current;
     const marker = markerRef.current;

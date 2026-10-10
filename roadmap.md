@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Aplicar Mapbox raster com token público ao widget: GPS, perspectivas, tema e controles preservados; 21 testes aprovados, imagens reais HTTP 200 e permanência de 55 tiles ao desconectar verificadas. APK anterior não inclui esta alteração.
+
 - [x] “Para onde?” abre diretamente o navegador escolhido com destino; 22 testes aprovados e abertura real Google Maps verificada na web, Home preservada; incluído no APK.
 
 - [x] APK HJCar-2026-10-09-v2.apk entregue: compilação Android aprovada, cinco testes nativos aprovados, assinatura v2 e Android mínimo 24 verificados. Assinatura de teste difere do APK anterior; atualização direta não é compatível.
@@ -16,7 +18,7 @@
 - [x] Validar regressões e fluxos em desktop/mobile; 253 testes aprovados, seis páginas e áudio real verificados; limites registrados no relatório.
 
 - [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
-- [ ] Integrar trânsito real: conexão Mapbox bloqueada pela permissão da conta; um administrador precisa conectar o serviço antes da integração e validação na central.
+- [ ] Integrar trânsito real: Mapbox conectada e cartografia aplicada; camada de trânsito não incluída nesta solicitação, requer integração própria e validação.
 
 - [x] Oferecer mapa 2D, 3D em perspectiva e Automático, com escolha salva e aproximação maior em 3D; 41 testes aprovados e seleção, reabertura, mapa e veículo verificados em 1280×720 e 390×844. Validação em movimento na central depende do aparelho.
 
