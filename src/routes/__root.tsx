@@ -142,8 +142,26 @@ function RootComponent() {
   const queryClient = context?.queryClient ?? queryClientSingleton;
   useGlass();
   const [otaPrepared, setOtaPrepared] = useState(false);
-  useEffect(() => { let active = true; void prepareOta().then((switching) => { if (active && !switching) setOtaPrepared(true); }); return () => { active = false; }; }, []);
-  useEffect(() => mountOta(), []);
+  useEffect(() => {
+    let active = true;
+    void prepareOta()
+      .then((switching) => {
+        if (active && !switching) setOtaPrepared(true);
+      })
+      .catch(() => {
+        if (active) setOtaPrepared(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    try {
+      mountOta();
+    } catch {
+      // ignore ota mount errors gracefully
+    }
+  }, []);
   if (!otaPrepared) return <div className="min-h-screen bg-background" aria-label="Iniciando Launcher" />;
 
   return (
