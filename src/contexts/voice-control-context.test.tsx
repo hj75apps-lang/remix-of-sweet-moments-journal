@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/contexts/radio-player-context", () => ({ useRadio: () => ({ favorites: [], volume: 0.8, setVolume: vi.fn(), play: vi.fn() }) }));
 vi.mock("@/services/now-playing", () => ({ useNowPlaying: () => ({ media: null, control: vi.fn(async () => {}) }) }));
-vi.mock("@/hooks/use-launcher-settings", () => ({ useLauncherSettings: () => ({ settings: { navApp: "maps" } }) }));
+vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ apps: [], ready: false }) }));
 vi.mock("@/services/installed-apps", () => ({ listInstalledApps: mocks.apps, launchApp: mocks.launch }));
 vi.mock("@/services/voice-command", async (original) => ({
   ...await original<typeof import("@/services/voice-command")>(),
@@ -22,21 +22,34 @@ vi.mock("@/services/voice-command", async (original) => ({
   onVoiceActivation: () => () => {}, onVoiceSpeechState: () => () => {},
 }));
 import { VoiceControlProvider, useVoiceControl } from "./voice-control-context";
+import { LauncherSettingsProvider, useLauncherSettings } from "@/hooks/use-launcher-settings";
 function Controls() {
   const voice = useVoiceControl();
+  const { settings, loaded, update } = useLauncherSettings();
   return <div><button onClick={voice.activate}>Ouvir</button><button onClick={voice.stop}>Parar</button>
+    <button onClick={() => update({ navApp: "waze" })}>Waze</button>
+    <span data-testid="settings">{loaded ? settings.navApp : "loading"}</span>
     <button onClick={() => voice.submit("Abra o Spotify")}>App</button>
     <button onClick={() => voice.submit("Trace uma rota até o centro")}>Destino</button>
     <button onClick={voice.confirm}>Confirmar</button>
     <span data-testid="response">{voice.response}</span><span data-testid="phase">{voice.phase}</span>
     <span data-testid="pending">{voice.pending?.kind}</span></div>;
 }
-function mount() { render(<QueryClientProvider client={new QueryClient()}><VoiceControlProvider><Controls /></VoiceControlProvider></QueryClientProvider>); }
+function mount() { render(<QueryClientProvider client={new QueryClient()}><LauncherSettingsProvider><VoiceControlProvider><Controls /></VoiceControlProvider></LauncherSettingsProvider></QueryClientProvider>); }
 describe("fluxo global de voz", () => {
   beforeEach(() => {
     vi.clearAllMocks(); localStorage.clear();
     localStorage.setItem("sal.voice-preferences", JSON.stringify({ schema: 1, data: { spoken: false, provider: "local" } }));
     mocks.apps.mockResolvedValue([]); mocks.start.mockResolvedValue();
+  });
+  it("shares restored and updated settings with the voice provider", async () => {
+    mount();
+    await waitFor(() => expect(screen.getByTestId("settings")).toHaveTextContent("maps"));
+    fireEvent.click(screen.getByText("Waze"));
+    expect(screen.getByTestId("settings")).toHaveTextContent("waze");
+    expect(JSON.parse(localStorage.getItem("sal.launcher-settings") ?? "null")).toMatchObject({ data: { navApp: "waze" } });
+    fireEvent.click(screen.getByText("Destino"));
+    await waitFor(() => expect(screen.getByTestId("pending")).toHaveTextContent("destination"));
   });
   it("executa transcrição da ponte nativa", async () => {
     mount(); fireEvent.click(screen.getByText("Ouvir"));
