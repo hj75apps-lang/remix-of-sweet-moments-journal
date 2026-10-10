@@ -12,6 +12,8 @@ import { useRadioListening } from "@/hooks/use-radio-listening";
 import type { RadioListeningEntry } from "@/services/radio-listening";
 import { publishRadio } from "@/services/now-playing";
 import type { RadioStation } from "@/services/radio-browser";
+import { useRadioMetadata } from "@/hooks/use-radio-metadata";
+import { radioMetadata } from "@/services/media-metadata";
 
 type Player = ReturnType<typeof useRadioPlayer> & {
   listeningHistory: RadioListeningEntry[];
@@ -44,23 +46,13 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
 
   const current = player.station;
   const playing = player.status === "playing" && player.audioConfirmed;
+  const track = useRadioMetadata(current?.id, player.activeStream, playing);
   const listeningHistory = useRadioListening(current, playing && player.audioConfirmed);
   useEffect(() => {
     publishRadio(
       current
         ? {
-            title: current.name,
-            artist: [current.frequency && `${current.frequency} FM`, current.city || current.state]
-              .filter(Boolean)
-              .join(" · "),
-            album: current.tags.slice(0, 2).join(", "),
-            sourceName: "Rádios Online",
-            packageName: "",
-            artwork: current.favicon,
-            playing,
-            duration: 0,
-            position: 0,
-            kind: "radio",
+            ...radioMetadata(current, player.status, playing, track),
             controls: {
               toggle: () => toggleRef.current(),
               next: () => stepRef.current(1),
@@ -69,7 +61,7 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
           }
         : null,
     );
-  }, [current, playing]);
+  }, [current, playing, player.status, track]);
 
   const setQueue = useCallback((list: RadioStation[]) => {
     queueRef.current = list;

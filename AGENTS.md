@@ -24,7 +24,7 @@
 - Home weather uses an integrated WeatherSymbol outline with card-size-bounded typography and a stacked narrow-card grid; restyles preserve all readings, fetching, state and forecast access.
 - Cards reuse global glass surface/border tokens and the existing transparency setting so all widgets match across themes.
 - Android steering-wheel media buttons are received through the app's native MediaSession and forwarded to the global radio player so controls work from every route.
-- Now-playing selection uses external Android MediaSessions plus the in-app radio store; all external sessions are observed and permission is refreshed on resume so source changes and late grants are detected.
+- Now-playing validates native sessions and separate bounded ICY reads; events own state, hidden/offline probes pause, source changes clear tracks and images fall back safely.
 - Android voice activation and the global microphone control use the native speech recognizer; parsed commands reach routing and radio controls from every route.
 - StatusBar reserves only the shell's matching top inset; the global microphone action lives in Dock so touch targets do not enlarge margins or overlap page content.
 - The launcher dock keeps Home, Online Radio, Apps, and Settings fixed; the former Phone slot reads the last successfully launched app from LauncherApps native preferences without UsageStats permission, while remaining recent slots use UsageStats and omit duplicates.
