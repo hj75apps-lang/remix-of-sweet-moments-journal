@@ -1,7 +1,9 @@
 # Atualizações OTA — Smart Auto Launcher
 
 ## Estado da entrega
-Base funcional e publicação GitHub Releases + Pages implementadas, **não ativadas em produção**. Em 10/10/2026, o repositório aprovado foi tornado público, Pages por Actions/HTTPS habilitado e aprovações do responsável configuradas nos três environments. O endereço `https://hj75apps-lang.github.io/remix-of-sweet-moments-journal/production.json` e a sequência inicial 1 foram salvos e conferidos. Nenhum manifesto ou pacote foi publicado: faltam as chaves RSA de assinatura, a assinatura Android original e o APK inicial configurado/testado. Não foi criado banco, autenticação, storage ou serviço Lovable.
+Distribuição assinada publicada, **validação física ainda pendente**. Em 10/10/2026, Android Release 1.1.0 (38070997799) terminou com sucesso: assinatura v2 RSA 3072, package app.smartautolauncher, versionCode 1 e minSdk 24 conferidos. APK entregue como HJCar-1.1.0-assinatura-definitiva.apk, SHA-256 ef400fc14c236bed2fcf9562003db1a505e2bc8ea3eb3250af260c8b15ae6ba9. A assinatura definitiva difere dos instaladores antigos de teste e não permite atualização direta sobre eles; proteger preferências antes de qualquer remoção.
+
+O workflow 38071342002 publicou production 1.1.1, sequência 3, compatível com nativeCode 1 e launcher >=1.1.0. Manifesto `https://hj75apps-lang.github.io/remix-of-sweet-moments-journal/production.json` e ZIP retornaram HTTPS 200; assinatura RSA verificada independentemente contra a chave pública extraída do APK, SHA-256 1762f919c9e216bc6f562f85f27d70070af7f2dcac07483daa29dbf0be228470 e 735006 bytes conferidos. ZIP contém index.html offline e nenhum arquivo privado de assinatura. Testing sequência 2 preservado. Aprovações ota-production e github-pages realizadas conforme autorização no chat. Não foi criado banco, autenticação, storage ou serviço Lovable.
 
 ## Arquitetura
 - Capacitor 8 + `@capgo/capacitor-updater` 8.52.1: download ZIP, checksum SHA-256, armazenamento interno e recuperação nativa quando a inicialização não é confirmada.
@@ -72,7 +74,7 @@ Versões já preparadas ou inferiores são recusadas. O contador é reservado ao
 Sem rede, o app usa o bundle local; checagens ocorrem em primeiro plano, na abertura, reconexão e a cada seis horas, ou manualmente. Falha do servidor não apaga dados. O download pode continuar em segundo plano sem ativação; não controla rádio, navegação ou telefone. Android 7+ é preservado pelo minSdk 24 do plugin; comportamento em WebViews antigas precisa teste real.
 
 ## Validação realizada / pendente
-- Nova conferência em 10/10/2026: 14 testes de motor, empacotamento e canais aprovados. A API GitHub confirmou zero secrets no repositório e nos environments ota-testing/ota-production, além de ausência da variável OTA_PUBLIC_KEY. Publicação real permanece bloqueada; não foi disparado workflow sem essas dependências nem declarado funcionamento na central.
+- Conferência atual em 10/10/2026: chaves cadastradas pelo responsável e presença confirmada pela API; 343 testes locais aprovados na rodada anterior e testes do workflow production aprovados. APK assinado e downloads públicos inspecionados conforme estado acima. Resultados anteriores abaixo descrevem etapas históricas, não bloqueios atuais.
 - Integração GitHub: 14 testes locais aprovados (11 do motor, 1 de assinatura/empacotamento, 2 de seleção de canais e cópia Pages). Os testes usam pacotes reais temporários assinados, validam hash, rejeitam adulteração/chave incorreta e preservam os dois canais. Execução GitHub Actions, implantação pública e download na central ainda não verificados por dependerem da configuração externa.
 - 11 testes Vitest do motor: staging sem recarga, claim de abertura, offline/oculto, nativo/incompatível/suspenso/antigo/sem envelope/hash inválido, recuperação do servidor e retenção de bundles.
 - 3 testes existentes de imports/rotas: aprovados.
@@ -80,6 +82,6 @@ Sem rede, o app usa o bundle local; checagens ocorrem em primeiro plano, na aber
 - Navegador abriu Ajustes, painel real e menu; verificação fica desativada no web, sem simulação de atualização recebida.
 - Testes Java de RSA adulterada, origem, semver e anti-downgrade adicionados; execução depende de JDK/Gradle Android.
 - Registro automático Capacitor reconheceu o updater, mas a sincronização não terminou sem `dist/client` no ambiente; `build:android` e sincronização completa continuam obrigatórios no ambiente de compilação.
-- Não verificados: APK assinado/instalação, HTTPS de produção, pacote real ponta a ponta, queda de conexão durante download, falta de espaço, falha/crash e rollback nativo, persistência após atualização, rádio/GPS/chamadas durante download e comandos de voz na central Android 7+. Estes são requisitos antes da produção.
+- Não verificados na central: instalação, pacote real ponta a ponta, queda de conexão durante download, falta de espaço, falha/crash e rollback nativo, persistência após atualização, rádio/GPS/chamadas durante download e comandos de voz Android 7+. Estes são requisitos antes de declarar funcionamento em produção; assinatura do APK e HTTPS de produção já foram verificados externamente.
 
 Não considerar a entrega produção pronta até testar APK inicial → download assinado → próxima abertura → confirmação → leitura de preferências; também provocar falha de startup e conferir retorno offline à versão anterior.
