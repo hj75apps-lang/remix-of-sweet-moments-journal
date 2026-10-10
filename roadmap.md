@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
+- [ ] Ativar distribuição GitHub e verificar download real na central; depende de repositório público vinculado, Pages habilitado, chaves do responsável e APK configurado.
+
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
 - [x] Preparar assinatura offline/CI, painel real de versões, testes e relatório em docs/ATUALIZACOES-OTA.md.
 - [ ] Configurar origem HTTPS/chaves e compilar/sincronizar APK inicial; bloqueado por configuração externa e ambiente Android.
