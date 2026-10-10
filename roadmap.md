@@ -20,7 +20,7 @@
 - [x] Validar regressões e fluxos em desktop/mobile; 253 testes aprovados, seis páginas e áudio real verificados; limites registrados no relatório.
 
 - [x] Oferecer contraste cartográfico reforçado para ruas e avenidas no OpenStreetMap, escolha salva e opção Tradicional; a fonte Voyager exigiu chave e foi descartada para preservar o mapa disponível.
-- [ ] Integrar trânsito real: Mapbox conectada e cartografia aplicada; camada de trânsito não incluída nesta solicitação, requer integração própria e validação.
+- [x] Integrar trânsito real com estilos Mapbox Traffic Day/Night e atualização em primeiro plano a cada cinco minutos; fonte mapbox-traffic-v1 confirmada, tiles HTTP 200 e congestionamento colorido verificados; 22 testes aprovados, GPS/destino e 55 tiles offline preservados. Cobertura e atualização dependem do provedor; APK anterior não inclui trânsito.
 
 - [x] Oferecer mapa 2D, 3D em perspectiva e Automático, com escolha salva e aproximação maior em 3D; 41 testes aprovados e seleção, reabertura, mapa e veículo verificados em 1280×720 e 390×844. Validação em movimento na central depende do aparelho.
 
