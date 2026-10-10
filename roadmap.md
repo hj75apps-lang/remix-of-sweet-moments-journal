@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
-- [ ] Ativar o repositório informado hj75apps-lang/remix-of-sweet-moments-journal: auditar histórico antes de torná-lo público, habilitar Pages e configurar assinatura; escolha pública aprovada pelo usuário.
+- [ ] Ativar o repositório informado hj75apps-lang/remix-of-sweet-moments-journal: escolha pública aprovada, acesso administrativo e workflow OTA confirmados. Publicação suspensa até confirmar revogação/restrições da chave Google Maps encontrada no histórico e concluir auditoria das branches remotas ausentes no histórico local. Pages, assinatura OTA e variáveis ainda não configurados; nenhum secret de Actions nem variável existentes na consulta ao GitHub.
 - [ ] Ativar distribuição GitHub e verificar download real na central; depende de repositório público vinculado, Pages habilitado, chaves do responsável e APK configurado.
 
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
