@@ -562,6 +562,50 @@ body {
   .weather-week-day-low dd { font-size:20px; }
 }
 
+:root {
+  --navigation-accent: oklch(0.77 0.13 220);
+  --navigation-accent-ink: oklch(0.19 0.025 230);
+}
+.navigation-widget .navigation-status {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+.navigation-widget .navigation-status svg,
+.navigation-widget .navigation-instruction svg {
+  color: var(--navigation-accent);
+}
+.navigation-widget .navigation-search {
+  border-radius: 28px;
+  padding: 6px;
+  gap: 6px;
+}
+.navigation-widget .navigation-search input {
+  border: 0;
+  box-shadow: none;
+  border-radius: 22px;
+  padding-inline: 14px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.navigation-widget .navigation-search button {
+  border-radius: 50%;
+  background: var(--navigation-accent);
+  color: var(--navigation-accent-ink);
+}
+.navigation-widget .navigation-search button:hover {
+  background: color-mix(in oklab, var(--navigation-accent) 85%, var(--foreground));
+}
+.navigation-widget .navigation-overlay > div > button {
+  border-radius: 50%;
+}
+.navigation-map-viewport {
+  --vehicle-blue: var(--navigation-accent);
+}
+.navigation-map-viewport .vehicle-art-arrow .vehicle-arrow-shape {
+  fill: var(--navigation-accent);
+  stroke: var(--vehicle-outline);
+}
 .map-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
 }
