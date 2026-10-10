@@ -72,6 +72,7 @@ Versões já preparadas ou inferiores são recusadas. O contador é reservado ao
 Sem rede, o app usa o bundle local; checagens ocorrem em primeiro plano, na abertura, reconexão e a cada seis horas, ou manualmente. Falha do servidor não apaga dados. O download pode continuar em segundo plano sem ativação; não controla rádio, navegação ou telefone. Android 7+ é preservado pelo minSdk 24 do plugin; comportamento em WebViews antigas precisa teste real.
 
 ## Validação realizada / pendente
+- Nova conferência em 10/10/2026: 14 testes de motor, empacotamento e canais aprovados. A API GitHub confirmou zero secrets no repositório e nos environments ota-testing/ota-production, além de ausência da variável OTA_PUBLIC_KEY. Publicação real permanece bloqueada; não foi disparado workflow sem essas dependências nem declarado funcionamento na central.
 - Integração GitHub: 14 testes locais aprovados (11 do motor, 1 de assinatura/empacotamento, 2 de seleção de canais e cópia Pages). Os testes usam pacotes reais temporários assinados, validam hash, rejeitam adulteração/chave incorreta e preservam os dois canais. Execução GitHub Actions, implantação pública e download na central ainda não verificados por dependerem da configuração externa.
 - 11 testes Vitest do motor: staging sem recarga, claim de abertura, offline/oculto, nativo/incompatível/suspenso/antigo/sem envelope/hash inválido, recuperação do servidor e retenção de bundles.
 - 3 testes existentes de imports/rotas: aprovados.

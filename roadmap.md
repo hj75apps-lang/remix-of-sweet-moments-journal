@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Entregar atualizações prontas e funcionando, conforme pedido de 10/10/2026: 14 testes OTA aprovados novamente; API confirmou ausência de OTA_PUBLIC_KEY e de secrets no repositório e nos dois canais. Bloqueado pelas chaves OTA, assinatura Android original e validação na central; não há tarefa executando em segundo plano.
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
 - [x] Tornar público o repositório aprovado e habilitar Pages por Actions: API confirmou visibilidade pública e HTTPS. Auditoria all-ref 38068226172 detectou somente categoria gcp-api-key no histórico de .env, compatível com a chave cuja revogação o usuário confirmou (não verificada independentemente); revisão dos cinco uploads não detectou dados pessoais. Resumo protegido testado sem valores. OTA_MANIFEST_URL e OTA_BUILTIN_SEQUENCE=1 salvos e lidos novamente pela API.
 - [ ] Configurar OTA_SIGNING_KEY e OTA_PUBLIC_KEY: nenhuma chave RSA existente nos secrets/variáveis; geração segura de par RSA no destino externo não disponível nas ferramentas de secrets (generate_secret gera strings, não PEM). Depende de provisionamento seguro no GitHub, sem valores em chat/código.
