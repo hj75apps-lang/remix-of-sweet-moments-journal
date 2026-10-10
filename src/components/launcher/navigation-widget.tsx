@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { ClientOnly } from "@tanstack/react-router";
-import { AppWindow, MapPin, Navigation, Search, WifiOff } from "lucide-react";
+import { Maximize2, MapPin, Navigation, Search, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,6 @@ import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { useNavigationTheme } from "@/hooks/use-navigation-theme";
 import { useNavigationState } from "@/contexts/navigation-context";
 import { errorMessage, startNavigation } from "@/services/launcher-system";
-import { navigationWindowBounds, openNavigationWindow } from "@/services/navigation-window";
 import { useNavigationApps } from "@/services/navigation-apps";
 import { formatDistance, formatDuration } from "@/services/navigation-state";
 
@@ -23,7 +22,6 @@ export function NavigationWidget() {
   const [destination, setDestination] = useState("");
   const [opening, setOpening] = useState(false);
   const pending = useRef(false);
-  const frame = useRef<HTMLElement | null>(null);
   const selected = apps.find((app) => app.id === settings.navApp);
 
   // The home map owns one foreground subscription; the root retains the last fix.
@@ -36,24 +34,16 @@ export function NavigationWidget() {
       return;
     }
     if (settings.navApp === "system") {
-      toast.error("Escolha um navegador específico nos ajustes para abrir na área da tela inicial.");
-      return;
-    }
-    const bounds = frame.current ? navigationWindowBounds(frame.current.getBoundingClientRect()) : null;
-    if (!bounds) {
-      toast.error("A área da navegação ainda não está disponível.");
+      toast.error("Escolha um navegador específico nos ajustes.");
       return;
     }
     pending.current = true;
     setOpening(true);
     try {
-      await openNavigationWindow(settings.navApp, bounds, target);
+      await startNavigation(settings.navApp, target);
       if (target) update({ lastDestination: target });
     } catch (error) {
-      const code = error instanceof Error ? error.message : "";
-      toast.error(code.startsWith("window_")
-        ? "Não foi possível solicitar a janela nesta central. O mapa da Launcher será mantido, sem abertura alternativa em tela cheia."
-        : errorMessage(error));
+      toast.error(errorMessage(error));
     } finally {
       pending.current = false;
       setOpening(false);
@@ -85,19 +75,20 @@ export function NavigationWidget() {
   const duration = state.route?.remainingDurationSeconds ?? state.guidance?.remainingDurationSeconds;
 
   return (
-    <section ref={frame} aria-label="Navegação" className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-card">
+    <section aria-label="Navegação" className="widget navigation-widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-card">
       <ClientOnly fallback={<div className="absolute inset-0 bg-muted" />}>
         <Suspense fallback={<div className="absolute inset-0 bg-muted" />}>
           <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} navigating={state.active} online={state.online} />
         </Suspense>
       </ClientOnly>
+      <Button type="button" variant="ghost" className="absolute inset-x-0 top-0 bottom-6 z-[1] h-auto w-full rounded-none hover:bg-transparent" disabled={opening || !ready} aria-label="Abrir mapa no navegador configurado em tela cheia" title={selected ? `Abrir ${selected.label} em tela cheia` : "Abrir navegador em tela cheia"} onClick={() => void openNavigator("")} />
       <div className="navigation-overlay pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col justify-between gap-3 p-3 lg:p-4">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="navigation-status min-w-0 rounded-lg border bg-card px-3 py-2 text-sm shadow-card" role="status">
             {!state.online ? <><WifiOff className="mr-2 inline size-4" />Sem conexão</> : state.position ? <><MapPin className="mr-2 inline size-4 text-primary" />GPS ativo</> : "Obtendo localização…"}
           </div>
           <Button type="button" size="icon" variant="secondary" className="pointer-events-auto size-11 shrink-0 shadow-card" disabled={opening || !ready} title={selected ? `Abrir ${selected.label}` : "Abrir navegador"} aria-label="Abrir navegador configurado" onClick={() => void openNavigator("")}>
-            <AppWindow className="size-5" />
+            <Maximize2 className="size-5" />
           </Button>
         </div>
         <div className="navigation-bottom flex min-w-0 flex-col gap-2">
