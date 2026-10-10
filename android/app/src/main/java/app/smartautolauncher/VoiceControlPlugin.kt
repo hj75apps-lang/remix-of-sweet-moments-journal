@@ -33,6 +33,7 @@ class VoiceControlPlugin : Plugin() {
     private var utteranceId = 0L
     private var activeUtterance = ""
     private var destroyed = false
+    private var pendingPermission: String? = null
     private val audio: AudioManager get() = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val focus = AudioManager.OnAudioFocusChangeListener { change ->
         if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
@@ -54,6 +55,7 @@ class VoiceControlPlugin : Plugin() {
     @PluginMethod
     fun startListening(call: PluginCall) {
         if (getPermissionState("record") != com.getcapacitor.PermissionState.GRANTED) {
+            pendingPermission = call.callbackId
             requestPermissionForAlias("record", call, "recordPermission")
             return
         }
@@ -62,6 +64,8 @@ class VoiceControlPlugin : Plugin() {
 
     @PermissionCallback
     private fun recordPermission(call: PluginCall) {
+        if (pendingPermission != call.callbackId || destroyed) { call.resolve(); return }
+        pendingPermission = null
         if (getPermissionState("record") != com.getcapacitor.PermissionState.GRANTED) {
             call.reject("Permissão do microfone negada")
             return
@@ -138,7 +142,7 @@ class VoiceControlPlugin : Plugin() {
         notifyState(false)
     }
     @PluginMethod
-    fun stopListening(call: PluginCall) { activity.runOnUiThread { stopRecognizer(); call.resolve() } }
+    fun stopListening(call: PluginCall) { pendingPermission = null; activity.runOnUiThread { stopRecognizer(); call.resolve() } }
 
     @PluginMethod
     fun openSystemAssistant(call: PluginCall) {
@@ -165,13 +169,15 @@ class VoiceControlPlugin : Plugin() {
         val text = call.getString("text")?.trim().orEmpty().take(400)
         if (text.isEmpty()) { call.reject("Resposta vazia."); return }
         activity.runOnUiThread {
+            if (destroyed) { call.reject("Assistente encerrado."); return@runOnUiThread }
             stopTts()
             speechCall = call
             if (tts != null && ttsReady) { speakReady(text); return@runOnUiThread }
             if (tts != null) return@runOnUiThread
             tts = TextToSpeech(context) { status ->
-                activity.runOnUiThread {
-                    if (destroyed) return@runOnUiThread
+                // Always post: constructor callback must not run before tts is assigned.
+                activity.window.decorView.post {
+                    if (destroyed) return@post
                     val engine = tts
                     val language = engine?.setLanguage(Locale("pt", "BR")) ?: TextToSpeech.LANG_NOT_SUPPORTED
                     ttsReady = status == TextToSpeech.SUCCESS && language >= TextToSpeech.LANG_AVAILABLE
@@ -184,6 +190,8 @@ class VoiceControlPlugin : Plugin() {
                         engine?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                             override fun onStart(utterance: String?) { if (utterance == activeUtterance) notifyListeners("speechState", JSObject().put("speaking", true)) }
                             override fun onDone(utterance: String?) { activity.runOnUiThread { if (utterance == activeUtterance) stopTts() } }
+                            override fun onStop(utterance: String?, interrupted: Boolean) { activity.runOnUiThread { if (utterance == activeUtterance) stopTts() } }
+                            override fun onError(utterance: String?, errorCode: Int) { onError(utterance) }
                             @Deprecated("Legacy API callback")
                             override fun onError(utterance: String?) { activity.runOnUiThread {
                                 if (utterance == activeUtterance) {
@@ -225,7 +233,7 @@ class VoiceControlPlugin : Plugin() {
         if (isActivation(intent)) notifyListeners("voiceActivation", JSObject(), true)
     }
 
-    override fun handleOnPause() { super.handleOnPause(); activity.runOnUiThread { stopRecognizer(); stopTts() } }
+    override fun handleOnPause() { super.handleOnPause(); pendingPermission = null; activity.runOnUiThread { stopRecognizer(); stopTts() } }
     override fun handleOnDestroy() {
         super.handleOnDestroy()
         destroyed = true
