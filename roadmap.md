@@ -1,13 +1,13 @@
 # Roadmap
 
-- [ ] Criar APK definitivo e concluir GitHub: responsável criou e conferiu as chaves no Windows; API confirmou os quatro secrets Android e a chave OTA nos dois environments. Android Release 1.1.0 solicitado; aguarda resultado e verificação do instalador.
+- [ ] Criar APK definitivo e concluir GitHub: responsável criou e conferiu as chaves no Windows; API confirmou os quatro secrets Android e a chave OTA nos dois environments. Android Release 1.1.0 (38070997799) em compilação nativa; etapa web e cadastro aprovados, artefato ainda indisponível. Aguarda resultado e inspeção do instalador.
 
 - [ ] Entregar atualizações prontas e funcionando, conforme pedido de 10/10/2026: assinaturas cadastradas e configurações públicas confirmadas pela API; aguarda APK definitivo, publicação de pacote compatível e validação física na central. A nova assinatura não substitui diretamente os APKs antigos de teste.
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
 - [x] Tornar público o repositório aprovado e habilitar Pages por Actions: API confirmou visibilidade pública e HTTPS. Auditoria all-ref 38068226172 detectou somente categoria gcp-api-key no histórico de .env, compatível com a chave cuja revogação o usuário confirmou (não verificada independentemente); revisão dos cinco uploads não detectou dados pessoais. Resumo protegido testado sem valores. OTA_MANIFEST_URL e OTA_BUILTIN_SEQUENCE=1 salvos e lidos novamente pela API.
 - [x] Configurar OTA_SIGNING_KEY e OTA_PUBLIC_KEY: responsável criou par RSA no Windows e cadastrou diretamente pelo GitHub CLI; API confirmou secret em ota-testing/ota-production e variável pública no repositório, sem leitura de material privado. Correspondência entre as chaves será verificada pela publicação assinada.
 - [x] Criar environments ota-testing, ota-production e github-pages, restringir deploys à main e configurar o responsável como aprovador após tornar público; aprovação de produção confirmada pela API. Nenhum pacote publicado.
-- [ ] Publicar distribuição GitHub e verificar download real na central; repositório público, Pages e chaves configurados, aguarda APK definitivo e pacote assinado compatível.
+- [ ] Concluir distribuição de produção e verificar download real na central: pacote testing 1.1.1/sequence 2 publicado pela execução 38071031119, assinatura correspondente verificada no workflow, manifesto e ZIP HTTPS 200, tamanho/hash e index.html confirmados por download independente. APK 1.1.0 usa canal production, que ainda não tem manifesto; não confundir disponibilidade de teste com OTA de produção pronta. 343 testes locais aprovados. Aguarda APK definitivo, canal production e teste físico.
 
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
 - [x] Preparar assinatura offline/CI, painel real de versões, testes e relatório em docs/ATUALIZACOES-OTA.md.
