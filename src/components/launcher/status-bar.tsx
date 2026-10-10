@@ -1,7 +1,6 @@
 import { Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceControl } from "@/contexts/voice-control-context";
-import { VoiceAssistantPanel } from "@/components/launcher/voice-assistant-panel";
 
 /** Match the shared shell's bottom inset without reserving an empty toolbar. */
 export function StatusBar() {
@@ -12,7 +11,6 @@ export function StatusBar() {
 export function VoiceControlButton() {
   const voice = useVoiceControl();
   return (
-        <>
           <Button
             type="button"
             size="icon"
@@ -24,7 +22,5 @@ export function VoiceControlButton() {
           >
             {voice.listening ? <Mic className="animate-pulse" /> : <MicOff />}
           </Button>
-          <VoiceAssistantPanel />
-        </>
   );
 }
