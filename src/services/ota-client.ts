@@ -38,7 +38,7 @@ export function mountOta(): () => void {
     catch (error) { emit({ ...state, status: "error", message: error instanceof Error ? error.message : "Inicialização ainda não confirmada." }); }
     finally { confirming = false; }
   };
-  const timer = window.setInterval(() => { if (!ready) void confirmShell(); }, 500);
+  const timer = window.setInterval(() => { if (!ready) void confirmShell(); else clearInterval(timer); }, 500);
   void started.then((switching) => { if (!switching) { startupComplete = true; void confirmShell(); } });
   const check = () => { if (ready) void engine.check(navigator.onLine, !document.hidden); };
   const periodic = window.setInterval(check, 6 * 60 * 60_000);
