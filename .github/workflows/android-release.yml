@@ -22,6 +22,10 @@ jobs:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      OTA_PUBLIC_KEY: ${{ vars.OTA_PUBLIC_KEY }}
+      OTA_MANIFEST_URL: ${{ vars.OTA_MANIFEST_URL }}
+      OTA_CHANNEL: production
+      OTA_BUILTIN_SEQUENCE: ${{ vars.OTA_BUILTIN_SEQUENCE }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
@@ -21,6 +21,7 @@ import { VoiceControlProvider } from "@/contexts/voice-control-context";
 import { NavigationProvider } from "@/contexts/navigation-context";
 import { PhoneIntegration } from "@/components/phone/phone-integration";
 import { VoiceAssistantPanel } from "@/components/launcher/voice-assistant-panel";
+import { mountOta, prepareOta } from "@/services/ota-client";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,10 @@ function RootComponent() {
   const context = Route.useRouteContext();
   const queryClient = context?.queryClient ?? queryClientSingleton;
   useGlass();
+  const [otaPrepared, setOtaPrepared] = useState(false);
+  useEffect(() => { let active = true; void prepareOta().then((switching) => { if (active && !switching) setOtaPrepared(true); }); return () => { active = false; }; }, []);
+  useEffect(() => mountOta(), []);
+  if (!otaPrepared) return <div className="min-h-screen bg-background" aria-label="Iniciando Launcher" />;
 
   return (
     <QueryClientProvider client={queryClient}>

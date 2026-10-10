@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(VoiceControlPlugin.class);
         registerPlugin(LauncherSystemPlugin.class);
         registerPlugin(RadioNetworkPlugin.class);
+        registerPlugin(LauncherOtaPlugin.class);
         super.onCreate(savedInstanceState);
 
         showFirstOpening();

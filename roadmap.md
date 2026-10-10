@@ -1,5 +1,10 @@
 # Roadmap
 
+- [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
+- [x] Preparar assinatura offline/CI, painel real de versões, testes e relatório em docs/ATUALIZACOES-OTA.md.
+- [ ] Configurar origem HTTPS/chaves e compilar/sincronizar APK inicial; bloqueado por configuração externa e ambiente Android.
+- [ ] Validar atualização real, preservação dos dados e rollback offline na central; bloqueado por APK inicial/origem configurados e acesso ao aparelho.
+
 - [x] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
 - [x] Implementar TTS pt-BR e intents oficiais do assistente Android; auditar permissões, ciclo de vida e ativação externa, sem escuta contínua.
 - [x] Validar comandos escritos no preview e 329 testes; registrar arquitetura, fornecedores e limites em docs/ASSISTENTE-DE-VOZ.md.
