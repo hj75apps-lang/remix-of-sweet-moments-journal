@@ -1,8 +1,9 @@
 # Roadmap
 
 - [x] Preparar distribuição OTA via GitHub Releases e Pages com assinatura, canais preservados e testes locais.
-- [ ] Ativar o repositório informado hj75apps-lang/remix-of-sweet-moments-journal: usuário confirmou revogação da chave antiga. Auditoria all-ref executada no GitHub (run 38068101765): scanner concluiu e detectou achados; repositório permanece privado até classificar as categorias. Resumo seguro agora também disponível nos logs após nova execução, sem valores nem artefatos. Pages, assinatura OTA e variáveis ainda não configurados.
-- [x] Criar environments ota-testing, ota-production e github-pages no GitHub e restringir deploys à branch main; respostas da API confirmaram as três políticas. Aprovação por revisor recusada pelo plano atual com repositório privado (HTTP 422); reconsiderar após mudança segura de visibilidade. Nenhuma publicação executada.
+- [x] Tornar público o repositório aprovado e habilitar Pages por Actions: API confirmou visibilidade pública e HTTPS. Auditoria all-ref 38068226172 detectou somente categoria gcp-api-key no histórico de .env, compatível com a chave cuja revogação o usuário confirmou (não verificada independentemente); revisão dos cinco uploads não detectou dados pessoais. Resumo protegido testado sem valores. OTA_MANIFEST_URL e OTA_BUILTIN_SEQUENCE=1 salvos e lidos novamente pela API.
+- [ ] Configurar OTA_SIGNING_KEY e OTA_PUBLIC_KEY: nenhuma chave RSA existente nos secrets/variáveis; geração segura de par RSA no destino externo não disponível nas ferramentas de secrets (generate_secret gera strings, não PEM). Depende de provisionamento seguro no GitHub, sem valores em chat/código.
+- [x] Criar environments ota-testing, ota-production e github-pages, restringir deploys à main e configurar o responsável como aprovador após tornar público; aprovação de produção confirmada pela API. Nenhum pacote publicado.
 - [ ] Ativar distribuição GitHub e verificar download real na central; depende de repositório público vinculado, Pages habilitado, chaves do responsável e APK configurado.
 
 - [x] Implementar base OTA assinada, compatibilidade nativa e staging sem ativação durante uso; recuperação nativa integrada, validação física pendente.
