@@ -48,6 +48,8 @@ jobs:
           if not safe:
               lines.append('No detector findings. This is not a guarantee that all private data is absent.')
           pathlib.Path(sys.argv[2]).write_text('\n'.join(lines) + '\n')
+          for line in lines:
+              print(line)
           print('Audit completed; only filenames and categories are available in the summary.')
           raise SystemExit(1 if safe else 0)
           PY
