@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { LauncherSettingsContext, type LauncherSettingsContextValue } from "@/contexts/launcher-settings-context";
 import { applyLauncherPrefs, setScreenBrightness, type NavApp } from "@/services/launcher-system";
 import { readStored, writeStored } from "@/services/storage";
 import { useNavigationApps } from "@/services/navigation-apps";
@@ -103,13 +104,6 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
       (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
 
-interface Ctx {
-  settings: LauncherSettings;
-  loaded: boolean;
-  update: (patch: Partial<Omit<LauncherSettings, "version">>) => void;
-}
-const SettingsContext = createContext<Ctx | null>(null);
-
 export function LauncherSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [loaded, setLoaded] = useState(false);
@@ -182,7 +176,7 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     document.documentElement.style.setProperty("--launcher-button-opacity", String(settings.buttonOpacity / 100));
   }, [settings.buttonColor, settings.buttonOpacity]);
 
-  const update = useCallback<Ctx["update"]>((patch) => {
+  const update = useCallback<LauncherSettingsContextValue["update"]>((patch) => {
     setSettings((prev) => {
       const next = normalize({ ...prev, ...patch });
       try {
@@ -196,12 +190,12 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
 
   const value = useMemo(() => ({ settings, loaded, update }), [settings, loaded, update]);
   return (
-    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
+    <LauncherSettingsContext.Provider value={value}>{children}</LauncherSettingsContext.Provider>
   );
 }
 
-export function useLauncherSettings(): Ctx {
-  const ctx = useContext(SettingsContext);
+export function useLauncherSettings(): LauncherSettingsContextValue {
+  const ctx = useContext(LauncherSettingsContext);
   if (!ctx) throw new Error("useLauncherSettings must be used inside LauncherSettingsProvider");
   return ctx;
 }

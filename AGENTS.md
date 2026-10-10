@@ -33,7 +33,7 @@
 - Native Capacitor plugins register in MainActivity; reference files never run.
 - Launcher-level Android behavior (window mode, boot autostart, navigation intents, system audio, contacts/call log) lives in the LauncherSystem plugin; web prefs are mirrored to native SharedPreferences so the boot receiver works without the WebView.
 - Home map taps, expansion and destination submit use startNavigation for normal selected-app launches, not freeform windows; preserve Home state and exclude inputs/credits from map taps.
-- Root settings provider validates versioned prefs; apply native settings only after restore to prevent startup overwrites.
+- Settings context lives outside the Refresh provider to retain identity; validate prefs and apply native settings only after restore.
 - Android prerenders an offline SPA without nitro; web build stays unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand.

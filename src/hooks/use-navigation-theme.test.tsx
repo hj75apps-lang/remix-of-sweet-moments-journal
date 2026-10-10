@@ -2,6 +2,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useNavigationTheme } from "./use-navigation-theme";
 vi.mock("@/hooks/use-theme", () => ({ useTheme: () => ({ preferredMode: "light" }) }));
+vi.mock("@/hooks/use-launcher-settings", () => ({ useLauncherSettings: () => ({ settings: { navThemeMode: "auto" } }) }));
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 it("changes at 18:00 and restores preference at 06:00 while mounted", () => {
   vi.useFakeTimers();

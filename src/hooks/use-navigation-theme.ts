@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/use-theme";
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { navigationNightMode } from "@/services/navigation-theme";
 
 /** Map-only schedule; never modifies the saved preference. */
