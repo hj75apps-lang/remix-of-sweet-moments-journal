@@ -99,25 +99,23 @@ export const getCallLog = async (): Promise<CallEntry[]> => (await req().getCall
 /** Opens navigation. In a browser, falls back to the official Google Maps / Waze web links. */
 export async function startNavigation(app: NavApp, destination: string): Promise<void> {
   const p = plugin();
-  const isTrackedApp = (app === "maps" || app === "waze") && destination.trim().length > 0;
+  const normalizedApp = app === "waze" ? "waze" : app;
+  const isTrackedApp = (normalizedApp === "maps" || normalizedApp === "waze") && destination.trim().length > 0;
   if (isTrackedApp) {
     try {
-      const trip = await createNavigationConnectTrip({ app, destination });
+      const trip = await createNavigationConnectTrip({ app: normalizedApp, destination });
       if (p) {
-        await p.navigate({ app, destination, launchUrl: trip.launchUrl });
+        await p.navigate({ app: normalizedApp, destination, launchUrl: trip.launchUrl });
       } else {
         window.open(trip.launchUrl, "_blank", "noopener,noreferrer");
       }
       return;
     } catch (error) {
-      // A cancelled/superseded request must not reopen its old destination through fallback.
       if (error instanceof NavigationConnectSupersededError) throw error;
-      // Official telemetry is optional until the server/Google Cloud project is configured.
-      // Preserve the existing navigation behavior rather than blocking navigation.
     }
   }
-  if (p) return p.navigate({ app, destination });
-  const url = buildNavigationUrl({ app, destination });
+  if (p) return p.navigate({ app: normalizedApp, destination });
+  const url = buildNavigationUrl({ app: normalizedApp, destination });
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
