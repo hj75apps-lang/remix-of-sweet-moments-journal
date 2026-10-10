@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Gerar APK atualizado com Mapbox, mesma assinatura definitiva e versão superior; verificar GPS e mapa offline disponíveis.
+- [x] Gerar APK atualizado com Mapbox: Android Release 38072851250, 1.1.2/versionCode 2/minSdk 24; digest do artefato correspondente ao GitHub, assinatura v2 RSA 3072 igual à definitiva 1.1.0. Token público Mapbox e index offline incorporados, builtinSequence 3, sem arquivos privados de assinatura. APK SHA-256 398fb2a9f64fd87be1e85fa7d3913aefa722e9687e404c7851b415866df8a9b6; 344 testes aprovados e navegador com GPS simulado/Mapbox HTTP 200/55 tiles preservados offline/reconexão conferidos. APK e guia físico entregues.
 - [ ] Validar GPS e mapa offline fisicamente na central; bloqueado por acesso ao aparelho do usuário.
 
 - [x] Conectar Mapbox ao widget navegação: conexão Huendeberg's Mapbox vinculada; widget já lê a variável pública oficial, sem alterações necessárias no player/mapa. Navegador com GPS autorizado confirmou tiles Mapbox HTTPS 200, crédito e posição visíveis, e preservação de 55 tiles ao desconectar. Conexão do site não altera o APK já instalado.
@@ -22,12 +22,12 @@
 - [x] Ampliar Voice Assistant Engine local: intenções pt-BR, apps instalados, rádio/mídia, volume, navegação confirmada, clima/hora e interface interrompível.
 - [x] Implementar TTS pt-BR e intents oficiais do assistente Android; auditar permissões, ciclo de vida e ativação externa, sem escuta contínua.
 - [x] Validar comandos escritos no preview e 329 testes; registrar arquitetura, fornecedores e limites em docs/ASSISTENTE-DE-VOZ.md.
-- [ ] Compilar APK atualizado e verificar fala pt-BR, TTS, foco de áudio, permissão, reconhecimento offline e botão externo na central; bloqueado pela ausência de Java e acesso ao aparelho.
+- [ ] Verificar fala pt-BR, TTS, foco de áudio, permissão, reconhecimento offline e botão externo na central; APK 1.1.2 compilado, bloqueado somente por acesso ao aparelho.
 - [ ] Integrar e testar GPT/Gemini apenas com serviço seguro externo autorizado e configuração fornecida; nenhum provedor remoto ativo nesta entrega.
 
 - [x] Aprimorar Tocando Agora: dados nativos validados, ICY separado e limitado, estado/fonte/capas com fallback; 300 testes aprovados e áudio WAV de teste tocar/pausar verificado na Home.
 - [x] Documentar fontes, permissões, limites e testes em docs/TOCANDO-AGORA.md.
-- [ ] Compilar APK e confirmar sessões Spotify/YouTube/Music e ICY ao vivo na central; bloqueado pela ausência de SDK/aparelho nesta rodada, exige acesso a notificações e fontes compatíveis.
+- [ ] Confirmar sessões Spotify/YouTube/Music e ICY ao vivo na central com APK 1.1.2 compilado; bloqueado por acesso ao aparelho, exige acesso a notificações e fontes compatíveis.
 
 - [x] Abrir navegador escolhido ao tocar no mapa ou expandir, sem janela posicionada; 16 testes aprovados (Waze, Maps e outro app), abertura Google Maps verificada no preview e Home preservada. Tela cheia real depende da central e APK atualizado.
 
