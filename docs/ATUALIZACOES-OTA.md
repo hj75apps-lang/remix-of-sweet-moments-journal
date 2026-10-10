@@ -1,7 +1,7 @@
 # Atualizações OTA — Smart Auto Launcher
 
 ## Estado da entrega
-Base funcional e publicação GitHub Releases + Pages implementadas, **não ativadas em produção**. A ativação depende de repositório público GitHub vinculado, Pages habilitado, chave de assinatura do responsável e APK inicial configurado/testado. Não foi criado banco, autenticação, storage ou serviço Lovable.
+Base funcional e publicação GitHub Releases + Pages implementadas, **não ativadas em produção**. Em 10/10/2026, o repositório aprovado foi tornado público, Pages por Actions/HTTPS habilitado e aprovações do responsável configuradas nos três environments. O endereço `https://hj75apps-lang.github.io/remix-of-sweet-moments-journal/production.json` e a sequência inicial 1 foram salvos e conferidos. Nenhum manifesto ou pacote foi publicado: faltam as chaves RSA de assinatura, a assinatura Android original e o APK inicial configurado/testado. Não foi criado banco, autenticação, storage ou serviço Lovable.
 
 ## Arquitetura
 - Capacitor 8 + `@capgo/capacitor-updater` 8.52.1: download ZIP, checksum SHA-256, armazenamento interno e recuperação nativa quando a inicialização não é confirmada.
