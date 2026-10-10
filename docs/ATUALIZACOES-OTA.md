@@ -1,7 +1,7 @@
 # Atualizações OTA — Smart Auto Launcher
 
 ## Estado da entrega
-Base funcional implementada no projeto, **não ativada em produção**. Não existe ainda origem HTTPS configurada, chave de assinatura de produção nem APK inicial compilado/testado. O painel apresenta essa indisponibilidade honestamente. Não foi criado banco, autenticação, storage ou serviço Lovable.
+Base funcional e publicação GitHub Releases + Pages implementadas, **não ativadas em produção**. A ativação depende de repositório público GitHub vinculado, Pages habilitado, chave de assinatura do responsável e APK inicial configurado/testado. Não foi criado banco, autenticação, storage ou serviço Lovable.
 
 ## Arquitetura
 - Capacitor 8 + `@capgo/capacitor-updater` 8.52.1: download ZIP, checksum SHA-256, armazenamento interno e recuperação nativa quando a inicialização não é confirmada.
@@ -16,13 +16,25 @@ Telas, estilos, imagens locais, lógica TypeScript e comandos de voz locais que 
 Permissões, Kotlin/Java, serviços, manifesto Android, novos plugins, pacote/assinatura e alterações de contrato nativo exigem novo APK com a mesma assinatura e versionCode maior. Manifesto `kind: native` apenas apresenta link oficial verificado; nenhum APK é instalado silenciosamente.
 
 ## Distribuição sem novo backend
-Use uma origem HTTPS estática controlada pelo responsável. O ZIP e o manifesto precisam ser públicos para o aparelho; o script/CI prepara artefatos, **não faz upload automático**. Não há painel administrativo web nem segredo administrativo no Launcher. GitHub Actions com environments `ota-testing` e `ota-production` fornece revisão/aprovação antes de assinar. Configure responsáveis/aprovadores no GitHub.
+O workflow **Publish signed Launcher OTA to GitHub** assina, publica uma Release imutável e implanta manifesto e ZIP no GitHub Pages. Ambos os canais são reconstruídos a partir das Releases publicadas de maior sequência, com verificação RSA e SHA-256 antes de enviar ao Pages. A implantação é serializada e atômica; não publica chaves privadas. Configure aprovação nos environments `ota-testing`, `ota-production` e `github-pages`.
+
+**Importante:** o APK exige a mesma origem para manifesto e ZIP. Downloads de Releases redirecionam para outra origem; por isso Releases guardam os arquivos e Pages disponibiliza também uma cópia idêntica do ZIP. A política nativa permanece intacta. Mudança de origem ou chave exige novo APK.
+
+### Ativação no GitHub
+1. Vincule o projeto pelo menu **+ → GitHub → Connect project** do Lovable, caso ainda não esteja vinculado. Use repositório público destinado à distribuição: código e pacotes ficam visíveis; não coloque credenciais nele.
+2. No repositório, abra **Settings → Pages → Source → GitHub Actions**. O workflow exige Pages já habilitado.
+3. Configure os environments acima e os aprovadores. Use a mesma chave raiz nos dois canais; guarde `OTA_SIGNING_KEY` como secret dos environments de assinatura e `OTA_PUBLIC_KEY` como variável do repositório.
+4. Configure `OTA_MANIFEST_URL` como o endereço Pages efetivo seguido de `/production.json`, e `OTA_BUILTIN_SEQUENCE` com o contador já incorporado. Configure qualquer domínio próprio antes de gerar o APK e mantenha esse endereço.
+5. Gere o APK Android Release com a chave Android original. Execute **Actions → Publish signed Launcher OTA to GitHub → Run workflow**, informando versão, sequência crescente, canal e compatibilidade real com esse APK.
+6. Aguarde Release e implantação Pages; verifique os endereços públicos e instale/teste o APK configurado. Cada nova atualização é uma execução aprovada desse workflow, não apenas uma publicação no Lovable.
+
+O workflow lê automaticamente o endereço oficial de Pages; não precisa de token pessoal GitHub nem `OTA_PACKAGE_BASE_URL` para CI. Se uma implantação falhar após criar a Release, reexecute os jobs falhos de implantação; não sobrescreva a Release. Limites/custos de GitHub Actions e Pages dependem da conta/plano; este fluxo não é um serviço OTA gerenciado com garantia de disponibilidade.
 
 1. Gere uma chave RSA de pelo menos 2048 bits em ambiente seguro: `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out /secure/ota-private.pem`.
 2. Exporte a chave pública: `openssl pkey -in /secure/ota-private.pem -pubout -out /secure/ota-public.pem`.
 3. Nunca inclua a privada no repositório, `.env`, bundle ou APK. Guarde a privada no secret GitHub `OTA_SIGNING_KEY`; rotação da raiz de confiança requer APK.
-4. Defina `OTA_PACKAGE_BASE_URL` no environment GitHub; use a mesma origem do manifesto embutida no APK. Publique arquivos ZIP imutáveis primeiro, depois substitua o manifesto do canal atomicamente. Não use redirects para outra origem.
-5. A execução **Prepare signed Launcher OTA** recebe versão semver, sequência, canal, limites de versionCode testados, versão mínima do launcher e notas. Gera ZIP, manifesto assinado, metadados e lista de arquivos. Transfira esses artefatos à origem HTTPS controlada; não publique chave privada.
+4. Para publicação manual fora do GitHub, use a mesma origem do manifesto embutida no APK. Publique ZIPs imutáveis primeiro, depois substitua o manifesto atomicamente. Não use redirects para outra origem.
+5. O script local continua disponível para distribuição estática alternativa, recebendo metadados com URL HTTPS definitiva. No GitHub o upload é automático pelo workflow descrito acima.
 
 ## APK inicial
 JDK 21, Android SDK 36 e assinatura Android existentes são necessários. Configure variáveis de compilação `OTA_MANIFEST_URL`, `OTA_PUBLIC_KEY` (PEM público), `OTA_CHANNEL`, `OTA_BUILTIN_SEQUENCE` (contador inteiro). O workflow Android Release lê estas variáveis GitHub. O APK de debug pode receber configuração equivalente, mas não deve substituir a chave de produção.

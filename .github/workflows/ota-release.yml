@@ -1,4 +1,4 @@
-name: Prepare signed Launcher OTA
+name: Publish signed Launcher OTA to GitHub
 on:
   workflow_dispatch:
     inputs:
@@ -26,13 +26,26 @@ on:
         description: "Release notes"
         required: true
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: launcher-ota-distribution
+  cancel-in-progress: false
 jobs:
   prepare:
     runs-on: ubuntu-latest
     environment: ota-${{ inputs.channel }}
     steps:
       - uses: actions/checkout@v4
+      - name: Configure Pages (enable GitHub Actions in repository Pages settings first)
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Require public downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)" = false || { echo 'A public repository is required for unauthenticated OTA downloads.'; exit 1; }
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bunx vitest run
@@ -41,7 +54,7 @@ jobs:
       - name: Sign release
         env:
           OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
-          OTA_PACKAGE_BASE_URL: ${{ vars.OTA_PACKAGE_BASE_URL }}
+          OTA_PACKAGE_BASE_URL: ${{ steps.pages.outputs.base_url }}/
           VERSION: ${{ inputs.version }}
           SEQUENCE: ${{ inputs.sequence }}
           CHANNEL: ${{ inputs.channel }}
@@ -49,9 +62,11 @@ jobs:
           MAX_NATIVE: ${{ inputs.max_native }}
           MIN_LAUNCHER: ${{ inputs.min_launcher }}
           NOTES: ${{ inputs.notes }}
+          OTA_PUBLIC_KEY: ${{ vars.OTA_PUBLIC_KEY }}
         run: |
           test -n "$OTA_SIGNING_KEY"
           test -n "$OTA_PACKAGE_BASE_URL"
+          test -n "$OTA_PUBLIC_KEY"
           umask 077
           printf '%s' "$OTA_SIGNING_KEY" > "$RUNNER_TEMP/ota-private.pem"
           node --input-type=module - <<'JS'
@@ -61,8 +76,56 @@ jobs:
           JS
           node scripts/package-ota.mjs dist/client "$RUNNER_TEMP/ota-release" "$RUNNER_TEMP/ota-metadata.json" "$RUNNER_TEMP/ota-private.pem"
           rm "$RUNNER_TEMP/ota-private.pem"
+          node --input-type=module - <<'JS'
+          import { readFileSync } from 'node:fs';
+          import { createPublicKey, verify } from 'node:crypto';
+          const e=process.env, m=JSON.parse(readFileSync(e.RUNNER_TEMP+'/ota-release/'+e.CHANNEL+'.json'));
+          if (!verify('RSA-SHA256',Buffer.from(m.payload,'base64'),createPublicKey(e.OTA_PUBLIC_KEY),Buffer.from(m.signature,'base64'))) throw new Error('Signing key does not match APK public key');
+          JS
+      - name: Store immutable signed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ inputs.channel }}
+          SEQUENCE: ${{ inputs.sequence }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          TAG="ota-$CHANNEL-$SEQUENCE"
+          gh release create "$TAG" "$RUNNER_TEMP/ota-release/"* --target "$GITHUB_SHA" --title "Launcher $CHANNEL $VERSION ($SEQUENCE)" --notes "$NOTES" --latest=false
+      - name: Assemble both public channels from signed releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OTA_PUBLIC_KEY: ${{ vars.OTA_PUBLIC_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ota-channels"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          node scripts/github-ota.mjs select "$RUNNER_TEMP/releases.json" "$RUNNER_TEMP/ota-channels/selected.json"
+          node --input-type=module - <<'JS'
+          import { readFileSync, mkdirSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const root=process.env.RUNNER_TEMP+'/ota-channels', selected=JSON.parse(readFileSync(root+'/selected.json'));
+          for (const [channel, release] of Object.entries(selected)) {
+            mkdirSync(root+'/'+channel,{recursive:true});
+            execFileSync('gh',['release','download',release.tag,'--repo',process.env.GITHUB_REPOSITORY,'--dir',root+'/'+channel,'--pattern',channel+'.json','--pattern','*.zip'],{stdio:'inherit'});
+          }
+          JS
+          printf '%s' "$OTA_PUBLIC_KEY" > "$RUNNER_TEMP/ota-public.pem"
+          node scripts/github-ota.mjs pages "$RUNNER_TEMP/ota-channels" "$RUNNER_TEMP/ota-pages" "$RUNNER_TEMP/ota-public.pem"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/ota-pages
       - uses: actions/upload-artifact@v4
         with:
           name: launcher-ota-${{ inputs.channel }}-${{ inputs.sequence }}
           path: ${{ runner.temp }}/ota-release/
           retention-days: 30
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish verified channels atomically
+        id: deployment
+        uses: actions/deploy-pages@v4
