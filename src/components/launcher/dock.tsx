@@ -110,7 +110,7 @@ export function Dock() {
               opacity: "var(--launcher-button-opacity, 1)",
             }}
             className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 md:h-16 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 md:h-14 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
                 ? !settings.buttonColor && "bg-primary text-primary-foreground shadow-sm"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95 hover:text-sidebar-foreground",
@@ -118,9 +118,9 @@ export function Dock() {
             title={itemLabel}
           >
             {isLastApp && lastApp ? (
-              <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-11 shrink-0 rounded-md object-contain md:size-18" />
+              <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-8 shrink-0 rounded-md object-contain md:size-11" />
             ) : (
-              <Icon className="size-10 shrink-0 scale-[2.7] md:scale-[4.5]" />
+              <Icon className="size-7 shrink-0 scale-[1.75] md:scale-[2.9]" />
             )}
           </Button>
         );
@@ -143,12 +143,12 @@ export function Dock() {
           onClick={() => void launchApp(app.packageName)}
           aria-label={`Abrir ${app.label}`}
           title={app.label}
-          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
+          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-14 md:w-full"
         >
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-11 shrink-0 rounded-md object-contain md:size-18"
+            className="size-8 shrink-0 rounded-md object-contain md:size-11"
           />
         </Button>
       ))}
@@ -159,9 +159,9 @@ export function Dock() {
           onClick={() => void requestUsageAccess()}
           aria-label="Permitir aplicativos recentes"
           title="Permitir aplicativos recentes"
-          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
+          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-14 md:w-full"
         >
-          <History className="size-10 shrink-0 scale-[2.7] md:scale-[4.5]" />
+          <History className="size-7 shrink-0 scale-[1.75] md:scale-[2.9]" />
         </Button>
       )}
       </div>
