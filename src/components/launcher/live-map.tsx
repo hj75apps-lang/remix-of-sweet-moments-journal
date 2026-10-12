@@ -9,7 +9,7 @@ import type { VehiclePosition } from "@/services/navigation-location";
 import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 import { vehicleIconMarkup } from "@/services/vehicle-icon";
 import { followHeading, headingDelta, INITIAL_HEADING } from "@/services/navigation-heading";
-import { navigationMapTiles, TRAFFIC_REFRESH_MS } from "@/services/navigation-map-style";
+import { navigationMapTiles } from "@/services/navigation-map-style";
 import { viewedMapTile } from "@/services/navigation-offline";
 
 /** Browser-only map adapter: stable instance, theme layers and smoothed GPS following. */
@@ -73,7 +73,7 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
       if (oldAttribution) map.attributionControl.removeAttribution(oldAttribution);
       tilesRef.current.options.attribution = source.attribution;
       map.attributionControl.addAttribution(source.attribution);
-      // Reload only when the provider or Mapbox style changes.
+      // Keep the same OpenStreetMap source across appearance changes.
       tilesRef.current.options.maxZoom = source.maxZoom;
       tilesRef.current.setUrl(source.url);
     }
@@ -109,25 +109,6 @@ export default function LiveMap({ dark, position, visible, animated, route, navi
     firstFix.current = false;
   }, [position, visible, animated, settings.vehicleIcon, zoom, online]);
   useEffect(() => { if (online) tilesRef.current?.redraw(); }, [online]);
-  useEffect(() => {
-    if (!online || !visible || !navigationMapTiles(settings.mapStyle, dark).traffic) return;
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const refresh = () => { if (!document.hidden) tilesRef.current?.redraw(); };
-    const sync = () => {
-      if (timer !== undefined) clearInterval(timer);
-      timer = undefined;
-      if (!document.hidden) {
-        refresh();
-        timer = setInterval(refresh, TRAFFIC_REFRESH_MS);
-      }
-    };
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => {
-      if (timer !== undefined) clearInterval(timer);
-      document.removeEventListener("visibilitychange", sync);
-    };
-  }, [online, visible, settings.mapStyle, dark]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Retirar Mapbox e usar somente OpenStreetMap, sem trânsito ao vivo; GPS/cache e controles preservados, requisito de token retirado do instalador. 23 testes aprovados; mapa HTTP 200, zero pedidos Mapbox, GPS simulado e 55 tiles mantidos offline verificados. Nenhuma conexão Mapbox disponível na lista atual. APK instalado não é alterado nesta tarefa.
+
 - [x] Aplicar seta ciano arredondada conforme referência na seleção e mapa, sem círculo permanente; carros e GPS preservados. Seleção, retorno à Home e preferência salva verificados no navegador; 23 testes aprovados.
 
 - [x] Avaliar fonte gratuita de pacotes offline para central/site: Protomaps/OpenStreetMap em PMTiles recomendado; BBBike permite extração manual gratuita limitada. Referências, compatibilidade não comprovada e limites em docs/MAPAS-OFFLINE-FONTES.md; Mapbox atual preservado.

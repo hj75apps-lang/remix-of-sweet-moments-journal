@@ -1,6 +1,5 @@
 import type { VehiclePosition } from "./navigation-location";
 import { readStored, writeStored } from "./storage";
-import { isTrafficTile, TRAFFIC_REFRESH_MS } from "./navigation-map-style";
 
 const POSITION_KEY = "sal.navigation-last-position";
 const TILE_CACHE = "sal-viewed-map-tiles-v1";
@@ -36,11 +35,10 @@ export async function viewedMapTile(url: string): Promise<Blob> {
   const offline = typeof navigator !== "undefined" && !navigator.onLine;
   const age = saved ? Date.now() - Date.parse(saved.headers.get("date") ?? "") : Infinity;
   const providerMaxAge = Number(saved?.headers.get("cache-control")?.match(/max-age=(\d+)/)?.[1] ?? 604800) * 1000;
-  const maxAge = isTrafficTile(url) ? Math.min(providerMaxAge, TRAFFIC_REFRESH_MS) : providerMaxAge;
-  if (saved && (offline || age < maxAge)) return saved.blob();
+  if (saved && (offline || age < providerMaxAge)) return saved.blob();
   if (offline) throw new Error("map_tile_not_saved");
   try {
-    const response = await fetch(url, { cache: isTrafficTile(url) ? "no-cache" : "default", credentials: "omit" });
+    const response = await fetch(url, { cache: "default", credentials: "omit" });
     if (!response.ok || !response.headers.get("content-type")?.startsWith("image/")) throw new Error("map_tile_unavailable");
     if (cache && !/no-store/i.test(response.headers.get("cache-control") ?? "")) {
       try {

@@ -26,7 +26,6 @@ jobs:
       OTA_MANIFEST_URL: ${{ vars.OTA_MANIFEST_URL }}
       OTA_CHANNEL: production
       OTA_BUILTIN_SEQUENCE: ${{ vars.OTA_BUILTIN_SEQUENCE }}
-      VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN: ${{ vars.VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -45,10 +44,6 @@ jobs:
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_ALIAS"
           test -n "$ANDROID_KEY_PASSWORD"
-          case "$VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN" in
-            pk.*) ;;
-            *) echo "Configure the public Mapbox token for the Android map."; exit 1 ;;
-          esac
       - name: Decode keystore
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/smart-auto-launcher-release.jks"
