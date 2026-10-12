@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Retirar Mapbox e usar somente OpenStreetMap, sem trânsito ao vivo; preservar GPS/cache e retirar requisito de token do instalador. Verificar testes e mapa real.
+- [x] Retirar Mapbox e usar somente OpenStreetMap, sem trânsito ao vivo; GPS/cache e controles preservados, requisito de token retirado do instalador. 23 testes aprovados; mapa HTTP 200, zero pedidos Mapbox, GPS simulado e 55 tiles mantidos offline verificados. Nenhuma conexão Mapbox disponível na lista atual. APK instalado não é alterado nesta tarefa.
 
 - [x] Aplicar seta ciano arredondada conforme referência na seleção e mapa, sem círculo permanente; carros e GPS preservados. Seleção, retorno à Home e preferência salva verificados no navegador; 23 testes aprovados.
 
