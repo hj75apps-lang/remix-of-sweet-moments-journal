@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Gerar APK 1.1.3 com todas as mudanças atuais e OTA configurado; conferir mesma assinatura, versão crescente, OpenStreetMap e conteúdo offline antes da entrega. Validação física depende da central.
+- [x] Gerar APK 1.1.3 com todas as mudanças atuais e OTA configurado: GitHub Android Release 38197308887 concluído, commit 2d3ff2da0ec00bf75d8f75d56afa0a0e78adaa5d; digest do artefato conferido, assinatura v2 RSA 3072 igual ao APK 1.1.2, versionCode 3/minSdk 24, OpenStreetMap sem chamadas Mapbox e index offline confirmados. Entregue HJCar-1.1.3-OpenStreetMap.apk. OTA production/chave pública/builtinSequence 3 incorporados; futuras publicações precisam sequência >3 e compatibilidade nativeCode 3. Validação física continua pendente; esta tarefa não publicou OTA.
 
 - [x] Retirar Mapbox e usar somente OpenStreetMap, sem trânsito ao vivo; GPS/cache e controles preservados, requisito de token retirado do instalador. 23 testes aprovados; mapa HTTP 200, zero pedidos Mapbox, GPS simulado e 55 tiles mantidos offline verificados. Nenhuma conexão Mapbox disponível na lista atual. APK instalado não é alterado nesta tarefa.
 
