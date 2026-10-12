@@ -120,7 +120,7 @@ export function Dock() {
             {isLastApp && lastApp ? (
               <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-6 shrink-0 rounded-md object-contain md:size-10" />
             ) : (
-              <Icon className="size-6! shrink-0 md:size-10!" />
+              <Icon className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
             )}
           </Button>
         );
@@ -161,7 +161,7 @@ export function Dock() {
           title="Permitir aplicativos recentes"
           className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
         >
-          <History className="size-6! shrink-0 md:size-10!" />
+          <History className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
         </Button>
       )}
       </div>
