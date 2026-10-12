@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Permitir mapas offline por região, estado ou país; verificar autorização do provedor e compatibilidade com o mapa atual antes de implementar downloads.
+- [ ] Permitir mapas offline por região, estado ou país; bloqueado pela escolha de alcance (Android Mapbox nativo versus fonte offline também compatível com web). Mapbox documenta OfflineManager/TileStore no SDK móvel, limite de 750 tile packs e cobrança MAU; pacotes nativos não alimentam o Leaflet atual. Não implementar download em massa dos tiles atuais sem suporte/autorização confirmado. Mapa offline não equivale a rotas ou trânsito offline.
 
 - [x] Fixar Apps/Ajustes na base e recentes no meio; ícones contidos, intervalo de 8px e rolagem somente dos recentes. Validado em 1280×800, 1280×480 e 390×844, com quatro apps simulados e navegação Apps/Início; dois testes aprovados.
 
