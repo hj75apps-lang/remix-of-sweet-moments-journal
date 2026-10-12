@@ -37,7 +37,7 @@
 - Android prerenders an offline SPA without nitro; web build stays unchanged.
 - Root NavigationProvider shares foreground GPS and retains guidance; validated last GPS and bounded displayed-tile cache preserve offline maps, freezing following until reconnection without region prefetching.
 - Home loads Leaflet behind ClientOnly immediately; optional forecast/radio/customization panels load on demand.
-- Leaflet tilts ground; navigation-view owns perspective. Mapbox traffic refreshes foreground-only; offline is last-known, OSM is not traffic. Android 7. Token-styled vehicle SVG is shared by previews/maps for offline parity.
+- Leaflet tilts ground; navigation-view owns perspective. Single-source OSM tiles need no credentials and provide no live traffic; offline keeps viewed imagery. Android 7. Shared token-styled vehicle SVG preserves offline parity.
 
 - Align clock/night timers to foreground minutes; pause hidden media polling but retain events/controls to avoid idle work.
 - Memoize snapshots/route geometry and unchanged bearings; shared manual-radio validation matches saved-stream rules.

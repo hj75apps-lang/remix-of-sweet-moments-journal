@@ -41,12 +41,11 @@ describe("last map view", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("new", { headers: { "content-type": "image/png" } }));
     expect(await (await viewedMapTile(url)).text()).toBe("new");
   });
-  it("revalidates old traffic imagery even if ordinary map cache lifetime is longer", async () => {
+  it("respects the provider cache lifetime for viewed OpenStreetMap imagery", async () => {
     vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
-    const traffic = "https://api.mapbox.com/styles/v1/mapbox/traffic-day-v2/tiles/256/15/1/2?access_token=pk.test";
-    vi.stubGlobal("caches", { open: async () => ({ match: async () => new Response("old traffic", { headers: { date: new Date(Date.now() - 360000).toUTCString(), "cache-control": "max-age=43200" } }), put: vi.fn(), keys: async () => [] }) });
-    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("current traffic", { headers: { "content-type": "image/png" } }));
-    expect(await (await viewedMapTile(traffic)).text()).toBe("current traffic");
-    expect(fetch).toHaveBeenCalledWith(traffic, { cache: "no-cache", credentials: "omit" });
+    vi.stubGlobal("caches", { open: async () => ({ match: async () => new Response("saved map", { headers: { date: new Date(Date.now() - 360000).toUTCString(), "cache-control": "max-age=43200" } }), put: vi.fn(), keys: async () => [] }) });
+    const fetch = vi.spyOn(globalThis, "fetch");
+    expect(await (await viewedMapTile(url)).text()).toBe("saved map");
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
