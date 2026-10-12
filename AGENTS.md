@@ -27,7 +27,7 @@
 - Now-playing validates native sessions and separate bounded ICY reads; events own state, hidden/offline probes pause, source changes clear tracks and images fall back safely.
 - Voice Engine guards local actions and cancellation; Android owns speech/TTS/assist intents; root-mounted UI survives page changes; AI requires a verified secure service.
 - StatusBar reserves only the shell's matching top inset; the global microphone action lives in Dock so touch targets do not enlarge margins or overlap page content.
-- The launcher dock keeps Home, Online Radio, Apps, and Settings fixed; the former Phone slot reads the last successfully launched app from LauncherApps native preferences without UsageStats permission, while remaining recent slots use UsageStats and omit duplicates.
+- Dock uses fixed top/bottom groups and a scrollable middle with contained, nonshrinking icons to prevent overlap; last-launched reads LauncherApps preferences without UsageStats; other recents use UsageStats and omit duplicates.
 - Home grid reserves four navigation columns plus a two-column clock/weather/media rail.
 - The Android app is a Capacitor project with package `app.smartautolauncher`; phone calls use its registered CarPhone plugin, default-dialer role, and InCallService so call state and audio routing reach the React phone screen.
 - Native Capacitor plugins register in MainActivity; reference files never run.
