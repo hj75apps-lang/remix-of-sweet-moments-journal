@@ -401,11 +401,12 @@ function SortableAppItem({ app, editing, onStartEditing }: SortableAppItemProps)
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-14 rounded-2xl object-contain"
+            className="size-[44.8px] sm:size-[56px] rounded-2xl object-contain scale-[3.2] origin-center my-2"
+            style={{ width: "44.8px", height: "44.8px" }}
             loading="lazy"
           />
         ) : (
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/25 text-xl font-bold text-primary">
+          <div className="flex size-[44.8px] items-center justify-center rounded-2xl bg-primary/25 text-xl font-bold text-primary scale-[3.2] origin-center my-2" style={{ width: "44.8px", height: "44.8px" }}>
             {app.label.slice(0, 2).toUpperCase()}
           </div>
         )}
