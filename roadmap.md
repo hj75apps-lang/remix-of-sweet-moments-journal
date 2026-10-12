@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Aplicar seta ciano arredondada conforme referência na seleção e mapa, sem círculo permanente; carros e GPS preservados. Seleção, retorno à Home e preferência salva verificados no navegador; 23 testes aprovados.
+
 - [x] Avaliar fonte gratuita de pacotes offline para central/site: Protomaps/OpenStreetMap em PMTiles recomendado; BBBike permite extração manual gratuita limitada. Referências, compatibilidade não comprovada e limites em docs/MAPAS-OFFLINE-FONTES.md; Mapbox atual preservado.
 - [ ] Implementar downloads/importação offline por região/estado/país; falta uma fonte de distribuição dos pacotes prontos com autorização e condições gratuitas, ou um pacote local representativo para validar o leitor. Não automatizar BBBike gratuito nem baixar tiles OSM em massa. Android 7 e abertura web do zero offline exigem validação específica.
 
