@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Gerar e entregar APK 1.1.4 com o código atual e a mesma assinatura, incluindo as últimas mudanças da barra lateral; conferir versão, integridade, assinatura e pacote offline.
+- [x] Gerar e entregar APK 1.1.4 com o código atual, incluindo ícones ampliados da barra lateral: Android Release 38251840979 concluído com commit 986f38d1dd7e9d85cc0f156697631824e140e280; digest do artefato GitHub conferido, assinatura v2 RSA 3072 igual à 1.1.3, versionCode 4/minSdk 24 e index offline confirmados. Entregue HJCar-1.1.4-OpenStreetMap.apk, SHA-256 202b35b078305c8b37f52d36fa88e638dc081f79e7afb869af009d98e97f2b7b. OTA production/builtinSequence 3 incorporados; futuras publicações exigem sequence >3 e compatibilidade nativeCode 4. Validação na central permanece bloqueada por falta de acesso ao aparelho; nenhuma OTA publicada nesta tarefa.
 
 - [x] Gerar APK 1.1.3 com todas as mudanças atuais e OTA configurado: GitHub Android Release 38197308887 concluído, commit 2d3ff2da0ec00bf75d8f75d56afa0a0e78adaa5d; digest do artefato conferido, assinatura v2 RSA 3072 igual ao APK 1.1.2, versionCode 3/minSdk 24, OpenStreetMap sem chamadas Mapbox e index offline confirmados. Entregue HJCar-1.1.3-OpenStreetMap.apk. OTA production/chave pública/builtinSequence 3 incorporados; futuras publicações precisam sequência >3 e compatibilidade nativeCode 3. Validação física continua pendente; esta tarefa não publicou OTA.
 
