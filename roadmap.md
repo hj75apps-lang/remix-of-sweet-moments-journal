@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Gerar APK 1.1.3 com todas as mudanças atuais e OTA configurado; conferir mesma assinatura, versão crescente, OpenStreetMap e conteúdo offline antes da entrega. Validação física depende da central.
+
 - [x] Retirar Mapbox e usar somente OpenStreetMap, sem trânsito ao vivo; GPS/cache e controles preservados, requisito de token retirado do instalador. 23 testes aprovados; mapa HTTP 200, zero pedidos Mapbox, GPS simulado e 55 tiles mantidos offline verificados. Nenhuma conexão Mapbox disponível na lista atual. APK instalado não é alterado nesta tarefa.
 
 - [x] Aplicar seta ciano arredondada conforme referência na seleção e mapa, sem círculo permanente; carros e GPS preservados. Seleção, retorno à Home e preferência salva verificados no navegador; 23 testes aprovados.
