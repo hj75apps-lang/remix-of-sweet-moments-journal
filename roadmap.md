@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Permitir mapas offline por região, estado ou país; bloqueado pela escolha de alcance (Android Mapbox nativo versus fonte offline também compatível com web). Mapbox documenta OfflineManager/TileStore no SDK móvel, limite de 750 tile packs e cobrança MAU; pacotes nativos não alimentam o Leaflet atual. Não implementar download em massa dos tiles atuais sem suporte/autorização confirmado. Mapa offline não equivale a rotas ou trânsito offline.
+- [x] Avaliar fonte gratuita de pacotes offline para central/site: Protomaps/OpenStreetMap em PMTiles recomendado; BBBike permite extração manual gratuita limitada. Referências, compatibilidade não comprovada e limites em docs/MAPAS-OFFLINE-FONTES.md; Mapbox atual preservado.
+- [ ] Implementar downloads/importação offline por região/estado/país; falta uma fonte de distribuição dos pacotes prontos com autorização e condições gratuitas, ou um pacote local representativo para validar o leitor. Não automatizar BBBike gratuito nem baixar tiles OSM em massa. Android 7 e abertura web do zero offline exigem validação específica.
 
 - [x] Fixar Apps/Ajustes na base e recentes no meio; ícones contidos, intervalo de 8px e rolagem somente dos recentes. Validado em 1280×800, 1280×480 e 390×844, com quatro apps simulados e navegação Apps/Início; dois testes aprovados.
 
