@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Permitir mapas offline por região, estado ou país; verificar autorização do provedor e compatibilidade com o mapa atual antes de implementar downloads.
+
 - [x] Fixar Apps/Ajustes na base e recentes no meio; ícones contidos, intervalo de 8px e rolagem somente dos recentes. Validado em 1280×800, 1280×480 e 390×844, com quatro apps simulados e navegação Apps/Início; dois testes aprovados.
 
 - [x] Conectar Mapbox ao widget navegação: conexão Huendeberg's Mapbox vinculada; widget já lê a variável pública oficial, sem alterações necessárias no player/mapa. Navegador com GPS autorizado confirmou tiles Mapbox HTTPS 200, crédito e posição visíveis, e preservação de 55 tiles ao desconectar. Conexão do site não altera o APK já instalado.
