@@ -86,12 +86,7 @@ export function Dock() {
     const to = routes[id];
     if (to) void navigate({ to });
   };
-  return (
-    <nav
-      aria-label="Menu principal"
-      className="flex shrink-0 items-center justify-between gap-1 overflow-x-auto rounded-3xl bg-sidebar p-1.5 md:w-24 md:flex-col md:justify-start md:gap-2 md:overflow-hidden md:py-3 lg:w-24"
-    >
-      {dockItems.map(({ id, label, icon: Icon }) => {
+  const renderDockItem = ({ id, label, icon: Icon }: DockItem) => {
         const isActive = active === id;
         const isLastApp = id === "last-app";
         const itemLabel = isLastApp && lastApp ? `Abrir ${lastApp.label}` : label;
@@ -115,7 +110,7 @@ export function Dock() {
               opacity: "var(--launcher-button-opacity, 1)",
             }}
             className={cn(
-              "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center rounded-2xl p-2 md:min-h-16 md:max-h-24 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 md:h-16 md:w-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
                 ? !settings.buttonColor && "bg-primary text-primary-foreground shadow-sm"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent active:scale-95 hover:text-sidebar-foreground",
@@ -123,17 +118,23 @@ export function Dock() {
             title={itemLabel}
           >
             {isLastApp && lastApp ? (
-              <img
-                src={`data:image/png;base64,${lastApp.icon}`}
-                alt=""
-                className="size-6 shrink-0 rounded-md object-contain scale-[3.5]"
-              />
+              <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-6 shrink-0 rounded-md object-contain md:size-10" />
             ) : (
-              <Icon className="size-6 shrink-0 scale-[3.5]" />
+              <Icon className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
             )}
           </Button>
         );
-      })}
+  };
+  return (
+    <nav
+      aria-label="Menu principal"
+      className="flex min-h-0 shrink-0 items-center gap-2 overflow-hidden rounded-3xl bg-sidebar p-1.5 md:w-24 md:flex-col md:py-3 lg:w-24"
+    >
+      <div className="flex shrink-0 gap-2 md:w-full md:flex-col">
+        {dockItems.filter(({ id }) => id === "home" || id === "radio").map(renderDockItem)}
+      </div>
+      <div aria-label="Aplicativos recentes" className="flex min-h-0 min-w-0 flex-1 gap-2 overflow-x-auto md:w-full md:flex-col md:overflow-x-hidden md:overflow-y-auto">
+        {dockItems.filter(({ id }) => id === "last-app").map(renderDockItem)}
       {(recent.data ?? []).filter((app) => app.packageName !== lastApp?.packageName).map((app) => (
         <Button
           key={app.packageName}
@@ -142,14 +143,13 @@ export function Dock() {
           onClick={() => void launchApp(app.packageName)}
           aria-label={`Abrir ${app.label}`}
           title={app.label}
-          className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
+          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
         >
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-5 shrink-0 rounded-md object-contain scale-[3.5]"
+            className="size-6 shrink-0 rounded-md object-contain md:size-10"
           />
-          <span className="w-full truncate text-center">{app.label}</span>
         </Button>
       ))}
       {native && !usageAllowed && (
@@ -159,13 +159,16 @@ export function Dock() {
           onClick={() => void requestUsageAccess()}
           aria-label="Permitir aplicativos recentes"
           title="Permitir aplicativos recentes"
-          className="flex min-h-14 min-w-11 flex-1 flex-col gap-1 rounded-2xl px-1 text-[0.625rem] font-medium text-sidebar-foreground/70 sm:text-xs md:min-h-11 md:max-h-20 md:w-full"
+          className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
         >
-          <History className="size-5 shrink-0 scale-[3.5]" />
-          <span className="w-full truncate text-center">Recentes</span>
+          <History className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
         </Button>
       )}
-      <VoiceControlButton />
+      </div>
+      <div className="flex shrink-0 items-center gap-2 md:w-full md:flex-col">
+        {dockItems.filter(({ id }) => id === "apps" || id === "settings").map(renderDockItem)}
+        <VoiceControlButton />
+      </div>
     </nav>
   );
 }

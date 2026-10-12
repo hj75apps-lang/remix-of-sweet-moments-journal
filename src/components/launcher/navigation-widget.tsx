@@ -1,5 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { ClientOnly } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { Maximize2, MapPin, Navigation, Search, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,8 +25,6 @@ export function NavigationWidget() {
 
   // The home map owns one foreground subscription; the root retains the last fix.
   useEffect(() => acquireLocation(), [acquireLocation]);
-
-  const [fullscreen, setFullscreen] = useState(false);
 
   const openNavigator = async (target: string) => {
     if (pending.current || !ready) return;
@@ -57,11 +54,11 @@ export function NavigationWidget() {
       toast.error("Escolha um navegador específico nos ajustes.");
       return;
     }
-    if (settings.navApp !== "system" && !selected) {
+    if (!selected) {
       toast.error("Escolha um navegador instalado nos ajustes.");
       return;
     }
-    setFullscreen(true);
+    void openNavigator("");
   };
 
   const navigateToDestination = async () => {
@@ -94,20 +91,6 @@ export function NavigationWidget() {
         <LiveMap dark={darkMap} position={state.position} visible animated={settings.animations} route={state.route} navigating={state.active} online={state.online} />
       </div>
       <Button type="button" variant="ghost" className="absolute inset-x-0 top-0 bottom-6 z-[1] h-auto w-full rounded-none hover:bg-transparent" disabled={!ready} aria-label="Abrir mapa no navegador configurado em tela cheia" title={selected ? `Abrir ${selected.label} em tela cheia` : "Abrir navegador em tela cheia"} onClick={handleWidgetClick} />
-      {fullscreen && (
-        <Suspense fallback={null}>
-          {lazy(() => import("./fullscreen-navigation")).then ? (
-            React.createElement(lazy(() => import("./fullscreen-navigation")).default || FullscreenNavigation, {
-              state,
-              animated: settings.animations,
-              appLabel: selected?.label ?? "Navegador",
-              onClose: () => setFullscreen(false),
-              onOpenExternal: () => void openNavigator(destination),
-              onSearch: () => void navigateToDestination(),
-            })
-          ) : null}
-        </Suspense>
-      )}
       <div className="navigation-overlay pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col justify-between gap-3 p-3 lg:p-4">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="navigation-status min-w-0 rounded-lg border bg-card px-3 py-2 text-sm shadow-card" role="status">
