@@ -118,9 +118,9 @@ export function Dock() {
             title={itemLabel}
           >
             {isLastApp && lastApp ? (
-              <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-6 shrink-0 rounded-md object-contain md:size-10" />
+              <img src={`data:image/png;base64,${lastApp.icon}`} alt="" className="size-11 shrink-0 rounded-md object-contain md:size-18" />
             ) : (
-              <Icon className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
+              <Icon className="size-10 shrink-0 scale-[2.7] md:scale-[4.5]" />
             )}
           </Button>
         );
@@ -148,7 +148,7 @@ export function Dock() {
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-6 shrink-0 rounded-md object-contain md:size-10"
+            className="size-11 shrink-0 rounded-md object-contain md:size-18"
           />
         </Button>
       ))}
@@ -161,7 +161,7 @@ export function Dock() {
           title="Permitir aplicativos recentes"
           className="flex size-11 shrink-0 items-center justify-center rounded-2xl p-2 text-sidebar-foreground/70 md:h-16 md:w-full"
         >
-          <History className="size-6 shrink-0 scale-150 md:scale-[2.5]" />
+          <History className="size-10 shrink-0 scale-[2.7] md:scale-[4.5]" />
         </Button>
       )}
       </div>
