@@ -13,6 +13,10 @@ import { formatDistance, formatDuration } from "@/services/navigation-state";
 
 import LiveMap from "./live-map";
 
+const FullscreenNavigation = lazy(() =>
+  import("./fullscreen-navigation").then((module) => ({ default: module.FullscreenNavigation })),
+);
+
 export function NavigationWidget() {
   const { settings, update } = useLauncherSettings();
   const { apps, ready } = useNavigationApps();
@@ -57,7 +61,7 @@ export function NavigationWidget() {
       toast.error("Escolha um navegador específico nos ajustes.");
       return;
     }
-    if (settings.navApp !== "system" && !selected) {
+    if (!selected) {
       toast.error("Escolha um navegador instalado nos ajustes.");
       return;
     }
@@ -96,16 +100,16 @@ export function NavigationWidget() {
       <Button type="button" variant="ghost" className="absolute inset-x-0 top-0 bottom-6 z-[1] h-auto w-full rounded-none hover:bg-transparent" disabled={!ready} aria-label="Abrir mapa no navegador configurado em tela cheia" title={selected ? `Abrir ${selected.label} em tela cheia` : "Abrir navegador em tela cheia"} onClick={handleWidgetClick} />
       {fullscreen && (
         <Suspense fallback={null}>
-          {lazy(() => import("./fullscreen-navigation")).then ? (
-            React.createElement(lazy(() => import("./fullscreen-navigation")).default || FullscreenNavigation, {
-              state,
-              animated: settings.animations,
-              appLabel: selected?.label ?? "Navegador",
-              onClose: () => setFullscreen(false),
-              onOpenExternal: () => void openNavigator(destination),
-              onSearch: () => void navigateToDestination(),
-            })
-          ) : null}
+          <ClientOnly>
+            <FullscreenNavigation
+              state={state}
+              animated={settings.animations}
+              appLabel={selected?.label ?? "Navegador"}
+              onClose={() => setFullscreen(false)}
+              onOpenExternal={() => void openNavigator(destination)}
+              onSearch={() => void navigateToDestination()}
+            />
+          </ClientOnly>
         </Suspense>
       )}
       <div className="navigation-overlay pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col justify-between gap-3 p-3 lg:p-4">
