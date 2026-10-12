@@ -4,6 +4,8 @@ O Smart Auto Launcher possui suporte completo a compilação de APKs de debug e 
 
 ## Como obter o instalável (APK)
 
+O projeto está pronto para compilação local ou automatizada via GitHub Actions (`Android APK` e `Android Release`).
+
 ### 1. Via GitHub Actions (Recomendado)
 O repositório possui automações prontas na aba **Actions**:
 - **Android APK (Debug)**: Compila automaticamente a cada push ou pull request, gerando o artefato `smart-auto-launcher-apk` contendo o APK pronto para instalação.
