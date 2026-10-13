@@ -22,4 +22,5 @@ Capacitor 8.5.2 já encaminha o input de arquivo ao seletor de arquivos Android.
 
 ## Validação
 Playwright: importação real PNG, imagem decodificada, prévia global, ajustar, confirmar, recarregar e recuperar estado, manter imagem sem rede, cancelar restauração, restaurar e reaplicar última imagem, erro por PNG corrompido, navegação para Home e tela estreita.
-Teste Android físico, reinício da central e atualização assinada permanecem pendentes: sem acesso ao aparelho nesta sessão. Esta entrega não gera APK; é necessário novo APK com o plugin registrado antes de testar no dispositivo, não somente uma OTA.
+23 testes de papel de parede/configurações aprovados. APK 1.1.5 gerado no GitHub (execução 38444396112), versionCode 5/minSdk 24, assinatura v2 RSA 3072 igual à 1.1.4, plugin nativo e index offline confirmados. SHA-256: 4d3ec7695386c3d0ab40ed6d329232a331021f2f7ec7a11db96186dd1cae45b2.
+Teste Android físico, reinício da central e atualização assinada permanecem pendentes: sem acesso ao aparelho nesta sessão. Instalar o APK 1.1.5 sobre o 1.1.4 sem desinstalar; importar uma imagem, aplicar, fechar/reabrir, reiniciar a central e conferir sem rede, restaurar e reaplicar. Nenhuma OTA publicada nesta entrega; futuras OTA precisam de sequência crescente e compatibilidade com nativeCode 5.
