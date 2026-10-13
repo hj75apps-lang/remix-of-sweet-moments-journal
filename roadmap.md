@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Gerar e conferir APK 1.1.5 com papel de parede local e assinatura existente; execução solicitada no GitHub, validação física depende da central.
 - [x] Implementar papel de parede local: importação, prévia global, preencher/ajustar/centralizar, aplicar/cancelar/restaurar/reaplicar; IndexedDB web e AtomicFile privado Android registrados. 23 testes aprovados; Playwright confirmou PNG real, recarga, imagem offline, restauração/cancelamento, reaplicação, erro de imagem corrompida, Home e controles em tela estreita. Relatório em docs/PAPEL-DE-PAREDE.md.
 - [ ] Validar papel de parede na central (seletor, reinício e atualização): precisa de novo APK com LauncherWallpaper e acesso ao aparelho; não comprovado por testes web.
 
