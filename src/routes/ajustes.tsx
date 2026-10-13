@@ -13,10 +13,10 @@ export const Route = createFileRoute("/ajustes")({
       { title: "Ajustes — Smart Auto Launcher" },
       {
         name: "description",
-        content: "Personalize o tema e a intensidade do efeito vidro líquido.",
+        content: "Personalize o papel de parede, o tema e os ajustes da sua central multimídia.",
       },
       { property: "og:title", content: "Ajustes — Smart Auto Launcher" },
-      { property: "og:description", content: "Tema e efeito vidro líquido ajustáveis." },
+      { property: "og:description", content: "Papel de parede local, tema e ajustes da central multimídia." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

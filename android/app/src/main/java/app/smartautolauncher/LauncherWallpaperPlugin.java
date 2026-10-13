@@ -49,7 +49,16 @@ public class LauncherWallpaperPlugin extends Plugin {
         if (json.isNull("image")) { if (json.getBoolean("active")) throw new Exception("Imagem ausente."); }
         else {
             JSONObject image = json.getJSONObject("image"); String data = image.getString("data");
-            if (image.getString("name").length() > 160 || data.length() > 5 * 1024 * 1024 || !data.matches("data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+")) throw new Exception("Imagem inválida.");
+            int comma = data.indexOf(',');
+            String prefix = comma < 0 ? "" : data.substring(0, comma);
+            if (image.getString("name").length() > 160 || data.length() > 5 * 1024 * 1024 ||
+                !(prefix.equals("data:image/png;base64") || prefix.equals("data:image/jpeg;base64") || prefix.equals("data:image/webp;base64")) || comma == data.length() - 1)
+                throw new Exception("Imagem inválida.");
+            for (int i = comma + 1; i < data.length(); i++) {
+                char c = data.charAt(i);
+                if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='))
+                    throw new Exception("Imagem inválida.");
+            }
         }
     }
 }

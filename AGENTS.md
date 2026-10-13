@@ -44,4 +44,4 @@
 - First-opening artwork uses a native no-backup marker: offline, retained on update, reset on reinstall; system startup stays unbranded.
 - OTA: RSA/Capgo/cold-start; Releases/Pages. Audit refs. Owner creates/backups keys off-repo; never expose/replace: trust depends on them.
 
-- Wallpaper root provider owns previews/save; local Android AtomicFile or web IndexedDB retains bounded images offline across updates. Capacitor system picker needs no broad permissions.
+- Wallpaper provider owns preview/save; Android AtomicFile or web IndexedDB retains bounded images offline across updates. Capacitor picker needs no broad permissions.
