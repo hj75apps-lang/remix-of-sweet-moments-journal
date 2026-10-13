@@ -27,6 +27,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LauncherSystemPlugin.class);
         registerPlugin(RadioNetworkPlugin.class);
         registerPlugin(LauncherOtaPlugin.class);
+        registerPlugin(LauncherWallpaperPlugin.class);
         super.onCreate(savedInstanceState);
 
         showFirstOpening();

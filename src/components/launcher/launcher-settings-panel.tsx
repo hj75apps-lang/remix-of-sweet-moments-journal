@@ -17,6 +17,7 @@ import { VehicleIcon } from "./vehicle-icon";
 import { MAP_VIEWS } from "@/services/navigation-view";
 import { MAP_STYLES } from "@/services/navigation-map-style";
 import { OtaSettings } from "./ota-settings";
+import { WallpaperSettings } from "./wallpaper-settings";
 
 type BoolKey = "immersive" | "keepScreenOn" | "autostart" | "clock24h" | "animations";
 const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
@@ -64,6 +65,7 @@ export function LauncherSettingsPanel() {
   return (
     <>
       <OtaSettings />
+      <WallpaperSettings />
       <div className={card}>
         <h2 className="text-lg font-semibold">Launcher</h2>
         <p className="mt-1 text-sm text-muted-foreground">

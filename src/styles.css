@@ -739,3 +739,18 @@ body {
   .vehicle-marker::before,
   .navigation-perspective-vehicle::before { animation: none; content: none; }
 }
+
+/* Wallpapers replace original artwork, preserving glass and layout. */
+:root { --wallpaper-scrim: color-mix(in oklab, var(--background) 22%, transparent); }
+body.wallpaper-active {
+  background-image: linear-gradient(var(--wallpaper-scrim), var(--wallpaper-scrim)), var(--wallpaper-image);
+  background-size: auto, var(--wallpaper-size, cover);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+body.wallpaper-active .bg-background { background-color: transparent; }
+.wallpaper-preview { position:relative; display:flex; align-items:center; justify-content:center; height:200px; overflow:hidden; border:1px solid var(--border); border-radius:8px; background:var(--background); }
+.wallpaper-preview img { width:100%; height:100%; object-fit:cover; }
+.wallpaper-preview[data-fit="contain"] img { object-fit:contain; }
+.wallpaper-preview[data-fit="center"] img { object-fit:none; }

@@ -22,6 +22,7 @@ import { NavigationProvider } from "@/contexts/navigation-context";
 import { PhoneIntegration } from "@/components/phone/phone-integration";
 import { VoiceAssistantPanel } from "@/components/launcher/voice-assistant-panel";
 import { mountOta, prepareOta } from "@/services/ota-client";
+import { WallpaperProvider } from "@/contexts/wallpaper-provider";
 
 function NotFoundComponent() {
   return (
@@ -168,6 +169,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LauncherSettingsProvider>
+          <WallpaperProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <RadioPlayerProvider>
             <VoiceControlProvider>
@@ -179,6 +181,7 @@ function RootComponent() {
             </VoiceControlProvider>
           </RadioPlayerProvider>
           <Toaster />
+          </WallpaperProvider>
         </LauncherSettingsProvider>
       </ThemeProvider>
     </QueryClientProvider>
