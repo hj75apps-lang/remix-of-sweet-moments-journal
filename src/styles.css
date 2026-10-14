@@ -346,7 +346,8 @@ main h1, main h2, main h3 { font-size: calc(1em * var(--launcher-heading-text-sc
 main .text-muted-foreground { font-size: calc(1em * var(--launcher-secondary-text-scale) / 100); }
 .launcher-settings-content { font-size: calc(1em * var(--launcher-settings-text-scale) / 100); }
 @media (max-width: 767px) {
-  .dock-item { width: max(44px, calc(var(--launcher-dock-touch-target) - 12px)); height: max(44px, calc(var(--launcher-dock-touch-target) - 12px)); }
+  .launcher-dock, .dock-group { gap: min(var(--launcher-dock-spacing), 8px); }
+  .dock-item { width: min(56px, max(44px, calc(var(--launcher-dock-touch-target) - 12px))); height: min(56px, max(44px, calc(var(--launcher-dock-touch-target) - 12px))); }
   .dock-icon:is(svg) { transform: scale(calc(1.75 * var(--launcher-dock-icon-scale) / 100)); }
   .app-drawer-icon { transform: scale(calc(2.5 * var(--launcher-app-icon-scale) / 100)); }
 }

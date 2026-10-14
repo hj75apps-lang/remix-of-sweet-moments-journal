@@ -12,6 +12,8 @@
 ## Comportamento
 Cada tamanho usa uma variável própria e seletores locais. Percentuais aceitam 70–150%, em passos de 5%. Espaçamento e área de toque usam limites em pixels. A mudança é imediata e salva automaticamente em `sal.launcher-settings`, no armazenamento local já utilizado pelo app, sem internet.
 
+Em telas estreitas, área de toque e distância da barra lateral recebem limites responsivos seguros para manter todos os atalhos visíveis; o valor salvo continua sendo aplicado integralmente quando houver espaço.
+
 Cada controle e cada categoria podem voltar ao padrão. A restauração geral exige confirmação e altera somente tamanhos e espaçamentos; papel de parede, ordem dos aplicativos, atalhos, tema, mapas e demais preferências permanecem intactos.
 
 ## Limites
