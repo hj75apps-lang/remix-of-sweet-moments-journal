@@ -27,7 +27,7 @@ export function WidgetCard({ title, icon, children, className, hideHeader = true
           </header>
         )}
         {/* Size container: content scales fluidly with the card (cqh/cqw) so everything adjusts automatically. */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col [container-type:size] transition-all duration-200 [font-size:clamp(0.7rem,2.5cqw+2.5cqh,1rem)]">
+        <div className="widget-visual-content flex min-h-0 min-w-0 flex-1 flex-col [container-type:size] transition-all duration-200 [font-size:clamp(0.7rem,2.5cqw+2.5cqh,1rem)]">
           {children}
         </div>
       </div>

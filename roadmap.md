@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Implementar e validar personalização visual granular: controles independentes para ícones, textos, relógio, widgets, atalhos, dock e áreas de toque; persistência offline, restauração por categoria/geral e preservação das demais preferências.
+
 - [x] Gerar e entregar APK 1.1.5 com papel de parede local: GitHub Android Release 38444396112 concluído no commit b96c46497592006bca36ff735f88e872427826a1; digest do artefato conferido, assinatura v2 RSA 3072 igual à 1.1.4, versionCode 5/minSdk 24, plugin LauncherWallpaper e index offline confirmados. Entregue HJCar-1.1.5-OpenStreetMap.apk; SHA-256 4d3ec7695386c3d0ab40ed6d329232a331021f2f7ec7a11db96186dd1cae45b2. 23 testes de papel de parede/configurações aprovados; nenhuma OTA publicada. Validação física depende da central.
 - [x] Implementar papel de parede local: importação, prévia global, preencher/ajustar/centralizar, aplicar/cancelar/restaurar/reaplicar; IndexedDB web e AtomicFile privado Android registrados. 23 testes aprovados; Playwright confirmou PNG real, recarga, imagem offline, restauração/cancelamento, reaplicação, erro de imagem corrompida, Home e controles em tela estreita. Relatório em docs/PAPEL-DE-PAREDE.md.
 - [ ] Validar papel de parede na central (seletor, reinício e atualização): APK 1.1.5 entregue, falta acesso ao aparelho; não comprovado por testes web.

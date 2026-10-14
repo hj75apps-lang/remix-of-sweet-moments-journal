@@ -26,7 +26,22 @@ export interface LauncherSettings {
   buttonColor: string;
   buttonOpacity: number;
   navThemeMode: "auto" | "light" | "dark";
+  visualSizing: VisualSizing;
 }
+
+export interface VisualSizing {
+  homeAppIcon: number; homeAppLabel: number; appsIcon: number; appsLabel: number;
+  dockIcon: number; dockGap: number; dockTouch: number; headings: number;
+  secondaryText: number; settingsText: number; clock: number; date: number;
+  widgetIcon: number; widgetText: number; shortcutIcon: number; shortcutLabel: number; statusIcon: number;
+}
+
+export const DEFAULT_VISUAL_SIZING: VisualSizing = {
+  homeAppIcon: 100, homeAppLabel: 100, appsIcon: 100, appsLabel: 100,
+  dockIcon: 100, dockGap: 100, dockTouch: 100, headings: 100,
+  secondaryText: 100, settingsText: 100, clock: 100, date: 100,
+  widgetIcon: 100, widgetText: 100, shortcutIcon: 100, shortcutLabel: 100, statusIcon: 100,
+};
 
 const KEY = "sal.launcher-settings";
 export const DEFAULT_SETTINGS: LauncherSettings = {
@@ -48,7 +63,29 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   buttonColor: "",
   buttonOpacity: 100,
   navThemeMode: "auto",
+  visualSizing: DEFAULT_VISUAL_SIZING,
 };
+
+function normalizeVisualSizing(value: unknown): VisualSizing {
+  const source = value && typeof value === "object" ? value as Partial<VisualSizing> : {};
+  const bounded = (key: keyof VisualSizing, min = 70, max = 150) => {
+    const candidate = source[key];
+    return typeof candidate === "number" && Number.isFinite(candidate)
+      ? Math.min(max, Math.max(min, Math.round(candidate / 5) * 5))
+      : DEFAULT_VISUAL_SIZING[key];
+  };
+  return {
+    homeAppIcon: bounded("homeAppIcon"), homeAppLabel: bounded("homeAppLabel"),
+    appsIcon: bounded("appsIcon", 70, 120), appsLabel: bounded("appsLabel"),
+    dockIcon: bounded("dockIcon", 70, 120), dockGap: bounded("dockGap", 70, 130),
+    dockTouch: bounded("dockTouch", 85, 120), headings: bounded("headings"),
+    secondaryText: bounded("secondaryText"), settingsText: bounded("settingsText"),
+    clock: bounded("clock", 70, 125), date: bounded("date"),
+    widgetIcon: bounded("widgetIcon", 70, 130), widgetText: bounded("widgetText"),
+    shortcutIcon: bounded("shortcutIcon", 70, 130), shortcutLabel: bounded("shortcutLabel"),
+    statusIcon: bounded("statusIcon", 70, 120),
+  };
+}
 
 function normalize(value: unknown): LauncherSettings {
   if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
@@ -76,6 +113,7 @@ function normalize(value: unknown): LauncherSettings {
       buttonColor: typeof v.buttonColor === "string" && /^#[\da-f]{6}$/i.test(v.buttonColor) ? v.buttonColor : "",
       buttonOpacity: typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 ? v.buttonOpacity : 100,
       navThemeMode: v.navThemeMode === "light" || v.navThemeMode === "dark" || v.navThemeMode === "auto" ? v.navThemeMode : "auto",
+      visualSizing: normalizeVisualSizing(v.visualSizing),
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -100,6 +138,8 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.buttonColor === "string" && (v.buttonColor === "" || /^#[\da-f]{6}$/i.test(v.buttonColor)) &&
     typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 &&
     (v.navThemeMode === "auto" || v.navThemeMode === "light" || v.navThemeMode === "dark") &&
+    typeof v.visualSizing === "object" &&
+    Object.entries(normalizeVisualSizing(v.visualSizing)).every(([key, value]) => (v.visualSizing as unknown as Record<string, unknown>)[key] === value) &&
     (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
       (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
 }
@@ -175,6 +215,14 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     }
     document.documentElement.style.setProperty("--launcher-button-opacity", String(settings.buttonOpacity / 100));
   }, [settings.buttonColor, settings.buttonOpacity]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    for (const [key, value] of Object.entries(settings.visualSizing)) {
+      const cssKey = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+      document.documentElement.style.setProperty(`--visual-${cssKey}`, String(value / 100));
+    }
+  }, [settings.visualSizing]);
 
   const update = useCallback<LauncherSettingsContextValue["update"]>((patch) => {
     setSettings((prev) => {
