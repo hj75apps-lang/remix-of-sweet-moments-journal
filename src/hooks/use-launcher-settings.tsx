@@ -7,6 +7,36 @@ import { isVehicleIcon, type VehicleIcon } from "@/services/vehicle-icon";
 import { isMapView, type MapView } from "@/services/navigation-view";
 import { isNavigationMapStyle, type NavigationMapStyle } from "@/services/navigation-map-style";
 
+export interface VisualSizing {
+  appIconScale: number;
+  appLabelScale: number;
+  shortcutIconScale: number;
+  shortcutTextScale: number;
+  widgetIconScale: number;
+  widgetTextScale: number;
+  dockIconScale: number;
+  dockTextScale: number;
+  dockSpacing: number;
+  dockTouchTarget: number;
+  navigationIconScale: number;
+  statusIconScale: number;
+  statusTextScale: number;
+  headingTextScale: number;
+  secondaryTextScale: number;
+  settingsTextScale: number;
+  clockScale: number;
+  dateScale: number;
+  widgetSpacing: number;
+}
+
+export const DEFAULT_VISUAL_SIZING: VisualSizing = {
+  appIconScale: 100, appLabelScale: 100, shortcutIconScale: 100, shortcutTextScale: 100,
+  widgetIconScale: 100, widgetTextScale: 100, dockIconScale: 100, dockTextScale: 100,
+  dockSpacing: 8, dockTouchTarget: 56, navigationIconScale: 100, statusIconScale: 100,
+  statusTextScale: 100, headingTextScale: 100, secondaryTextScale: 100, settingsTextScale: 100,
+  clockScale: 100, dateScale: 100, widgetSpacing: 16,
+};
+
 export interface LauncherSettings {
   version: 1;
   navApp: NavApp;
@@ -26,6 +56,7 @@ export interface LauncherSettings {
   buttonColor: string;
   buttonOpacity: number;
   navThemeMode: "auto" | "light" | "dark";
+  visual: VisualSizing;
 }
 
 const KEY = "sal.launcher-settings";
@@ -48,7 +79,26 @@ export const DEFAULT_SETTINGS: LauncherSettings = {
   buttonColor: "",
   buttonOpacity: 100,
   navThemeMode: "auto",
+  visual: DEFAULT_VISUAL_SIZING,
 };
+
+const percentKeys = new Set<keyof VisualSizing>([
+  "appIconScale", "appLabelScale", "shortcutIconScale", "shortcutTextScale", "widgetIconScale",
+  "widgetTextScale", "dockIconScale", "dockTextScale", "navigationIconScale", "statusIconScale",
+  "statusTextScale", "headingTextScale", "secondaryTextScale", "settingsTextScale", "clockScale", "dateScale",
+]);
+function normalizeVisual(value: unknown): VisualSizing {
+  const source = value && typeof value === "object" ? value as Partial<VisualSizing> : {};
+  return Object.fromEntries(Object.entries(DEFAULT_VISUAL_SIZING).map(([key, fallback]) => {
+    const candidate = source[key as keyof VisualSizing];
+    const valid = typeof candidate === "number" && Number.isFinite(candidate) && (
+      percentKeys.has(key as keyof VisualSizing) ? candidate >= 70 && candidate <= 150 :
+      key === "dockSpacing" ? candidate >= 4 && candidate <= 20 :
+      key === "dockTouchTarget" ? candidate >= 44 && candidate <= 72 : candidate >= 8 && candidate <= 24
+    );
+    return [key, valid ? candidate : fallback];
+  })) as unknown as VisualSizing;
+}
 
 function normalize(value: unknown): LauncherSettings {
   if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
@@ -76,6 +126,7 @@ function normalize(value: unknown): LauncherSettings {
       buttonColor: typeof v.buttonColor === "string" && /^#[\da-f]{6}$/i.test(v.buttonColor) ? v.buttonColor : "",
       buttonOpacity: typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 ? v.buttonOpacity : 100,
       navThemeMode: v.navThemeMode === "light" || v.navThemeMode === "dark" || v.navThemeMode === "auto" ? v.navThemeMode : "auto",
+      visual: normalizeVisual(v.visual),
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -99,6 +150,7 @@ function isLauncherSettings(value: unknown): value is LauncherSettings {
     typeof v.lastDestination === "string" && v.lastDestination.length <= 200 &&
     typeof v.buttonColor === "string" && (v.buttonColor === "" || /^#[\da-f]{6}$/i.test(v.buttonColor)) &&
     typeof v.buttonOpacity === "number" && v.buttonOpacity >= 10 && v.buttonOpacity <= 100 &&
+    JSON.stringify(normalizeVisual(v.visual)) === JSON.stringify(v.visual) &&
     (v.navThemeMode === "auto" || v.navThemeMode === "light" || v.navThemeMode === "dark") &&
     (v.navApp === "maps" || v.navApp === "waze" || v.navApp === "system" ||
       (typeof v.navApp === "string" && /^package:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+$/.test(v.navApp)));
@@ -175,6 +227,15 @@ export function LauncherSettingsProvider({ children }: { children: ReactNode }) 
     }
     document.documentElement.style.setProperty("--launcher-button-opacity", String(settings.buttonOpacity / 100));
   }, [settings.buttonColor, settings.buttonOpacity]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(settings.visual)) {
+      const cssKey = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+      const unit = key === "dockSpacing" || key === "dockTouchTarget" || key === "widgetSpacing" ? "px" : "";
+      root.style.setProperty(`--launcher-${cssKey}`, `${value}${unit}`);
+    }
+  }, [settings.visual]);
 
   const update = useCallback<LauncherSettingsContextValue["update"]>((patch) => {
     setSettings((prev) => {

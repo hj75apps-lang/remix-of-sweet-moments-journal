@@ -393,7 +393,7 @@ function SortableAppItem({ app, editing, onStartEditing }: SortableAppItemProps)
         }}
         aria-label={`Abrir ${app.label}`}
         className={cn(
-          "flex h-full w-full min-w-0 flex-col items-center justify-center gap-2 rounded-2xl p-2 transition hover:bg-accent active:scale-95",
+          "app-drawer-item flex h-full w-full min-w-0 flex-col items-center justify-center gap-2 rounded-2xl p-2 transition hover:bg-accent active:scale-95",
           editing && "pointer-events-none"
         )}
       >
@@ -401,16 +401,15 @@ function SortableAppItem({ app, editing, onStartEditing }: SortableAppItemProps)
           <img
             src={`data:image/png;base64,${app.icon}`}
             alt=""
-            className="size-[44.8px] sm:size-[56px] rounded-2xl object-contain scale-[3.2] origin-center my-2"
-            style={{ width: "44.8px", height: "44.8px" }}
+            className="app-drawer-icon rounded-2xl object-contain origin-center my-2"
             loading="lazy"
           />
         ) : (
-          <div className="flex size-[44.8px] items-center justify-center rounded-2xl bg-primary/25 text-xl font-bold text-primary scale-[3.2] origin-center my-2" style={{ width: "44.8px", height: "44.8px" }}>
+          <div className="app-drawer-icon flex items-center justify-center rounded-2xl bg-primary/25 text-xl font-bold text-primary origin-center my-2">
             {app.label.slice(0, 2).toUpperCase()}
           </div>
         )}
-        <span className="w-full truncate text-center text-xs font-medium">
+        <span className="app-drawer-label w-full truncate text-center text-xs font-medium">
           {app.label}
         </span>
       </button>

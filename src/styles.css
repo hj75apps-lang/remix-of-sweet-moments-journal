@@ -67,6 +67,25 @@
 
 :root {
   --font-scale: 1rem;
+  --launcher-app-icon-scale: 100;
+  --launcher-app-label-scale: 100;
+  --launcher-shortcut-icon-scale: 100;
+  --launcher-shortcut-text-scale: 100;
+  --launcher-widget-icon-scale: 100;
+  --launcher-widget-text-scale: 100;
+  --launcher-dock-icon-scale: 100;
+  --launcher-dock-text-scale: 100;
+  --launcher-dock-spacing: 8px;
+  --launcher-dock-touch-target: 56px;
+  --launcher-navigation-icon-scale: 100;
+  --launcher-status-icon-scale: 100;
+  --launcher-status-text-scale: 100;
+  --launcher-heading-text-scale: 100;
+  --launcher-secondary-text-scale: 100;
+  --launcher-settings-text-scale: 100;
+  --launcher-clock-scale: 100;
+  --launcher-date-scale: 100;
+  --launcher-widget-spacing: 16px;
   --radius: 1.5rem;
   --background: oklch(0.13 0.005 260);
   --foreground: oklch(0.96 0.005 260);
@@ -297,14 +316,40 @@ body {
 
 /* Clock typography follows its card, not the viewport; keep short-card rules from shrinking it. */
 .widget-inner .clock-time {
-  font-size: min(32cqw, 72cqh);
+  font-size: min(calc(32cqw * var(--launcher-clock-scale) / 100), calc(72cqh * var(--launcher-clock-scale) / 100));
   line-height: 0.9;
 }
 .widget-inner .clock-time-12h {
-  font-size: min(23cqw, 72cqh);
+  font-size: min(calc(23cqw * var(--launcher-clock-scale) / 100), calc(72cqh * var(--launcher-clock-scale) / 100));
 }
 .widget-inner .clock-date {
-  font-size: min(4cqw, 12cqh, 1.125rem);
+  font-size: min(calc(4cqw * var(--launcher-date-scale) / 100), calc(12cqh * var(--launcher-date-scale) / 100), calc(1.125rem * var(--launcher-date-scale) / 100));
+}
+
+/* Category-scoped launcher sizing; visual size never controls the touch target. */
+.home-app-icon-wrap { width: calc(3.5rem * var(--launcher-app-icon-scale) / 100); height: calc(3.5rem * var(--launcher-app-icon-scale) / 100); }
+.home-app-icon { width: calc(1.75rem * var(--launcher-app-icon-scale) / 100); height: calc(1.75rem * var(--launcher-app-icon-scale) / 100); }
+.home-app-label, .app-drawer-label { font-size: calc(0.75rem * var(--launcher-app-label-scale) / 100); }
+.app-drawer-icon { width: 44.8px; height: 44.8px; transform: scale(calc(3.2 * var(--launcher-app-icon-scale) / 100)); }
+.launcher-shortcut .shortcut-icon { transform: scale(calc(var(--launcher-shortcut-icon-scale) / 100)); }
+.launcher-shortcut .shortcut-label { font-size: calc(1em * var(--launcher-shortcut-text-scale) / 100); }
+.launcher-widget .widget-inner { font-size: calc(1em * var(--launcher-widget-text-scale) / 100); }
+.launcher-widget .widget-inner svg { transform: scale(calc(var(--launcher-widget-icon-scale) / 100)); }
+.launcher-dock, .dock-group { gap: var(--launcher-dock-spacing); }
+.dock-item { width: var(--launcher-dock-touch-target); height: var(--launcher-dock-touch-target); font-size: calc(1em * var(--launcher-dock-text-scale) / 100); }
+.dock-icon { width: calc(2.75rem * var(--launcher-dock-icon-scale) / 100); height: calc(2.75rem * var(--launcher-dock-icon-scale) / 100); }
+.dock-icon:is(svg) { width: 1.75rem; height: 1.75rem; transform: scale(calc(2.9 * var(--launcher-dock-icon-scale) / 100)); }
+.navigation-overlay svg, .navigation-search svg { transform: scale(calc(var(--launcher-navigation-icon-scale) / 100)); }
+.launcher-status svg { transform: scale(calc(var(--launcher-status-icon-scale) / 100)); }
+.launcher-status { font-size: calc(1em * var(--launcher-status-text-scale) / 100); }
+main h1, main h2, main h3 { font-size: calc(1em * var(--launcher-heading-text-scale) / 100); }
+main .text-muted-foreground { font-size: calc(1em * var(--launcher-secondary-text-scale) / 100); }
+.launcher-settings-content { font-size: calc(1em * var(--launcher-settings-text-scale) / 100); }
+@media (max-width: 767px) {
+  .launcher-dock, .dock-group { gap: min(var(--launcher-dock-spacing), 8px); }
+  .dock-item { width: min(56px, max(44px, calc(var(--launcher-dock-touch-target) - 12px))); height: min(56px, max(44px, calc(var(--launcher-dock-touch-target) - 12px))); }
+  .dock-icon:is(svg) { transform: scale(calc(1.75 * var(--launcher-dock-icon-scale) / 100)); }
+  .app-drawer-icon { transform: scale(calc(2.5 * var(--launcher-app-icon-scale) / 100)); }
 }
 
 :root {
