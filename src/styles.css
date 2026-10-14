@@ -318,14 +318,14 @@ body {
 .apps-label { font-size: calc(.75rem * var(--visual-apps-label)); }
 .launcher-dock, .launcher-dock > div { gap: calc(.5rem * var(--visual-dock-gap)); }
 .dock-item { min-width: calc(2.75rem * var(--visual-dock-touch)); min-height: calc(2.75rem * var(--visual-dock-touch)); }
-.dock-icon { transform: scale(var(--visual-dock-icon)); }
+.dock-icon { scale: var(--visual-dock-icon); }
 @media (min-width: 768px) { .dock-item { min-height: calc(3.5rem * var(--visual-dock-touch)); } }
 .shortcut-icon { transform: scale(var(--visual-shortcut-icon)); }
 .shortcut-label { font-size: calc(1em * var(--visual-shortcut-label)); }
 .widget-visual-content { font-size: calc(clamp(.7rem,2.5cqw + 2.5cqh,1rem) * var(--visual-widget-text)); }
 .status-control-icon { transform: scale(var(--visual-status-icon)); }
-.settings-visual-scope h1, .settings-visual-scope h2, .settings-visual-scope h3, .settings-visual-scope legend { font-size: calc(1em * var(--visual-headings)); }
-.settings-visual-scope p.text-muted-foreground, .settings-visual-scope span.text-muted-foreground { font-size: calc(1em * var(--visual-secondary-text)); }
+.settings-visual-scope h1, .settings-visual-scope h2, .settings-visual-scope h3, .settings-visual-scope legend { zoom: var(--visual-headings); }
+.settings-visual-scope p.text-muted-foreground, .settings-visual-scope span.text-muted-foreground { zoom: var(--visual-secondary-text); }
 .settings-visual-scope { font-size: calc(1rem * var(--visual-settings-text)); }
 
 :root {
