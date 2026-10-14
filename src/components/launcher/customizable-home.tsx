@@ -43,12 +43,12 @@ const ItemContent = memo(function ItemContent({ item }: { item: HomeItem }) {
       variant="outline"
       aria-label={`Abrir ${app.label}`}
       onClick={() => void navigate({ to: routes[item.ref as AppId] })}
-      className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition-all duration-150 ease-out hover:border-primary/30 active:scale-[0.98]"
+      className="home-app-tile flex h-full w-full flex-col items-center justify-center gap-2 rounded-3xl border bg-card text-sm font-semibold shadow-[var(--shadow-card)] transition-all duration-150 ease-out hover:border-primary/30 active:scale-[0.98]"
     >
-      <span className="grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary">
-        <Icon className="size-7" />
+      <span className="home-app-icon-wrap grid place-items-center rounded-2xl bg-primary/15 text-primary">
+        <Icon className="home-app-icon" />
       </span>
-      {app.label}
+      <span className="home-app-label">{app.label}</span>
     </Button>
   );
 });
@@ -234,7 +234,9 @@ export function CustomizableHome() {
     return () => ro.disconnect();
   }, []);
   const cols = box.width < 520 ? 2 : box.width < 900 ? 4 : GRID_COLS;
-  const gap = box.width < 640 ? 8 : 16;
+  const gapBase = box.width < 640 ? 8 : 16;
+  const customGap = typeof document === "undefined" ? gapBase : Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--launcher-widget-spacing")) || gapBase;
+  const gap = box.width < 640 ? Math.min(customGap, 16) : customGap;
   // Fit every card into the visible area: no scrolling, like a head-unit launcher.
   const sizes = home.items.map((item) => item.size);
   if (editing) sizes.push({ w: 1, h: 1 });
@@ -261,7 +263,7 @@ export function CustomizableHome() {
   };
 
   return (
-    <div id="launcher-home-grid" className="flex min-h-0 flex-1 flex-col gap-3">
+    <div id="launcher-home-grid" className="launcher-home-grid flex min-h-0 flex-1 flex-col gap-3">
       {!editing && <Button type="button" onClick={() => setEditing(true)} className="sr-only focus:not-sr-only">Personalizar tela inicial</Button>}
       {editing && (
         <div
