@@ -19,6 +19,7 @@ import { homeGridRows } from "@/services/home-grid";
 import { appRegistry, widgetRegistry, sizesFor, GRID_COLS, GRID_ROWS } from "./home-registry";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLauncherSettings } from "@/hooks/use-launcher-settings";
 
 import { memo } from "react";
 
@@ -218,6 +219,7 @@ function TileButton({
 /** Home grid where widgets and apps share one free-form, reorderable layout. */
 export function CustomizableHome() {
   const home = useHomeLayout();
+  const { settings } = useLauncherSettings();
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -234,9 +236,7 @@ export function CustomizableHome() {
     return () => ro.disconnect();
   }, []);
   const cols = box.width < 520 ? 2 : box.width < 900 ? 4 : GRID_COLS;
-  const gapBase = box.width < 640 ? 8 : 16;
-  const customGap = typeof document === "undefined" ? gapBase : Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--launcher-widget-spacing")) || gapBase;
-  const gap = box.width < 640 ? Math.min(customGap, 16) : customGap;
+  const gap = box.width < 640 ? Math.min(settings.visual.widgetSpacing, 16) : settings.visual.widgetSpacing;
   // Fit every card into the visible area: no scrolling, like a head-unit launcher.
   const sizes = home.items.map((item) => item.size);
   if (editing) sizes.push({ w: 1, h: 1 });
