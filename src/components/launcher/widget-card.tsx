@@ -15,7 +15,7 @@ export function WidgetCard({ title, icon, children, className, hideHeader = true
     <section
       aria-label={title}
       className={cn(
-        "widget launcher-widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-[var(--shadow-card)]",
+        "widget relative h-full min-h-0 overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-[var(--shadow-card)]",
         className,
       )}
     >

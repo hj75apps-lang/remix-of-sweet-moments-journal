@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import { MAP_VIEWS } from "@/services/navigation-view";
 import { MAP_STYLES } from "@/services/navigation-map-style";
 import { OtaSettings } from "./ota-settings";
 import { WallpaperSettings } from "./wallpaper-settings";
-import { VisualSizeSettings } from "./visual-size-settings";
 
 type BoolKey = "immersive" | "keepScreenOn" | "autostart" | "clock24h" | "animations";
 const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
@@ -30,7 +30,31 @@ const TOGGLES: Array<{ key: BoolKey; label: string; hint: string }> = [
 
 const card = "rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]";
 
+const FONT_SCALES = new Set(["24px", "26px", "28px"]);
+
+function readFontScale(): string {
+  if (typeof window === "undefined") return "24px";
+  try {
+    const stored = localStorage.getItem("smart_auto_font_scale") ?? localStorage.getItem("font_size");
+    return stored && FONT_SCALES.has(stored) ? stored : "24px";
+  } catch { return "24px"; }
+}
+
 export function LauncherSettingsPanel() {
+  const [fontScale, setFontScale] = useState<string>(readFontScale);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    // Keep the browser root size fixed: changing html { font-size } would
+    // rescale every rem-based dimension in the launcher when this page mounts.
+    document.documentElement.style.setProperty("--font-scale", fontScale);
+    document.documentElement.style.removeProperty("font-size");
+    try {
+      localStorage.setItem("smart_auto_font_scale", fontScale);
+      localStorage.setItem("font_size", fontScale);
+    } catch { /* keep the current choice in memory */ }
+  }, [fontScale]);
+
   const { settings, update } = useLauncherSettings();
   const { apps: navigationApps, ready: navigationReady } = useNavigationApps();
   const info = useQuery({ queryKey: ["device-info"], queryFn: getDeviceInfo, staleTime: 60_000 });
@@ -42,7 +66,6 @@ export function LauncherSettingsPanel() {
     <>
       <OtaSettings />
       <WallpaperSettings />
-      <VisualSizeSettings />
       <div className={card}>
         <h2 className="text-lg font-semibold">Launcher</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -79,6 +102,35 @@ export function LauncherSettingsPanel() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="space-y-3 rounded-3xl border bg-card p-6 shadow-[var(--shadow-card)]">
+        <h3 className="text-[24px] font-semibold text-foreground">
+          Tamanho da Fonte (Padrão Automotivo)
+        </h3>
+        <p className="text-[16px] text-muted-foreground">
+          Texto principal mínimo de 24px, títulos de 32px a 48px e subtextos entre 16px e 20px (mínimo absoluto de 14px).
+        </p>
+        <div className="grid grid-cols-3 gap-2 pt-2">
+          {[
+            { label: "Normal (24px)", value: "24px" },
+            { label: "Grande (26px)", value: "26px" },
+            { label: "Máximo (28px)", value: "28px" },
+          ].map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => setFontScale(item.value)}
+              className={`flex min-h-12 items-center justify-center rounded-xl border px-3 text-[16px] font-medium transition ${
+                fontScale === item.value
+                  ? "border-primary bg-primary/25 text-primary"
+                  : "border-border bg-secondary/50 hover:bg-accent"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className={card}>

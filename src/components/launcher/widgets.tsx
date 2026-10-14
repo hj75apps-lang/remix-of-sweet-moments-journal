@@ -53,10 +53,10 @@ export function FavoriteAppsWidget() {
             variant="secondary"
             aria-label={`Abrir ${label}`}
             onClick={() => void navigate({ to: route })}
-            className="launcher-shortcut flex h-full min-h-0 min-w-0 flex-col items-center justify-center gap-[min(0.25rem,5cqh)] rounded-2xl bg-secondary text-[clamp(0.625rem,20cqh,0.75rem)] font-medium leading-tight transition hover:bg-accent active:scale-95"
+            className="flex h-full min-h-0 min-w-0 flex-col items-center justify-center gap-[min(0.25rem,5cqh)] rounded-2xl bg-secondary text-[clamp(0.625rem,20cqh,0.75rem)] font-medium leading-tight transition hover:bg-accent active:scale-95"
           >
-            <Icon className="shortcut-icon size-[clamp(1rem,35cqh,1.5rem)] shrink-0 text-primary" />
-            <span className="shortcut-label max-w-full truncate px-1">{label}</span>
+            <Icon className="size-[clamp(1rem,35cqh,1.5rem)] shrink-0 text-primary" />
+            <span className="max-w-full truncate px-1">{label}</span>
           </Button>
         ))}
       </div>

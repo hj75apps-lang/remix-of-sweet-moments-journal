@@ -11,8 +11,8 @@
 
 <!-- LOVABLE:END -->
 
-- Radio uses separate plain/EQ audio; actual events own playback state so non-CORS stations stay audible.
-- Radio history is validated locally by the global player; rank filtered stations by confirmed 30-day time using normalized names while queues stay stable.
+- Radio uses plain audio plus separate CORS-enabled EQ audio; actual audio events own playback state, so controls stay accurate without silencing non-CORS stations.
+- Radio listening history is a validated local preference owned by the global player; rank filtered station lists by confirmed listening time over the last thirty days, using normalized names across catalog id changes and leaving next/previous queues stable.
 - Radio search uses mirror failover and verified offline catalog.
 - Radio discovery shares a parser: web server function; APK bounded RadioNetwork HTTPS without RPC/CORS; audio/EQ separate.
 - Weather data loads directly from Open-Meteo in the browser with a cached last-known forecast; location names use reverse geocoding with coordinate fallback.
@@ -45,4 +45,3 @@
 - OTA: RSA/Capgo/cold-start; Releases/Pages. Audit refs. Owner creates/backups keys off-repo; never expose/replace: trust depends on them.
 
 - Wallpaper provider owns preview/save; Android AtomicFile or web IndexedDB retains bounded images offline across updates. Capacitor picker needs no broad permissions.
-- Visual sizing uses validated launcher settings and category-scoped CSS variables; never scale the document or external/native Android UI.

@@ -80,16 +80,4 @@ describe("launcher preference validation", () => {
     expect(result.current.settings).toMatchObject({ buttonOpacity: 100, buttonColor: "#12abEF", brightness: 0.4 });
     expect(JSON.parse(localStorage.getItem("sal.launcher-settings") ?? "null")).toMatchObject({ data: { buttonOpacity: 100 } });
   });
-  it("keeps visual categories independent and restores them", () => {
-    const first = renderHook(useLauncherSettings, { wrapper });
-    act(() => first.result.current.update({ visual: { ...DEFAULT_SETTINGS.visual, appIconScale: 150, dockIconScale: 70, dockSpacing: 20 } }));
-    expect(first.result.current.settings.visual).toMatchObject({ appIconScale: 150, dockIconScale: 70, dockSpacing: 20, widgetIconScale: 100 });
-    first.unmount();
-    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings.visual).toMatchObject({ appIconScale: 150, dockIconScale: 70, dockSpacing: 20 });
-  });
-  it("migrates missing and invalid visual sizing without losing other settings", () => {
-    const { visual: _visual, ...legacy } = DEFAULT_SETTINGS;
-    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: { ...legacy, navApp: "waze", visual: { appIconScale: 999 } } }));
-    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings).toMatchObject({ navApp: "waze", visual: DEFAULT_SETTINGS.visual });
-  });
 });
