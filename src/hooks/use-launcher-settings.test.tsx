@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/services/launcher-system", () => ({ applyLauncherPrefs: vi.fn(async () => {}), setScreenBrightness: vi.fn(async () => {}) }));
 vi.mock("@/services/navigation-apps", () => ({ useNavigationApps: () => ({ apps: [], ready: false }) }));
-import { DEFAULT_SETTINGS, LauncherSettingsProvider, useLauncherSettings } from "./use-launcher-settings";
+import { DEFAULT_SETTINGS, DEFAULT_VISUAL_SIZING, LauncherSettingsProvider, useLauncherSettings } from "./use-launcher-settings";
 import { VEHICLE_ICONS } from "@/services/vehicle-icon";
 import { MAP_VIEWS } from "@/services/navigation-view";
 import { MAP_STYLES } from "@/services/navigation-map-style";
@@ -79,5 +79,25 @@ describe("launcher preference validation", () => {
     act(() => result.current.update({ buttonOpacity: Number.NaN, buttonColor: "#12abEF", brightness: 0.4 }));
     expect(result.current.settings).toMatchObject({ buttonOpacity: 100, buttonColor: "#12abEF", brightness: 0.4 });
     expect(JSON.parse(localStorage.getItem("sal.launcher-settings") ?? "null")).toMatchObject({ data: { buttonOpacity: 100 } });
+  });
+  it("persists independent visual sizes without changing unrelated preferences", () => {
+    const first = renderHook(useLauncherSettings, { wrapper });
+    act(() => first.result.current.update({
+      visualSizing: { ...first.result.current.settings.visualSizing, dockIcon: 120, clock: 75 },
+    }));
+    expect(first.result.current.settings).toMatchObject({
+      clock24h: true,
+      visualSizing: { dockIcon: 120, clock: 75, appsIcon: 100 },
+    });
+    first.unmount();
+    expect(renderHook(useLauncherSettings, { wrapper }).result.current.settings.visualSizing).toMatchObject({ dockIcon: 120, clock: 75 });
+  });
+  it("migrates old settings to default visual sizes and clamps invalid edits", () => {
+    const { visualSizing: _visualSizing, ...legacy } = DEFAULT_SETTINGS;
+    localStorage.setItem("sal.launcher-settings", JSON.stringify({ schema: 1, data: legacy }));
+    const { result } = renderHook(useLauncherSettings, { wrapper });
+    expect(result.current.settings.visualSizing).toEqual(DEFAULT_VISUAL_SIZING);
+    act(() => result.current.update({ visualSizing: { ...DEFAULT_VISUAL_SIZING, dockTouch: 500, appsIcon: 42 } }));
+    expect(result.current.settings.visualSizing).toMatchObject({ dockTouch: 120, appsIcon: 70 });
   });
 });

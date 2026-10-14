@@ -323,6 +323,7 @@ body {
 .shortcut-icon { transform: scale(var(--visual-shortcut-icon)); }
 .shortcut-label { font-size: calc(1em * var(--visual-shortcut-label)); }
 .widget-visual-content { font-size: calc(clamp(.7rem,2.5cqw + 2.5cqh,1rem) * var(--visual-widget-text)); }
+.widget-visual-content .lucide { scale: var(--visual-widget-icon); }
 .status-control-icon { transform: scale(var(--visual-status-icon)); }
 .settings-visual-scope h1, .settings-visual-scope h2, .settings-visual-scope h3, .settings-visual-scope legend { zoom: var(--visual-headings); }
 .settings-visual-scope p.text-muted-foreground, .settings-visual-scope span.text-muted-foreground { zoom: var(--visual-secondary-text); }
