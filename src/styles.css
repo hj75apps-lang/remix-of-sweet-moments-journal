@@ -67,6 +67,10 @@
 
 :root {
   --font-scale: 1rem;
+  --visual-home-app-icon: 1; --visual-home-app-label: 1; --visual-apps-icon: 1; --visual-apps-label: 1;
+  --visual-dock-icon: 1; --visual-dock-gap: 1; --visual-dock-touch: 1; --visual-headings: 1;
+  --visual-secondary-text: 1; --visual-settings-text: 1; --visual-clock: 1; --visual-date: 1;
+  --visual-widget-icon: 1; --visual-widget-text: 1; --visual-shortcut-icon: 1; --visual-shortcut-label: 1; --visual-status-icon: 1;
   --radius: 1.5rem;
   --background: oklch(0.13 0.005 260);
   --foreground: oklch(0.96 0.005 260);
@@ -297,15 +301,33 @@ body {
 
 /* Clock typography follows its card, not the viewport; keep short-card rules from shrinking it. */
 .widget-inner .clock-time {
-  font-size: min(32cqw, 72cqh);
+  font-size: calc(min(32cqw, 72cqh) * var(--visual-clock));
   line-height: 0.9;
 }
 .widget-inner .clock-time-12h {
-  font-size: min(23cqw, 72cqh);
+  font-size: calc(min(23cqw, 72cqh) * var(--visual-clock));
 }
 .widget-inner .clock-date {
-  font-size: min(4cqw, 12cqh, 1.125rem);
+  font-size: calc(min(4cqw, 12cqh, 1.125rem) * var(--visual-date));
 }
+
+/* Local visual sizing: defaults preserve the established launcher exactly. */
+.home-app-icon { transform: scale(var(--visual-home-app-icon)); }
+.home-app-label { font-size: calc(1em * var(--visual-home-app-label)); }
+.apps-icon { transform: scale(calc(3.2 * var(--visual-apps-icon))); }
+.apps-label { font-size: calc(.75rem * var(--visual-apps-label)); }
+.launcher-dock, .launcher-dock > div { gap: calc(.5rem * var(--visual-dock-gap)); }
+.dock-item { min-width: calc(2.75rem * var(--visual-dock-touch)); min-height: calc(2.75rem * var(--visual-dock-touch)); }
+.dock-icon { scale: var(--visual-dock-icon); }
+@media (min-width: 768px) { .dock-item { min-height: calc(3.5rem * var(--visual-dock-touch)); } }
+.shortcut-icon { transform: scale(var(--visual-shortcut-icon)); }
+.shortcut-label { font-size: calc(1em * var(--visual-shortcut-label)); }
+.widget-visual-content { font-size: calc(clamp(.7rem,2.5cqw + 2.5cqh,1rem) * var(--visual-widget-text)); }
+.widget-visual-content .lucide { scale: var(--visual-widget-icon); }
+.status-control-icon { transform: scale(var(--visual-status-icon)); }
+.settings-visual-scope h1, .settings-visual-scope h2, .settings-visual-scope h3, .settings-visual-scope legend { zoom: var(--visual-headings); }
+.settings-visual-scope p.text-muted-foreground, .settings-visual-scope span.text-muted-foreground { zoom: var(--visual-secondary-text); }
+.settings-visual-scope { font-size: calc(1rem * var(--visual-settings-text)); }
 
 :root {
   --weather-sun: oklch(0.86 0.18 85);

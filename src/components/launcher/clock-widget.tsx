@@ -18,7 +18,7 @@ export function ClockWidget() {
     >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col items-end justify-center gap-2 overflow-hidden text-right">
         <time
-          className={`clock-time ${settings.clock24h ? "" : "clock-time-12h"} block max-w-full whitespace-nowrap font-['Arial_Black','Arial',sans-serif] font-black tracking-normal tabular-nums`}
+          className={`clock-time visual-clock ${settings.clock24h ? "" : "clock-time-12h"} block max-w-full whitespace-nowrap font-['Arial_Black','Arial',sans-serif] font-black tracking-normal tabular-nums`}
           dateTime={now?.toISOString()}
         >
           {now?.toLocaleTimeString("pt-BR", {
@@ -28,7 +28,7 @@ export function ClockWidget() {
           }) ?? "--:--"}
         </time>
         <time
-          className="clock-date block max-w-full whitespace-normal font-medium leading-tight text-muted-foreground"
+          className="clock-date visual-date block max-w-full whitespace-normal font-medium leading-tight text-muted-foreground"
           dateTime={now ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}` : undefined}
         >
           {dateLabel}

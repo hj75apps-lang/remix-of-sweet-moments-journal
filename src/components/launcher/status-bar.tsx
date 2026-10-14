@@ -18,7 +18,7 @@ export function VoiceControlButton() {
             onClick={voice.show}
             aria-label={voice.listening ? "Ouvindo comando de voz" : "Ativar comando de voz"}
             title={voice.listening ? "Ouvindo…" : "Comando de voz"}
-            className="size-11 shrink-0 rounded-full md:mt-auto"
+            className="status-control-icon size-11 shrink-0 rounded-full md:mt-auto"
           >
             {voice.listening ? <Mic className="animate-pulse" /> : <MicOff />}
           </Button>
