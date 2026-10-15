@@ -25,18 +25,14 @@ const NavigationContext = createContext<NavigationContextState | null>(null);
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const { guidance, access } = useNavGuidance();
-  const [position, setPosition] = useState<VehiclePosition | null>(null);
-  const [locating, setLocating] = useState(true);
+  const [position, setPosition] = useState<VehiclePosition | null>(() => readMapPosition());
+  const [locating, setLocating] = useState<boolean>(() => !readMapPosition());
   const [online, setOnline] = useState(true);
   const [visible, setVisible] = useState(true);
   const [users, setUsers] = useState(0);
   const [connectTelemetry, setConnectTelemetry] = useState<NavigationConnectTelemetry | null>(null);
   const [tripVersion, setTripVersion] = useState(0);
   const lastFix = useRef(0);
-  useEffect(() => {
-    const saved = readMapPosition();
-    if (saved) { setPosition((current) => current ?? saved); setLocating(false); }
-  }, []);
   useEffect(() => onNavigationConnectTripChanged(() => setTripVersion((version) => version + 1)), []);
 
   const acquireLocation = useCallback(() => {
